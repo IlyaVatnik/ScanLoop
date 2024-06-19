@@ -272,7 +272,7 @@ class Ui_MainWindow(object):
         self.Toolbox.addItem(self.page, "")
         self.page_2 = QtWidgets.QWidget()
         self.page_2.setEnabled(True)
-        self.page_2.setGeometry(QtCore.QRect(0, 0, 283, 700))
+        self.page_2.setGeometry(QtCore.QRect(0, -103, 283, 700))
         self.page_2.setMinimumSize(QtCore.QSize(0, 700))
         self.page_2.setObjectName("page_2")
         self.tabWidget_instruments = QtWidgets.QTabWidget(self.page_2)
@@ -864,7 +864,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuTools.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.Toolbox.setCurrentIndex(1)
+        self.Toolbox.setCurrentIndex(4)
         self.tabWidget_instruments.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -1066,7 +1066,7 @@ class Ui_MainWindow(object):
         self.pushButton_analyzer_plot_single_spectrum.setText(_translate("MainWindow", "Plot"))
         self.pushButton_analyzer_save_single_spectrum.setText(_translate("MainWindow", "Save/Resave"))
         self.pushButton_analyzer_analyze_spectrum.setText(_translate("MainWindow", "Fit Lorenzian"))
-        self.pushButton_analyzer_quantum_numbers_fitter.setText(_translate("MainWindow", "Quantum numbers"))
+        self.pushButton_analyzer_quantum_numbers_fitter.setText(_translate("MainWindow", "Fit (q,p) resonances"))
         self.pushButton_analyzer_apply_FFT_filter_single_spectrum.setText(_translate("MainWindow", "Apply FFT filter"))
         self.pushButton_set_analyzer_parameters.setText(_translate("MainWindow", "Analyzer parameters"))
         self.pushButton_analyzer_choose_file_spectrogram.setText(_translate("MainWindow", "Spectrogram file"))
@@ -1083,3 +1083,13 @@ class Ui_MainWindow(object):
         self.action_delete_all_measured_spectral_data.setText(_translate("MainWindow", "Delete all measured spectral data"))
         self.action_delete_all_measured_spectral_data.setToolTip(_translate("MainWindow", "Delete all measured spectral data in SpetralData and SpectralBinData folders"))
         self.action_delete_all_measured_spectral_data.setShortcut(_translate("MainWindow", "Ctrl+."))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

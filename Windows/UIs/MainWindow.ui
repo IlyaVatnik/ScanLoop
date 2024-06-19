@@ -367,7 +367,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>4</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -844,7 +844,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-103</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -2842,7 +2842,7 @@
               </rect>
              </property>
              <property name="text">
-              <string>Quantum numbers</string>
+              <string>Fit (q,p) resonances</string>
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_analyzer_apply_FFT_filter_single_spectrum">

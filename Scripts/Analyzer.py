@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.6.10'
-__date__ = '2023.05.28'
+__version__ = '2.6.11'
+__date__ = '2024.05.30'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -111,10 +111,10 @@ class Analyzer(QObject):
                 self.__setattr__(key, d[key])
             except:
                 pass
-
         try:
             self.SNAP.R_0=d['fiber_radius']
         except:
+            
             pass
 
 
@@ -973,6 +973,9 @@ class Analyzer(QObject):
         self.plot_spectrogram()
         self.S_print.emit('Filter applied. New spectrogram plotted')
 
+   
+
+    
     def run_quantum_numbers_fitter(self):
         self.S_print.emit('start finding quantum numbers...')
         axes = self.single_spectrum_figure.gca()
@@ -992,8 +995,8 @@ class Analyzer(QObject):
                                                 dispersion=self.quantum_numbers_fitter_dispersion,
                                                 polarization=self.quantum_numbers_fitter_polarizations,
                                                 type_of_optimizer=self.quantum_numbers_fitter_type_of_optimizer,
-                                                temperature=self.temperature, vary_temperature=self.quantum_numbers_fitter_vary_temperature,
-                                                R_min=self.quantum_numbers_fitter_R_min,R_max=self.quantum_numbers_fitter_R_max,
+                                                temperature=self.temperature, vary_temperature=self.quantum_numbers_fitter_vary_temperature,temperature_range=self.temperature_range,
+                                                R_0=self.quantum_numbers_R_0,R_range=self.quantum_numbers_fitter_R_range,
                                                 type_of_cavity=self.quantum_numbers_fitter_type_of_cavity)
         axes.plot(fitter.exp_resonances,
                   fitter.signal[fitter.resonances_indexes], '.')
@@ -1007,16 +1010,21 @@ class Analyzer(QObject):
 
         print('N_exp=%d , N_th=%d,R=%f,p_max=%d, cost_function=%f' % (len(fitter.exp_resonances),
               fitter.th_resonances.N_of_resonances['Total'], fitter.R_best, fitter.p_best, fitter.cost_best))
-        plt.figure()
-        if fitter.vary_temperature:
-            plt.pcolor(fitter.T_array, fitter.R_array,
-                       fitter.cost_function_array, norm=LogNorm())
-            plt.title('cost function VS R and T')
-            plt.colorbar()
-        else:
-            plt.plot(fitter.R_array, fitter.cost_function_array[:, 0])
-            plt.gca().set_yscale('log')
-            plt.title('cost function VS R')
+        if self.quantum_numbers_fitter_type_of_optimizer!='None':
+            plt.figure()
+            if fitter.vary_temperature:
+                plt.pcolor(fitter.T_array, fitter.R_array,
+                           fitter.cost_function_array, norm=LogNorm())
+                plt.title('cost function VS R and T')
+                plt.xlabel('Temperature, C')
+                plt.ylabel('Radius, nm')
+                plt.colorbar()
+            else:
+                plt.plot(fitter.R_array, fitter.cost_function_array[:, 0])
+                plt.gca().set_yscale('log')
+                plt.title('cost function VS R')
+                plt.xlabel('Radius, nm')
+                plt.ylabel('Cost function')
 
         '''
             Запись в файл для дальнейшего пользования

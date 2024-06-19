@@ -6,8 +6,8 @@
 #See formula A3 for lambda_m_p
 ########
 
-__version__='3.9'
-__date__='2023.01.22'
+__version__='4.0'
+__date__='2024.05.29'
 
  
 import numpy as np
@@ -77,7 +77,9 @@ def RefInd(w, medium, T, sellmeier_coeffs): # refractive index for quarzt versus
 
 def airy_zero(p):
     t=[-2.338107410459767038489,-4.087949444130970616637,-5.52055982809555105913,-6.78670809007175899878,
-       -7.944133587120853123138,-9.022650853340980380158,-10.0401743415580859306,-11.00852430373326289324,-11.93601556,-12.82877675,-13.69148904]
+       -7.944133587120853123138,-9.022650853340980380158,-10.0401743415580859306,-11.00852430373326289324,-11.93601556,-12.82877675,-13.69148904,
+       -14.52782995,-15.34075514,-16.13268516, -16.905634  , -17.66130011,
+       -18.4011326 , -19.12638047, -19.83812989, -20.53733291]
     return t[p-1]
 
 # @jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
@@ -307,8 +309,8 @@ class Fitter():
     def __init__(self,
                  wavelengths,signal,peak_depth,peak_distance,wave_min=None,wave_max=None,
                  p_guess_array=None,dispersion=True,type_of_cavity='cylinder',polarization='both',
-                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20,vary_temperature=False,
-                 R_min=R_MIN, R_max=R_MAX):
+                 FFT_filter=False, type_of_optimizer='bruteforce', temperature=20,vary_temperature=False, temperature_range=10,
+                 R_0=62.5, R_range=1):
         
         p_guess_max=5
         
@@ -320,6 +322,7 @@ class Fitter():
             self.wave_max=wave_max
         else:
             self.wave_max=max(wavelengths)
+        
         
         index_min=np.argmin(abs(wavelengths-self.wave_min))
         index_max=np.argmin(abs(wavelengths-self.wave_max))
@@ -335,11 +338,14 @@ class Fitter():
         self.type_of_optimizer=type_of_optimizer
         self.type_of_cavity=type_of_cavity
         
+        self.temperature=temperature
         self.vary_temperature=vary_temperature
         
-        self.R_array=np.arange(R_min, R_max, R_step)
+        self.R_0=R_0
+        self.R_array=np.arange((R_0-R_range/2)*1e3, (R_0+R_range/2)*1e3, R_step)
+        
         if vary_temperature:
-            self.T_array=np.arange(T_MIN,T_MAX, T_step)
+            self.T_array=np.arange((temperature-temperature_range/2),(temperature+temperature_range/2), T_step)
         else:
             self.T_array=np.array(temperature,ndmin=1)
         self.cost_function_array=None
@@ -351,6 +357,7 @@ class Fitter():
             self.p_guess_array=p_guess_array
         else:
             self.p_guess_array=np.arange(1,p_guess_max)
+            
         
     def run(self, figure, ax):
         '''
@@ -358,13 +365,21 @@ class Fitter():
         '''
         for p in self.p_guess_array:
             if self.type_of_optimizer=='Nelder-Mead':
-                res=sciopt.minimize(self.cost_function,((1.4445,62.5e3)),bounds=((1.443,1.4447),(R_min,R_max)),
+                res=sciopt.minimize(self.cost_function,((1.4445,self.R_array[0])),bounds=((1.443,1.4447),(self.R_array[0],self.R_array[-1])),
                             args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
             elif self.type_of_optimizer=='bruteforce':
                 res = bruteforce_optimizer(self.cost_function, figure, ax,
                                           (p, REFRACTION),
                                           self.R_array, 
                                           self.T_array)
+            elif self.type_of_optimizer=='None':
+                res={}
+                x=(REFRACTION,self.R_0*1e3,self.temperature)
+                cost_f=self.cost_function(x, p)
+                res['x']=x
+                res['fun']=cost_f
+                res['cost_function_array']=cost_f
+                
             
             # print(f'p = {res}')
             if res['fun']<self.cost_best:
@@ -374,7 +389,7 @@ class Fitter():
                 self.T_best = res['x'][2]
                 self.p_best = p
                 self.cost_function_array=res['cost_function_array']
-        self.th_resonances=Resonances(self.wave_min, self.wave_max,
+            self.th_resonances=Resonances(self.wave_min, self.wave_max,
                                       self.n_best, self.R_best, self.p_best,
                                       self.material_dispersion, type_of_cavity=self.type_of_cavity,temperature=self.T_best)
         

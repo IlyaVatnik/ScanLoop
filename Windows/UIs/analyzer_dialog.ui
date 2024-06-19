@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>597</width>
-    <height>578</height>
+    <width>641</width>
+    <height>668</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>540</x>
+     <x>580</x>
      <y>10</y>
      <width>51</width>
      <height>241</height>
@@ -34,8 +34,8 @@
     <rect>
      <x>10</x>
      <y>0</y>
-     <width>521</width>
-     <height>561</height>
+     <width>551</width>
+     <height>631</height>
     </rect>
    </property>
    <property name="title">
@@ -45,8 +45,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>70</y>
-      <width>501</width>
+      <y>90</y>
+      <width>531</width>
       <height>81</height>
      </rect>
     </property>
@@ -254,8 +254,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>320</y>
-      <width>501</width>
+      <y>360</y>
+      <width>531</width>
       <height>50</height>
      </rect>
     </property>
@@ -363,9 +363,9 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>380</y>
-      <width>501</width>
-      <height>161</height>
+      <y>420</y>
+      <width>531</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -399,7 +399,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="text">
-      <string>3</string>
+      <string>5</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -492,6 +492,11 @@ p, li { white-space: pre-wrap; }
        <string>Nelder-Mead</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>None</string>
+      </property>
+     </item>
     </widget>
     <widget class="QLabel" name="label_42">
      <property name="geometry">
@@ -519,7 +524,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="text">
-      <string>20</string>
+      <string>25</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -582,62 +587,30 @@ p, li { white-space: pre-wrap; }
     <widget class="QLabel" name="label_44">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>120</y>
-       <width>41</width>
-       <height>21</height>
+       <x>10</x>
+       <y>150</y>
+       <width>51</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R_max&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R range, mkm&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLabel" name="label_45">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>90</y>
-       <width>41</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R_min&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_R_min">
+    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_R_range">
      <property name="geometry">
       <rect>
        <x>80</x>
-       <y>90</y>
+       <y>150</y>
        <width>61</width>
        <height>21</height>
       </rect>
      </property>
      <property name="text">
-      <string>61500</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_R_max">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>120</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>63500</string>
+      <string>1</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -706,13 +679,80 @@ p, li { white-space: pre-wrap; }
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QLabel" name="label_47">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>61</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Temperature range&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_temperature_range">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>80</y>
+       <width>61</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>10</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_20">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>41</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R&lt;span style=&quot; vertical-align:sub;&quot;&gt;0&lt;/span&gt;, mkm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_quantum_numbers_R_0">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>116</y>
+       <width>61</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string comment="Set 0 if need auto" extracomment="Set 0 if need auto"/>
+     </property>
+     <property name="text">
+      <string>62.5</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_13">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
-      <width>501</width>
+      <y>40</y>
+      <width>531</width>
       <height>50</height>
      </rect>
     </property>
@@ -772,8 +812,8 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
-      <width>501</width>
+      <y>180</y>
+      <width>531</width>
       <height>161</height>
      </rect>
     </property>
@@ -836,7 +876,7 @@ p, li { white-space: pre-wrap; }
       <rect>
        <x>170</x>
        <y>10</y>
-       <width>311</width>
+       <width>341</width>
        <height>91</height>
       </rect>
      </property>
@@ -1048,38 +1088,38 @@ p, li { white-space: pre-wrap; }
       <string>derive C,D,Gamma</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_19">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R&lt;span style=&quot; vertical-align:sub;&quot;&gt;0&lt;/span&gt;, mkm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_fiber_radius">
-     <property name="geometry">
-      <rect>
-       <x>60</x>
-       <y>56</y>
-       <width>71</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string comment="Set 0 if need auto" extracomment="Set 0 if need auto"/>
-     </property>
-     <property name="text">
-      <string>62.5</string>
-     </property>
-    </widget>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_fiber_radius">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>16</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string comment="Set 0 if need auto" extracomment="Set 0 if need auto"/>
+    </property>
+    <property name="text">
+     <string>62.5</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_19">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>10</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R&lt;span style=&quot; vertical-align:sub;&quot;&gt;0&lt;/span&gt;, mkm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
    </widget>
   </widget>
  </widget>

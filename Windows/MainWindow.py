@@ -311,6 +311,8 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
+
+        
         self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrogram())
         
         self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
@@ -1414,9 +1416,12 @@ def get_widget_values(window)->dict:
         key=w.objectName().split('lineEdit_')[1]
         try:
             f=int(s)
+            
         except ValueError:
+            
             try:
                 f=float(s)
+                
             except ValueError:
                 f=s
         D[key]=f

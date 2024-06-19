@@ -25,13 +25,13 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from numba import jit
 
-delta_c=6e6 # 2*pi*Hz
-delta_0=20e6 # 2*pi*Hz
+delta_c=10e6 # 2*pi*Hz
+delta_0=10e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 n=1.445
 
-length=65 # micron
+length=50 # micron
 R_0=62.5 #micron
 delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
@@ -61,7 +61,8 @@ n2=3.2e-20 #m**2/W
 
 # absorption=6.65e12/4.343 * np.exp(-52.62/(lambda_0*1e-3))/1e6 # 1/m, after (10.7) Gorodetsky
 # absorption=1e-3*1e2
-absorption=5e-4*1e2 # 1/m
+# absorption=5e-4*1e2 # 1/m
+absorption=1550/62500 # 1/m
 
 epsilon_0=8.85e-12 # F/m
 int_psi_4_by_int_psi_2=0.7 # for gaussian distribution
