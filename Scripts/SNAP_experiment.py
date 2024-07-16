@@ -8,8 +8,8 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.9.0'
-__date__='2023.08.16'
+__version__='11.9.1'
+__date__='2024.07.16'
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -53,11 +53,11 @@ class SNAP():
             self.signal=signal
             self.jones_matrixes_array=None
             self.jones_matrixes_used=False
-            self.type_of_signal=None
+            self.type_of_signal='insertion losses'
         else:
             self.signal=None
             self.jones_matrixes_used=True
-            self.type_of_signal=None
+            self.type_of_signal='insertion losses'
         
         self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
         self.signal_scale='log'
@@ -137,14 +137,17 @@ class SNAP():
             if signal_type=='insertion losses':
                 self.type_of_signal='insertion losses'
                 self.signal=self.get_IL()
+            if signal_type=='group delay':
+                    self.type_of_signal='group delay'
+                    self.signal=self.get_group_delay()
             elif signal_type=='chromatic dispersion':
                 self.type_of_signal='chromatic dispersion'
                 self.signal=self.get_chromatic_dispersion()
-            elif signal_type=='first polarization':
-                self.type_of_signal='first polarization'
+            elif signal_type=='first polarization IL':
+                self.type_of_signal='first polarization IL'
                 self.signal,_=self.get_min_max_losses()
-            elif signal_type=='second polarization':
-                self.type_of_signal='second polarization'
+            elif signal_type=='second polarization IL':
+                self.type_of_signal='second polarization IL'
                 _,self.signal=self.get_min_max_losses()
                 
                 
@@ -166,13 +169,14 @@ class SNAP():
         group delay, in ps
         '''
         delta_lambda=self.wavelengths[1]-self.wavelengths[0] # in nm
-        delta_nu=3e8/delta_lambda # in ns
+        delta_nu=3e8/self.wavelengths[1]**2 * delta_lambda # in ns
         signal=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
         for ii in range(self.jones_matrixes_array.shape[1]): 
             vector=self.jones_matrixes_array[:,ii,:,:]
             temp=np.angle(vector[1:,0,0]*vector[:-1,0,0].conj()+vector[1:,1,0]*vector[:-1,1,0].conj()+
                           vector[1:,0,1]*vector[:-1,0,1].conj()+vector[1:,1,1]*vector[:-1,1,1].conj())
             temp[np.where(temp<0)]+=np.pi*2
+            print(delta_lambda,delta_nu)
             temp2=np.concatenate(([np.nanmean(temp)],temp))/(2*np.pi*delta_nu)*1e3     
             signal[:,ii]=temp2
         return signal
@@ -643,11 +647,11 @@ if __name__ == "__main__":
     # os.chdir('..')
     # import Scripts.SNAP_experiment
     
-    from  Unpickling_proper_modules import renamed_load
+    # from  Unpickling_proper_modules import renamed_load
     
-    f=r"C:\Users\Илья\Desktop\линейная модификация_resaved_resaved_resaved.SNAP"
+    f=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\SpectralBinData\Sp_p=1_j=0_X=22500.0_Y=4997.5_Z=1500.0_.bin"
     with open(f,'rb') as file:
-        S=renamed_load(file)
+        S=pickle.load(file)
         # S=renamed_load(file)
     a=S.extract_ERV(lambda_0_for_ERV=1553.34,find_widths=False)
     # #%%

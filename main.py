@@ -3,8 +3,8 @@ from Windows.MainWindow import MainWindow
 from PyQt5 import QtWidgets
 from packaging import version
 import sys
-__version__ = '20.5.1'
-__date__ = '2024.05.29'
+__version__ = '20.5.2'
+__date__ = '2024.07.16'
 
 
 # from conda import __version__ as condaVersion
@@ -12,7 +12,7 @@ __date__ = '2024.05.29'
 
 def main():
     if not QtWidgets.QApplication.instance():
-        app = QtWidgets.QApplication(sys.argv)
+        app = QtWidgets.QApplication(sys.argv) 
     else:
         app = QtWidgets.QApplication.instance()
     main_app = MainWindow(version=__version__, date=__date__)

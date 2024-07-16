@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.6.11'
-__date__ = '2024.05.30'
+__version__ = '2.6.12'
+__date__ = '2024.07.09'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -512,7 +512,7 @@ class Analyzer(QObject):
                     else:
                         clb.ax.set_title('dB')
                 if p['title']:
-                    plt.title('experiment')
+                    plt.title(self.SNAP.type_of_signal)
                 try:
                     ax_steps.set_xlabel('Position, steps')
                 except:
@@ -540,7 +540,7 @@ class Analyzer(QObject):
                     else:
                         clb.ax.set_title('дБ')
                 if p['title']:
-                    plt.title('эксперимент')
+                    plt.title(self.SNAP.type_of_signal)
                 try:
                     ax_steps.set_xlabel('Расстояние, шаги')
                 except:
@@ -584,13 +584,21 @@ class Analyzer(QObject):
         ax.grid(which='minor', linestyle=':', linewidth='0.1', color='black')
         
         plt.plot(self.SNAP.wavelengths, self.SNAP.signal[:, index])
-
-        if p['language'] in ['eng', 'en']:
-            plt.xlabel('Wavelength, nm')
-            plt.ylabel('Spectral power density, dBm')
-        elif p['language'] == 'ru':
-            plt.xlabel('Длина волны, нм')
-            plt.ylabel('Спектральная плотность мощности, дБм')
+        
+        if self.SNAP.type_of_signal in ['insertion losses','first polarization IL','second polarization IL']:
+            if p['language'] in ['eng', 'en']:
+                plt.xlabel('Wavelength, nm')
+                plt.ylabel('Spectral power density, dBm')
+            elif p['language'] == 'ru':
+                plt.xlabel('Длина волны, нм')
+                plt.ylabel('Спектральная плотность мощности, дБм')
+        elif self.SNAP.type_of_signal=='group delay':
+            if p['language'] in ['eng', 'en']:
+                plt.xlabel('Wavelength, nm')
+                plt.ylabel('Group delay, ps')
+            elif p['language'] == 'ru':
+                plt.xlabel('Длина волны, нм')
+                plt.ylabel('Групповая задержка, пс')
         self.single_spectrum_figure = fig
         plt.tight_layout()
         return fig

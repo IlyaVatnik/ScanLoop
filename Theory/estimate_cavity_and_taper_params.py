@@ -8,8 +8,8 @@ Created on Sun Dec 18 01:39:35 2022
 following paper of Kolesnikova 
 """
 
-__version__='2.1'
-__date__='2023.03.14'
+__version__='2.2'
+__date__='2024.07.10'
 
 import numpy as np
 import pickle
@@ -106,9 +106,16 @@ def estimate_params(file):
     shifts=-shifts*2*np.pi*c/lambda_0**2 *1e3 # 1/mks
     
     ind_nan=np.argwhere(np.isnan(delta_c))
+    
+    # ind_nan=[]
+    # for i in range(len(delta_c)):
+    #     if np.isnan(delta_c[i])==True:
+    #         ind_nan.append(i)
+    
     ind_high_delta_c_errors=np.argwhere(delta_c_errors/delta_c>max_allowed_error)
     ind_high_delta_0_errors=np.argwhere(delta_0_errors/delta_0>max_allowed_error)
-    if delete_unreliable_data:
+    
+    if delete_unreliable_data==False:
         ind_to_delete = np.unique(np.concatenate((ind_nan,ind_high_delta_c_errors,ind_high_delta_0_errors)))
     else:
         ind_to_delete=ind_nan

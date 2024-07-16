@@ -793,17 +793,22 @@ p, li { white-space: pre-wrap; }
      </item>
      <item>
       <property name="text">
+       <string>group delay</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>chromatic dispersion</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>first polarization</string>
+       <string>first polarization IL</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>second polarization</string>
+       <string>second polarization IL</string>
       </property>
      </item>
     </widget>
