@@ -501,9 +501,15 @@ class MainWindow(ThreadedMainWindow):
             if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
                 from Hardware.MyStanda import StandaStages
                 self.stages=StandaStages()
-            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs':
+            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (Cube+NRT100)':
                 import Hardware.MyThorlabsStages
                 self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
+                self.ui.pushButton_MovePlusY.setEnabled(False)
+                self.ui.pushButton_MoveMinusY.setEnabled(False)
+                
+            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (2 Cubes)':
+                import Hardware.ThorlabsStages_2_Cubes
+                self.stages=Hardware.ThorlabsStages_2_Cubes.ThorlabsStages_2_Cubes()
                 self.ui.pushButton_MovePlusY.setEnabled(False)
                 self.ui.pushButton_MoveMinusY.setEnabled(False)
             elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':

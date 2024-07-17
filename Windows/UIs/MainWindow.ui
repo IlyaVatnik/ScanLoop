@@ -402,9 +402,9 @@
               <widget class="QPushButton" name="pushButton_StagesConnect">
                <property name="geometry">
                 <rect>
-                 <x>110</x>
+                 <x>130</x>
                  <y>23</y>
-                 <width>91</width>
+                 <width>71</width>
                  <height>23</height>
                 </rect>
                </property>
@@ -418,9 +418,9 @@
               <widget class="QPushButton" name="pushButton_scope_connect">
                <property name="geometry">
                 <rect>
-                 <x>110</x>
+                 <x>130</x>
                  <y>52</y>
-                 <width>91</width>
+                 <width>71</width>
                  <height>23</height>
                 </rect>
                </property>
@@ -448,10 +448,13 @@
                <property name="geometry">
                 <rect>
                  <x>10</x>
-                 <y>24</y>
-                 <width>91</width>
+                 <y>23</y>
+                 <width>111</width>
                  <height>20</height>
                 </rect>
+               </property>
+               <property name="sizeAdjustPolicy">
+                <enum>QComboBox::AdjustToMinimumContentsLength</enum>
                </property>
                <item>
                 <property name="text">
@@ -460,7 +463,12 @@
                </item>
                <item>
                 <property name="text">
-                 <string>2x Thorlabs</string>
+                 <string>2x Thorlabs (Cube+NRT100)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2x Thorlabs  (2 Cubes)</string>
                 </property>
                </item>
                <item>
@@ -844,7 +852,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-103</y>
+             <y>0</y>
              <width>283</width>
              <height>700</height>
             </rect>
