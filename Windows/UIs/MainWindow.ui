@@ -367,7 +367,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>4</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page">
            <property name="geometry">
@@ -468,7 +468,7 @@
                </item>
                <item>
                 <property name="text">
-                 <string>2x Thorlabs  (2 Cubes)</string>
+                 <string>2x Thorlabs (2 Cubes)</string>
                 </property>
                </item>
                <item>
@@ -853,7 +853,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>98</width>
              <height>700</height>
             </rect>
            </property>
@@ -1826,8 +1826,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>597</height>
+             <width>98</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2356,8 +2356,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>597</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <attribute name="label">

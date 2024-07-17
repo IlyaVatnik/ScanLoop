@@ -36,11 +36,11 @@ from ctypes import (
 if __name__ == "__main__":
     os.chdir('..')
 from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
-    
+
 
 
 kdc_encoder_step=0.03 # micron per step
-tolerance_kdc=0.2 #  um 
+tolerance_kdc=0.5 #  um 
 
 
 class ThorlabsStages_2_Cubes(QObject):
@@ -55,7 +55,7 @@ class ThorlabsStages_2_Cubes(QObject):
     def __init__(self):
         super().__init__()
         
-        
+        self.isConnected=0
         self._short_pause=0.11
         self._serial_no_x = c_char_p(bytes("27255020", "utf-8"))
         self.milliseconds = c_int(100)
@@ -65,21 +65,17 @@ class ThorlabsStages_2_Cubes(QObject):
         time.sleep(self._short_pause)
         if err==0:
             print('connected to 27255020 ')
-            self.isConnected=1
             time.sleep(self._short_pause)
             self.abs_position['X']=self.get_position('X')
             kdc.CC_SetHomingVelocity(self._serial_no_x,c_uint(2))
         else:
             print('Error: not connected to 27255020 ')
-        self._serial_no_z = c_char_p(bytes("70864299", "utf-8"))
-       
+            
         self._short_pause=0.11
       
         self._serial_no_z = c_char_p(bytes("27254353", "utf-8"))
-        self.milliseconds = c_int(100)
-        kdc.TLI_BuildDeviceList()
         # kdc.CC_StartPolling(self._serial_no_x, milliseconds)
-        err=kdc.CC_Open(self._serial_no_x)
+        err=kdc.CC_Open(self._serial_no_z)
         time.sleep(self._short_pause)
         if err==0:
             print('connected to 27254353 ')
@@ -89,6 +85,7 @@ class ThorlabsStages_2_Cubes(QObject):
             kdc.CC_SetHomingVelocity(self._serial_no_x,c_uint(2))
         else:
             print('Error: not connected to 27254353 ')
+            self.isConnected=0
   
 
 
@@ -187,7 +184,7 @@ class ThorlabsStages_2_Cubes(QObject):
             kdc.CC_StartPolling(self._serial_no_z, self.milliseconds)
             kdc.CC_ClearMessageQueue(self._serial_no_z)
             time.sleep(self._short_pause)
-            init_pos=self.get_position('X')
+            init_pos=self.get_position('Z')
             distance_in_steps=int(distance/kdc_encoder_step)
             kdc.CC_SetMoveRelativeDistance(self._serial_no_z, c_int(distance_in_steps))
             kdc.CC_MoveRelativeDistance(self._serial_no_z)
@@ -196,7 +193,7 @@ class ThorlabsStages_2_Cubes(QObject):
             if blocking:
                 diff=1000
                 while abs(diff)>tolerance_kdc:
-                    pos= self.get_position('X')
+                    pos= self.get_position('Z')
                     diff=pos-new_pos
             kdc.CC_StopPolling(self._serial_no_z)  
             
@@ -204,7 +201,6 @@ class ThorlabsStages_2_Cubes(QObject):
         time.sleep(self._short_pause)
         self.abs_position[key]=self.get_position(key)
         self.update_relative_positions()
-        print('stage moved')
         self.stopped.emit()
             
     def shiftAbsolute(self, key:str, move_to:int):

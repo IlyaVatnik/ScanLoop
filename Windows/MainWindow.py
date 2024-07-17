@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.16'
-__date__='2023.05.15'
+__version__='20.6.17'
+__date__='2023.07.17'
 
 import os
 if __name__=='__main__':
@@ -508,8 +508,8 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_MoveMinusY.setEnabled(False)
                 
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (2 Cubes)':
-                import Hardware.ThorlabsStages_2_Cubes
-                self.stages=Hardware.ThorlabsStages_2_Cubes.ThorlabsStages_2_Cubes()
+                import Hardware.MyThorlabsStages_2_Cubes
+                self.stages=Hardware.MyThorlabsStages_2_Cubes.ThorlabsStages_2_Cubes()
                 self.ui.pushButton_MovePlusY.setEnabled(False)
                 self.ui.pushButton_MoveMinusY.setEnabled(False)
             elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
