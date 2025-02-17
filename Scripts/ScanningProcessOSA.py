@@ -97,9 +97,16 @@ class ScanningProcess(QObject):
 
     def set_axes(self): # set axis depending on choice in MainWindow
         s=self.scanning_type
+        # try:
         self.axis_to_get_contact=s.split(', get contact along ')[1]
         
         self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
+        # except IndexError:
+        #     if 'Nano' in s:
+        #         self.axis_to_scan='Nano'
+        #         self.axis_to_get_contact=None
+        #     else:
+        #         self.S_print_error.emit('\n Scanning directions are badly defined \n')
        
 
     def set_OSA_to_Searching_Contact_State(self): #set rough resolution and narrowband span

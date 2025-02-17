@@ -25,15 +25,15 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from numba import jit
 
-delta_c=10e6 # 2*pi*Hz
-delta_0=10e6 # 2*pi*Hz
+delta_c=0.5e7 # 2*pi*Hz
+delta_0=1e7 # 2*pi*Hz
 lambda_0=1550 # nm
 
 n=1.445
 
-length=50 # micron
+length=300 # micron
 R_0=62.5 #micron
-delta_theta=1/3 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
+delta_theta=1 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
 
 P_in=0.05 # W
@@ -62,7 +62,7 @@ n2=3.2e-20 #m**2/W
 # absorption=6.65e12/4.343 * np.exp(-52.62/(lambda_0*1e-3))/1e6 # 1/m, after (10.7) Gorodetsky
 # absorption=1e-3*1e2
 # absorption=5e-4*1e2 # 1/m
-absorption=1550/62500 # 1/m
+absorption=0.028 # 1/m
 
 epsilon_0=8.85e-12 # F/m
 int_psi_4_by_int_psi_2=0.7 # for gaussian distribution
@@ -222,15 +222,15 @@ if __name__=='__main__':
     r_min=R*0.8
     r_max=R*1.1
     
-    Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=1))**2
-    plt.plot(Rarray,Intenisty_TM_Array)
+    # Rarray=np.arange(r_min,r_max,step)
+    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=1))**2
+    # plt.plot(Rarray,Intenisty_TM_Array)
     
     
-    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=2))**2
-    plt.plot(Rarray,Intenisty_TM_Array)
+    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=2))**2
+    # plt.plot(Rarray,Intenisty_TM_Array)
     
     
-    Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=5))**2
-    plt.plot(Rarray,Intenisty_TM_Array)
+    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=5))**2
+    # plt.plot(Rarray,Intenisty_TM_Array)
     

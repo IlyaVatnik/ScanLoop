@@ -3,11 +3,12 @@ from Windows.MainWindow import MainWindow
 from PyQt5 import QtWidgets
 from packaging import version
 import sys
-__version__ = '20.6.2'
-__date__ = '2024.07.17'
+__version__ = '20.6.3'
+__date__ = '2025.02.17'
 
 
 # from conda import __version__ as condaVersion
+
 
 
 def main():

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.17'
-__date__='2023.07.17'
+__version__='20.6.18'
+__date__='2025.02.17'
 
 import os
 if __name__=='__main__':
@@ -15,7 +15,8 @@ import json
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
 
-from Common.Consts import Consts
+import importlib
+import Common.Consts
 from Hardware.Config import Config
 from Hardware.PiezoStageE53D_serial import PiezoStage
 
@@ -317,13 +318,21 @@ class MainWindow(ThreadedMainWindow):
         
         self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
             self.choose_single_spectrum_file_for_analyzer)
-        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure))
-        self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
+        self.ui.pushButton_analyzer_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum(self.analyzer.single_spectrum_figure) 
+                                                                     if (self.analyzer.single_spectrum_figure is not None) else
+                                                                     self.analyzer.analyze_spectrum(self.painter.figure))
+        
+        # self.ui.pushButton_analyze_spectrum.clicked.connect(lambda: self.analyzer.analyze_spectrum( self.painter.figure))  
         self.ui.pushButton_analyzer_apply_FFT_filter_single_spectrum.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrum(self.analyzer.single_spectrum_figure))
         self.ui.pushButton_analyzer_save_single_spectrum.clicked.connect(self.analyzer.save_single_spectrum)        
         self.ui.pushButton_analyzer_resave_SNAP.clicked.connect(lambda : self.analyzer.resave_SNAP(self.ui.comboBox_analyzer_resave_type.currentText()))        
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         self.ui.pushButton_delete_slice.clicked.connect(self.delete_slice_from_spectrogram)
+        
+        self.ui.pushButton_analyzer_fit_oscillogram.clicked.connect(lambda: self.analyzer.analyze_oscillogram(self.analyzer.single_spectrum_figure) 
+                                                                     if (self.analyzer.single_spectrum_figure is not None) else
+                                                                     self.analyzer.analyze_oscillogram(self.painter.figure))
+        
         
         
         
@@ -359,18 +368,21 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
+        
+        importlib.reload(Common.Consts)
+        
         interface='new'
         try:
             if interface=='new':
                 if self.ui.comboBox_type_of_scope.currentText()=='Keysight 4GHz':
                     from Hardware.scope import Scope
-                    self.scope = Scope(Consts.Scope.HOST, protocol = 'inst0') # or Consts.Scope.NAME
+                    self.scope = Scope(Common.Consts.Scope.HOST, protocol = 'inst0') # or Common.Consts.Scope.NAME
                 elif self.ui.comboBox_type_of_scope.currentText()=='Rigol':
                     from Hardware.scope_rigol import Scope
-                    self.scope=Scope(Consts.Scope_Rigol.HOST)
+                    self.scope=Scope(Common.Consts.Scope_Rigol.HOST)
             elif interface=='old':
                 from Hardware.KeysightOscilloscope import Scope
-                self.scope=Scope(Consts.Scope.HOST)
+                self.scope=Scope(Common.Consts.Scope.HOST)
             self.add_thread([self.scope])
             self.scope.received_data.connect(self.painter.set_data)
             self.ui.tabWidget_instruments.setEnabled(True)
@@ -427,10 +439,10 @@ class MainWindow(ThreadedMainWindow):
         try:
             if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
                 from Hardware.ova5000 import Luna
-                self.OSA=Luna(port=Consts.LUNA.PORT)  
+                self.OSA=Luna(port=Common.Consts.LUNA.PORT)  
             if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
                 from Hardware.YokogawaOSA import OSA_AQ6370
-                HOST = Consts.Yokogawa.HOST
+                HOST = Common.Consts.Yokogawa.HOST
                 PORT = 10001
                 timeout_short = 0.2
                 timeout_long = 100
@@ -442,11 +454,11 @@ class MainWindow(ThreadedMainWindow):
                 self.repeatmode=False
                 self.OSA = Interrogator(
                     parent=None,
-                    host=Consts.Interrogator.HOST,
-                    command_port=Consts.Interrogator.COMMAND_PORT,
-                    data_port=Consts.Interrogator.DATA_PORT,
-                    short_timeout=Consts.Interrogator.SHORT_TIMEOUT,
-                    long_timeout=Consts.Interrogator.LONG_TIMEOUT,
+                    host=Common.Consts.Interrogator.HOST,
+                    command_port=Common.Consts.Interrogator.COMMAND_PORT,
+                    data_port=Common.Consts.Interrogator.DATA_PORT,
+                    short_timeout=Common.Consts.Interrogator.SHORT_TIMEOUT,
+                    long_timeout=Common.Consts.Interrogator.LONG_TIMEOUT,
                     config=cfg.config["channels"])
     
                 self.ui.comboBox_interrogatorChannel.currentIndexChanged.connect(
@@ -458,7 +470,7 @@ class MainWindow(ThreadedMainWindow):
     
             elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
                 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
-                self.OSA = APEX_OSA_with_additional_features(Consts.APEX.HOST)
+                self.OSA = APEX_OSA_with_additional_features(Common.Consts.APEX.HOST)
                 self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
                 self.ui.comboBox_APEX_mode.setEnabled(True)
                 self.ui.pushButton_APEX_TLS.setEnabled(True)
@@ -631,7 +643,7 @@ class MainWindow(ThreadedMainWindow):
         '''
         try:
             from Hardware import ThorlabsPM100
-            self.powermeter=ThorlabsPM100.PowerMeter(Consts.Powermeter.SERIAL_NUMBER)
+            self.powermeter=ThorlabsPM100.PowerMeter(Common.Consts.Powermeter.SERIAL_NUMBER)
             if self.powermeter is not None:
                 self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
                 self.ui.pushButton_powermeter_graph.setEnabled(True)

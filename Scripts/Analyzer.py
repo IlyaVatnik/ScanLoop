@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.6.12'
-__date__ = '2024.07.09'
+__version__ = '2.7.1'
+__date__ = '2025.02.17'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -602,6 +602,18 @@ class Analyzer(QObject):
         self.single_spectrum_figure = fig
         plt.tight_layout()
         return fig
+
+    def analyze_oscillogram(self, fig):
+        '''
+        anayze the osciilogram captured frin the scope when ui.tabWidget_instruments is set to '1' (to 'scope')
+        '''
+        self.S_print.emit('here will be scirpt by Arkady')
+        axes = fig.gca()
+        line = axes.get_lines()[0]
+        times = line.get_xdata()
+        signal = line.get_ydata()
+        self.S_print.emit('mean is {}'.format(np.mean(signal)))
+        
 
     def analyze_spectrum(self, fig):
         '''

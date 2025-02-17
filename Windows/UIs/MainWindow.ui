@@ -852,8 +852,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
-             <width>98</width>
+             <y>-103</y>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1668,19 +1668,6 @@
               <string>Processing parameters</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_analyze_spectrum">
-             <property name="geometry">
-              <rect>
-               <x>140</x>
-               <y>80</y>
-               <width>141</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Analyze spectrum</string>
-             </property>
-            </widget>
            </widget>
            <widget class="QGroupBox" name="groupBox_Scanning">
             <property name="enabled">
@@ -1826,8 +1813,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>500</height>
+             <width>300</width>
+             <height>597</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2356,8 +2343,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>597</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2526,7 +2513,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-3</y>
              <width>283</width>
              <height>600</height>
             </rect>
@@ -2764,7 +2751,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>390</y>
+              <y>360</y>
               <width>281</width>
               <height>181</height>
              </rect>
@@ -2908,6 +2895,32 @@
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
+           </widget>
+           <widget class="QGroupBox" name="groupBox_10">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>550</y>
+              <width>281</width>
+              <height>181</height>
+             </rect>
+            </property>
+            <property name="title">
+             <string>Oscillogram</string>
+            </property>
+            <widget class="QPushButton" name="pushButton_analyzer_fit_oscillogram">
+             <property name="geometry">
+              <rect>
+               <x>20</x>
+               <y>20</y>
+               <width>100</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Analyze oscillogram</string>
+             </property>
+            </widget>
            </widget>
           </widget>
          </widget>
