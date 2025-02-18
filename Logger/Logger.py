@@ -6,6 +6,9 @@ import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
+__version__='2'
+__date__='2025.02.18'
+
 
 
 class Logger(QObject):
@@ -33,15 +36,15 @@ class Logger(QObject):
 
 
     def save_data(self, Data,name,X,Y,Z,SourceOfData:str):
+        FileName=name+'_X={}_Y={}_Z={}_'.format(X,Y,Z)
         if SourceOfData=='FromScope':
-            FilePrefix=self.TDFolder+'TD_'+name
+            FileName=self.TDFolder+'TD_'+FileName+'.osc_pkl'
         elif SourceOfData=='FromOSA':
-            FilePrefix=self.SpectralDataFolder+'Sp_'+name
-        FileName=FilePrefix+'_X={}_Y={}_Z={}_'.format(X,Y,Z)
+            FileName=self.SpectralDataFolder+'Sp_'+name+'.pkl'
         if self.saving_file_type=='txt':
-            np.savetxt(FileName+'.txt', Data)
+            np.savetxt(FileName.split('.')[0]+'.txt', Data)
         elif self.saving_file_type=='bin':
-            f = open(FileName+'.pkl',"wb")
+            f = open(FileName,"wb")
             pickle.dump(Data,f)
             f.close()
         self.S_print.emit('\nData saved\n')

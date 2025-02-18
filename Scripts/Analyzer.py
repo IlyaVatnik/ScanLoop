@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.7.1'
-__date__ = '2025.02.17'
+__version__ = '2.7.2'
+__date__ = '2025.02.18'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -46,6 +46,7 @@ class Analyzer(QObject):
         self.plotting_parameters_file_path = os.path.dirname(
             sys.argv[0])+'\\plotting_parameters.txt'
         self.single_spectrum_figure = None
+        self.single_oscillogram_figure=None
 
         self.type_of_spectrogram = 'insertion losses'
         self.figure_spectrogram = None
@@ -90,6 +91,10 @@ class Analyzer(QObject):
 
         self.cost_function_figure = None
         self.cost_function_ax = None
+        
+        self.osc_noise_level=0.1
+        self.osc_dith_frequency=888
+        self.osc_detuning=80
 
         '''
             Временно. Для постройки графика функции ошибки от радиуса и температуры
@@ -603,16 +608,50 @@ class Analyzer(QObject):
         plt.tight_layout()
         return fig
 
+    def plot_single_oscillogram(self):
+        with open(self.single_oscillogram_path, 'rb') as f:
+            self.S_print.emit(
+                'loading scope data for analyzer from ' + self.single_oscillogram_path)
+            Data = (pickle.load(f))
+        self.single_oscillogram_figure = plt.figure()
+        plt.plot(Data[:, 0], Data[:, 1])
+        plt.xlabel('Time, s')
+        plt.ylabel('Signal, V')
+        plt.tight_layout()
+        
+        return self.single_oscillogram_figure
+    
     def analyze_oscillogram(self, fig):
         '''
         anayze the osciilogram captured frin the scope when ui.tabWidget_instruments is set to '1' (to 'scope')
         '''
-        self.S_print.emit('here will be scirpt by Arkady')
+        tuning_coeff=2*np.pi*self.osc_detuning*2*self.osc_dith_frequency
+        def lorenz_fit(times,non_res_transmission, Fano_phase, time0, delta_0, delta_c):
+            delta_0/=tuning_coeff
+            delta_c/=tuning_coeff
+            return(non_res_transmission*np.abs( np.exp(1j*phi*np.pi)-2*delta_c/( (delta_0+delta_c+1j*(time0-times)) ) )**2)+self.osc_noise_level
+            
+        
+        from Scripts.analyze_oscillogram import analyze_oscillogram
         axes = fig.gca()
         line = axes.get_lines()[0]
         times = line.get_xdata()
         signal = line.get_ydata()
-        self.S_print.emit('mean is {}'.format(np.mean(signal)))
+        nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak=analyze_oscillogram(times,signal,self.osc_noise_level,self.osc_dith_frequency,self.osc_detuning)
+        time0=times[index_of_peak]
+        signal_fitted = lorenz_fit(times, nonresonant_transmission, phi, time0, delta_0, delta_c)
+        axes.plot(times,signal_fitted,color='green')
+        # fig.canvas.draw_idle()
+        results_text2 = '\n $\delta_c$=({:.2f} ) '.format(
+            delta_c)+'$\mu s^{-1}$'
+        results_text3 = '\n $\delta_0$=({:.2f} ) '.format(
+            delta_0)+'$\mu s^{-1}$'
+        results_text=results_text2+results_text3
+        axes.text(0.8, 0.5, results_text,
+                  horizontalalignment='center',
+                  verticalalignment='center',
+                  transform=axes.transAxes)
+        self.S_print.emit('delta_c,delta_0 are  {:.3f} , {:.3f} 1/mks'.format(delta_c,delta_0))
         
 
     def analyze_spectrum(self, fig):

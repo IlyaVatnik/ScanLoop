@@ -15,8 +15,8 @@ from sys import stdout
 
 from PyQt5.QtCore import QObject, pyqtSignal     
 
-__version__='2.1'
-__date__='2023.04.25'
+__version__='2.2'
+__date__='2025.02.18'
 
 # class Wave:
 #     def __init__(self, datA, xinC):
@@ -90,7 +90,7 @@ class Scope(QObject):
         origins = np.array(list(map(float,(x_increment, x_origin, y_increment, y_origin))), dtype = 'f')
         self.resource.write_raw(b':WAVeform:DATA?')
         raw = self.resource.read_raw()[11:-1]
-        wave = ((np.frombuffer(raw, dtype = np.uint8)).astype(np.int16) - int(y_reference)) * origins[2] + origins[3]
+        wave = ((np.frombuffer(raw, dtype = np.uint8)).astype(np.int16) - int(y_reference)- origins[3]) * origins[2] 
         return wave,origins[0],origins[1]
     
     """
@@ -244,7 +244,7 @@ class Scope(QObject):
                 data,x_inc,x_0=self.query_wave_fast()
                 Y.append(data)
                 channel_numbers.append(enum+1)
-                print(enum,len(data),x_inc,x_0)
+                # print(enum,len(data),x_inc,x_0)
         X=x_0+x_inc*np.arange(len(data))
         self.received_data.emit(X,Y,channel_numbers)
     

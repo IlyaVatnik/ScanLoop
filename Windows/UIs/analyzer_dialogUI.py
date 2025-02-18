@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(641, 668)
+        Dialog.resize(623, 716)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(580, 10, 51, 241))
         self.buttonBox.setOrientation(QtCore.Qt.Vertical)
@@ -312,6 +312,43 @@ class Ui_Dialog(object):
         self.label_19.setGeometry(QtCore.QRect(370, 10, 41, 31))
         self.label_19.setWordWrap(True)
         self.label_19.setObjectName("label_19")
+        self.groupBox_14 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_14.setGeometry(QtCore.QRect(10, 640, 571, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_14.sizePolicy().hasHeightForWidth())
+        self.groupBox_14.setSizePolicy(sizePolicy)
+        self.groupBox_14.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_14.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_14.setObjectName("groupBox_14")
+        self.lineEdit_osc_noise_level = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_noise_level.setGeometry(QtCore.QRect(100, 20, 61, 21))
+        self.lineEdit_osc_noise_level.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_noise_level.setObjectName("lineEdit_osc_noise_level")
+        self.lineEdit_osc_dith_frequency = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_dith_frequency.setGeometry(QtCore.QRect(300, 20, 51, 21))
+        self.lineEdit_osc_dith_frequency.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_dith_frequency.setObjectName("lineEdit_osc_dith_frequency")
+        self.label_49 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_49.setEnabled(True)
+        self.label_49.setGeometry(QtCore.QRect(10, 20, 81, 31))
+        self.label_49.setWordWrap(True)
+        self.label_49.setObjectName("label_49")
+        self.label_50 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_50.setEnabled(True)
+        self.label_50.setGeometry(QtCore.QRect(180, 20, 101, 31))
+        self.label_50.setWordWrap(True)
+        self.label_50.setObjectName("label_50")
+        self.label_51 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_51.setEnabled(True)
+        self.label_51.setGeometry(QtCore.QRect(360, 10, 101, 31))
+        self.label_51.setWordWrap(True)
+        self.label_51.setObjectName("label_51")
+        self.lineEdit_osc_detuning = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_detuning.setGeometry(QtCore.QRect(480, 20, 51, 21))
+        self.lineEdit_osc_detuning.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_detuning.setObjectName("lineEdit_osc_detuning")
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept) # type: ignore
@@ -399,6 +436,25 @@ class Ui_Dialog(object):
         self.checkBox_derive_taper_cavity_params.setText(_translate("Dialog", "derive C,D,Gamma"))
         self.lineEdit_fiber_radius.setText(_translate("Dialog", "62.5"))
         self.label_19.setText(_translate("Dialog", "<html><head/><body><p>R<span style=\" vertical-align:sub;\">0</span>, mkm</p></body></html>"))
+        self.groupBox_14.setTitle(_translate("Dialog", "Oscillogram analyzer"))
+        self.lineEdit_osc_noise_level.setText(_translate("Dialog", "0.007"))
+        self.lineEdit_osc_dith_frequency.setText(_translate("Dialog", "888"))
+        self.label_49.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Noise level, V</p></body></html>"))
+        self.label_50.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">dittering_frequency, Hz</p></body></html>"))
+        self.label_51.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">detuning range, MHz</p></body></html>"))
+        self.lineEdit_osc_detuning.setText(_translate("Dialog", "80"))
 
 
 if __name__ == "__main__":

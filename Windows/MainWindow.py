@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.6.18'
-__date__='2025.02.17'
+__version__='20.7.1'
+__date__='2025.02.18'
 
 import os
 if __name__=='__main__':
@@ -329,8 +329,15 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_set_analyzer_parameters.clicked.connect(self.on_pushButton_set_analyzer_parameters)
         self.ui.pushButton_delete_slice.clicked.connect(self.delete_slice_from_spectrogram)
         
-        self.ui.pushButton_analyzer_fit_oscillogram.clicked.connect(lambda: self.analyzer.analyze_oscillogram(self.analyzer.single_spectrum_figure) 
-                                                                     if (self.analyzer.single_spectrum_figure is not None) else
+        
+        '''
+        osc logic
+        '''
+        self.ui.pushButton_analyzer_plot_single_oscillogram.clicked.connect(lambda: self.analyzer.plot_single_oscillogram())
+        self.ui.pushButton_analyzer_choose_single_oscillogram.clicked.connect(
+            self.choose_single_oscillogram_for_analyzer)
+        self.ui.pushButton_analyzer_fit_oscillogram.clicked.connect(lambda: self.analyzer.analyze_oscillogram(self.analyzer.single_oscillogram_figure) 
+                                                                     if (self.analyzer.single_oscillogram_figure is not None) else
                                                                      self.analyzer.analyze_oscillogram(self.painter.figure))
         
         
@@ -1308,6 +1315,14 @@ class MainWindow(ThreadedMainWindow):
             self.logWarningText('file is not chosen or previous choice is preserved')
         self.analyzer.single_spectrum_path=DataFilePath
         self.ui.label_analyzer_single_spectrum_file.setText(DataFilePath)
+        
+                
+    def choose_single_oscillogram_for_analyzer(self):
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.osc_pkl' )).split("\',")[0].split("('")[1]
+        if DataFilePath=='':
+            self.logWarningText('file is not chosen or previous choice is preserved')
+        self.analyzer.single_oscillogram_path=DataFilePath
+        self.ui.label_analyzer_single_oscillogram_file.setText(DataFilePath)
 
         
     def on_pushButton_set_analyzer_parameters(self):

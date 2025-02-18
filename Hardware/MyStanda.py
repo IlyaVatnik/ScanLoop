@@ -1,9 +1,12 @@
 '''
 
 NOTE that positions are in microns!
+
+
 '''
 
-__data__='2022.03.31'
+__data__='2025.02.18'
+__version__='2'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
@@ -18,6 +21,11 @@ OldPath=os.getcwd()
 if __name__ != "__main__":
 #    os.chdir(os.path.dirname(sys.argv[0])+'/Hardware')
     os.chdir(os.path.dirname(__file__))
+    # print(os.path.dirname(__file__))
+    '''
+    you may have to directly indicate the path to the dll libraries
+    '''
+    os.add_dll_directory(os.path.dirname(__file__))
 if sys.version_info >= (3,0):
     import urllib.parse
 try:
