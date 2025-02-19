@@ -49,7 +49,7 @@ class Scope:
 
 class Scope_Rigol: 
     # HOST = '192.168.0.47'
-    HOST = '10.2.60.214'
+    HOST = '10.2.60.182'
     NAME = 'RIGOL_DS8A2'
     
 class Powermeter:

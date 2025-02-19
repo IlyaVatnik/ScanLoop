@@ -23,7 +23,7 @@ else:
     from Hardware.PyApex.AP2XXX import AP2XXX
     from Hardware.PyApex.AP2XXX.tls import TunableLaser
     from Hardware.PyApex.AP2XXX.osa import OSA
-    from Common.Consts import Consts
+    import Common.Consts
 
 
 class APEX_OSA_with_additional_features(OSA,QObject):

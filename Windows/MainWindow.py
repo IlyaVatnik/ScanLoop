@@ -425,7 +425,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.groupBox_features.setVisible(True)
                 flag = False
             else:
-                self.ui.groupBox_features.setVisible(False)
+                # self.ui.groupBox_features.setVisible(False)
                 return
             self.ui.label_Luna_mode.setVisible(flag)
             self.ui.comboBox_Luna_mode.setVisible(flag)
@@ -433,6 +433,8 @@ class MainWindow(ThreadedMainWindow):
             self.ui.comboBox_APEX_mode.setVisible(not flag)
         except:
             self.logWarningText(sys.exc_info())
+    
+    
     
     def connect_OSA(self):
         '''
@@ -476,8 +478,11 @@ class MainWindow(ThreadedMainWindow):
     
     
             elif self.ui.comboBox_Type_of_OSA.currentText()=='APEX':
+
                 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
+
                 self.OSA = APEX_OSA_with_additional_features(Common.Consts.APEX.HOST)
+
                 self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
                 self.ui.comboBox_APEX_mode.setEnabled(True)
                 self.ui.pushButton_APEX_TLS.setEnabled(True)
