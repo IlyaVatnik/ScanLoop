@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.7.1'
-__date__='2025.02.18'
+__version__='20.8.1'
+__date__='2025.02.20'
 
 import os
 if __name__=='__main__':
@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBo
 
 import importlib
 import Common.Consts
+
 from Hardware.Config import Config
 from Hardware.PiezoStageE53D_serial import PiezoStage
 
@@ -32,6 +33,7 @@ from Logger.Logger import Logger
 from Visualization.Painter import MyPainter
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows.UIs.MainWindowUI import Ui_MainWindow
+from Common.Hardware_ports import Hardware_ports
 
 
 from Scripts import Analyzer
@@ -122,6 +124,7 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
+        self.hardware_ports=Hardware_ports()
         from Scripts.ScanningProcessOSA import ScanningProcess
         self.scanningProcess=ScanningProcess()
         # from Visualization.Powermeter_painter import Powermeter_painter
@@ -131,6 +134,7 @@ class MainWindow(ThreadedMainWindow):
         
         
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
+        self.init_hardware_parameters_toolbox()
         self.init_OSA_interface()
         self.init_analyzer_interface()
         self.init_laser_interface()
@@ -160,6 +164,9 @@ class MainWindow(ThreadedMainWindow):
         self.ui.action_load_parameters.triggered.connect(self.load_parameters_from_file)
         self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
         self.ui.action_delete_all_measured_spectral_data.triggered.connect(self.delete_data_from_folders)
+        
+    def init_hardware_parameters_toolbox(self):
+        self.ui.pushButton_set_hardware_ports.clicked.connect(self.on_pushButton_set_hardware_ports)
 # =============================================================================
 #         Stages interface
 # =============================================================================
@@ -173,8 +180,8 @@ class MainWindow(ThreadedMainWindow):
     def init_piezo_stage_interface(self):
         self.ui.pushButton_PiezoStageConnect.clicked.connect(self.connect_PiezoStages)
         self.ui.pushButton_SetZero.clicked.connect(self.SetZeroPosToPiezoStage)
-        self.ui.pushButton_IncreaseX.clicked.connect(lambda: self.MovePiezoStage(direction=1))
-        self.ui.pushButton_DecreaseX.clicked.connect(lambda: self.MovePiezoStage(direction=-1))
+        self.ui.pushButton_piezo_incr_X.clicked.connect(lambda: self.MovePiezoStage(direction=1))
+        self.ui.pushButton_piezo_decr_X.clicked.connect(lambda: self.MovePiezoStage(direction=-1))
 # =============================================================================
 #         # OSA interface
 # =============================================================================
@@ -365,6 +372,21 @@ class MainWindow(ThreadedMainWindow):
 # =============================================================================
 #   interface methods
 # =============================================================================
+    
+    def on_pushButton_set_hardware_ports(self):
+        '''
+        open dialog with hardware ports
+        '''
+        d = self.hardware_ports.get_attributes()
+        from Windows.UIs.hardware_dialogUI import Ui_Dialog
+        hardware_dialog = QDialog()
+        ui = Ui_Dialog()
+        ui.setupUi(hardware_dialog)
+        set_widget_values(hardware_dialog,d)
+        if hardware_dialog.exec_() == QDialog.Accepted:
+            params=get_widget_values(hardware_dialog)
+            self.hardware_ports.set_attributes(params)
+
     def connect_scope(self):
         '''
         create connection to scope
@@ -383,10 +405,10 @@ class MainWindow(ThreadedMainWindow):
             if interface=='new':
                 if self.ui.comboBox_type_of_scope.currentText()=='Keysight 4GHz':
                     from Hardware.scope import Scope
-                    self.scope = Scope(Common.Consts.Scope.HOST, protocol = 'inst0') # or Common.Consts.Scope.NAME
+                    self.scope = Scope(self.hardware_ports.scope, protocol = 'inst0') # or Common.Consts.Scope.NAME
                 elif self.ui.comboBox_type_of_scope.currentText()=='Rigol':
                     from Hardware.scope_rigol import Scope
-                    self.scope=Scope(Common.Consts.Scope_Rigol.HOST)
+                    self.scope=Scope(self.hardware_ports.scope_Rigol)
             elif interface=='old':
                 from Hardware.KeysightOscilloscope import Scope
                 self.scope=Scope(Common.Consts.Scope.HOST)
@@ -448,10 +470,10 @@ class MainWindow(ThreadedMainWindow):
         try:
             if self.ui.comboBox_Type_of_OSA.currentText()=='Luna':
                 from Hardware.ova5000 import Luna
-                self.OSA=Luna(port=Common.Consts.LUNA.PORT)  
+                self.OSA=Luna(port=self.hardware_ports.LUNA)  
             if self.ui.comboBox_Type_of_OSA.currentText()=='Yokogawa':
                 from Hardware.YokogawaOSA import OSA_AQ6370
-                HOST = Common.Consts.Yokogawa.HOST
+                HOST = self.hardware_ports.Yokogawa
                 PORT = 10001
                 timeout_short = 0.2
                 timeout_long = 100
@@ -463,7 +485,7 @@ class MainWindow(ThreadedMainWindow):
                 self.repeatmode=False
                 self.OSA = Interrogator(
                     parent=None,
-                    host=Common.Consts.Interrogator.HOST,
+                    host=self.hardware_ports.interrogator,
                     command_port=Common.Consts.Interrogator.COMMAND_PORT,
                     data_port=Common.Consts.Interrogator.DATA_PORT,
                     short_timeout=Common.Consts.Interrogator.SHORT_TIMEOUT,
@@ -481,7 +503,7 @@ class MainWindow(ThreadedMainWindow):
 
                 from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 
-                self.OSA = APEX_OSA_with_additional_features(Common.Consts.APEX.HOST)
+                self.OSA = APEX_OSA_with_additional_features(self.hardware_ports.APEX)
 
                 self.ui.checkBox_HighRes.setChecked(self.OSA.IsHighRes)
                 self.ui.comboBox_APEX_mode.setEnabled(True)
@@ -586,7 +608,7 @@ class MainWindow(ThreadedMainWindow):
     def connect_PiezoStages(self):
         if self.piezo_stage_connected == 0:
             try:
-                self.piezo_stage = PiezoStage('COM5', 9600)
+                self.piezo_stage = PiezoStage(self.hardware_ports.piezo_stage, 9600)
                 self.piezo_stage_connected = 1
                 self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
                 self.logText('Connected to piezo stage')
@@ -655,7 +677,7 @@ class MainWindow(ThreadedMainWindow):
         '''
         try:
             from Hardware import ThorlabsPM100
-            self.powermeter=ThorlabsPM100.PowerMeter(Common.Consts.Powermeter.SERIAL_NUMBER)
+            self.powermeter=ThorlabsPM100.PowerMeter(self.hardware_ports.powermeter_serial_number)
             if self.powermeter is not None:
                 self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
                 self.ui.pushButton_powermeter_graph.setEnabled(True)
@@ -674,7 +696,7 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         interface='serial'
-        COMPort='COM'+self.ui.lineEdit_laser_COMport.text()
+        COMPort=self.hardware_ports.laserlaser_Pure_Photonics
         try:
             if self.ui.comboBox_laser_protocol_type.currentText()=='pyvisa':
                 from Hardware.PurePhotonicsLaser_pyvisa import Laser   
@@ -1236,6 +1258,7 @@ class MainWindow(ThreadedMainWindow):
         D['Analyzer']=self.analyzer.get_parameters()
         D['Spectral_processor']=self.spectral_processor.get_parameters()
         D['Scanning_position_process']=self.scanningProcess.get_parameters()
+        D['hardware_ports']=self.hardware_ports.get_attributes()
 
         #remove all parameters that are absolute paths 
         for k in D:
@@ -1253,6 +1276,7 @@ class MainWindow(ThreadedMainWindow):
                 self.analyzer.set_parameters(Dicts['Analyzer'])
                 self.spectral_processor.set_parameters(Dicts['Spectral_processor'])
                 self.scanningProcess.set_parameters(Dicts['Scanning_position_process'])
+                self.hardware_ports.set_attributes(Dicts['hardware_ports'])
             except KeyError:
                 pass
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='4'
-__date__='2025.02.17'
+__version__='5'
+__date__='2025.02.20'
 
 from platform import system
 from enum import Enum
@@ -11,14 +11,10 @@ SYSTEM_NAME = system()
 
 """Classes with default constant values for particular hardware used in the lab"""
 
-class APEX:
-    HOST = "10.2.60.25"
 
-class Yokogawa:
-    HOST = "10.2.60.60"
 
 class Interrogator:
-    HOST = "192.168.19.111"
+
     COMMAND_PORT = 3500
     DATA_PORT = 3365
     SHORT_TIMEOUT = 1000
@@ -44,16 +40,12 @@ class Interrogator:
 
 class Scope:
     # HOST = '10.2.60.27'
-    HOST = '10.2.60.176'
     NAME = 'WINDOWS-E76DLEM'
 
 class Scope_Rigol: 
     # HOST = '192.168.0.47'
-    HOST = '10.2.60.182'
     NAME = 'RIGOL_DS8A2'
     
-class Powermeter:
-    SERIAL_NUMBER='P0015055'
 
-class LUNA:
-    PORT=1
+
+

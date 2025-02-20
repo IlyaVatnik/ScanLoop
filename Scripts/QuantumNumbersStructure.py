@@ -518,7 +518,7 @@ if __name__=='__main__':
     # fitter.run()
     # fitter.plot_results()
 
-    filename=r"F:\!Projects\!SNAP system\Dispersion in experiments\2023.05 dispersion by Luna\Example of modification_at_117.5.pkl"
+    filename=r"C:\Users\Илья\Desktop\dump_data_ямаpol_2_at_1000.0.pkl"
     import pickle
     with open(filename,'rb') as f:
         Temp=pickle.load(f)
