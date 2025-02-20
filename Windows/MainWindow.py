@@ -1146,8 +1146,9 @@ class MainWindow(ThreadedMainWindow):
                 X=self.stages.relative_position['X']
                 Y=self.stages.relative_position['Y']
                 Z=self.stages.relative_position['Z']
+                piezo_Z=self.piezo_stage.rel_position
             else:
-                    X,Y,Z=[0,0,0]
+                    X,Y,Z,piezo=[0,0,0,0]
 
             Ydata=self.painter.Ydata
             Data=self.painter.Xdata
@@ -1161,11 +1162,11 @@ class MainWindow(ThreadedMainWindow):
                         self.OSA.save_binary( f"{self.logger.SpectralBinaryDataFolder}"
                             + f"Sp_{FilePrefix}_X={X}"
                             + f"_Y={Y}"
-                            + f"_Z={Z}_.bin")
+                            + f"_Z={Z}_piezo={piezo_Z}_.bin")
                         self.logText("Saving Luna as bin")
 
             else:
-                self.logger.save_data(Data,FilePrefix,X,Y,Z,self.painter.TypeOfData)
+                self.logger.save_data(Data,FilePrefix,X,Y,Z,piezo_Z,self.painter.TypeOfData)
         except:
                 print(sys.exc_info())
                 self.logWarningText('Error')
