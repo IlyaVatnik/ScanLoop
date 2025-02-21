@@ -723,7 +723,7 @@ class MainWindow(ThreadedMainWindow):
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_laser_wavelength.setText(S))
             self.laser_scanning_process.S_update_fine_tune.connect(lambda S:self.ui.lineEdit_laser_fine_tune.setText(S))
-            self.laser_scanning_process.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,'FromOSA'))
+            self.laser_scanning_process.S_saveData.connect(lambda Data,prefix: self.logger.save_data(Data,prefix,0,0,0,0,'FromOSA'))
             self.laser_scanning_process.S_update_main_wavelength.connect(lambda S:self.ui.lineEdit_laser_lambda.setText(S))
             self.laser_scanning_process.S_finished.connect(lambda: self.ui.pushButton_scan_laser_wavelength.setChecked(False))
             self.laser_scanning_process.S_finished.connect(
@@ -1071,7 +1071,7 @@ class MainWindow(ThreadedMainWindow):
             self.scanningProcess.S_saveData.connect(
                         lambda Data,prefix: self.logger.save_data(Data,prefix,
                             self.stages.relative_position['X'], self.stages.relative_position['Y'],
-                            self.stages.relative_position['Z'],'FromOSA'))
+                            self.stages.relative_position['Z'],self.piezo_stage.relative_position,'FromOSA'))
             self.scanningProcess.S_finished.connect(lambda: self.ui.pushButton_scan_in_space.setChecked(False))
             self.scanningProcess.S_finished.connect(
                     lambda : self.on_pushButton_scan_in_space(False))
@@ -1085,7 +1085,7 @@ class MainWindow(ThreadedMainWindow):
                     f"{self.logger.SpectralBinaryDataFolder}"
                     + f"Sp_{name}_X={self.stages.relative_position['X']}"
                     + f"_Y={self.stages.relative_position['Y']}"
-                    + f"_Z={self.stages.relative_position['Z']}_.bin"))
+                    + f"_Z={self.stages.relative_position['Z']}_"+f"piezo_Z={self.piezo_stage.relative_position}_.bin"))
 
 
 

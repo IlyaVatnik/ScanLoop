@@ -15,7 +15,7 @@ from scipy import special
 from scipy import optimize
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks 
-import scipy.optimize as sciopt
+from scipy.optimize import minimize
 from scipy.fftpack import rfft, irfft, fftfreq
 import pickle
 # from numba import jit
@@ -366,7 +366,7 @@ class Fitter():
         '''
         for p in self.p_guess_array:
             if self.type_of_optimizer=='Nelder-Mead':
-                res=sciopt.minimize(self.cost_function,((1.4445,self.R_array[0])),bounds=((1.443,1.4447),(self.R_array[0],self.R_array[-1])),
+                res=minimize(self.cost_function,((1.4445,self.R_array[0])),bounds=((1.443,1.4447),(self.R_array[0],self.R_array[-1])),
                             args=p,method='Nelder-Mead',options={'maxiter':1000},tol=1e-11)
             elif self.type_of_optimizer=='bruteforce':
                 res = bruteforce_optimizer(self.cost_function, figure, ax,
