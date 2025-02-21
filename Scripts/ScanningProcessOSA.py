@@ -34,6 +34,7 @@ class ScanningProcess(QObject):
         super().__init__()
         self.OSA=None # add Optical Spectral Analyzer
         self.stages=None # add all three stages
+        self.piezo_stage=None
         self.FullSpan=10
         self.IsHighRes=False
 
@@ -193,7 +194,7 @@ class ScanningProcess(QObject):
             return False
 
     def move_along_scan_axis(self,step):
-        if self.axis_to_scan == 'Nano':
+        if self.axis_to_scan == 'Piezo':
             self.piezo_stage.move_by(step)
         elif self.axis_to_scan == 'None':
             return
@@ -201,7 +202,7 @@ class ScanningProcess(QObject):
             self.stages.shiftOnArbitrary(self.axis_to_scan,step)
     
     def move_along_contact_axis(self,step):
-        if self.axis_to_get_contact == 'Nano':
+        if self.axis_to_get_contact == 'Piezo':
             self.piezo_stage.move_by(step)
         elif self.axis_to_get_contact == 'None':
             return

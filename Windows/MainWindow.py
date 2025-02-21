@@ -190,7 +190,6 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
         self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
         self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
-        self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
         self.ui.pushButton_zeroing_stages.pressed.connect(self.zeroing_stages)
 # =============================================================================
 #         Piezo Stage interface
@@ -586,6 +585,7 @@ class MainWindow(ThreadedMainWindow):
                 self.add_thread([self.stages])
                 self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
                 self.stages.stopped.connect(self.update_indicated_positions)
+                self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
                 self.update_indicated_positions()
              
                 self.ui.groupBox_stand.setEnabled(True)
@@ -609,38 +609,33 @@ class MainWindow(ThreadedMainWindow):
         
     
     def connect_PiezoStages(self):
-        if self.piezo_stage_connected == 0:
-            try:
-                self.piezo_stage = PiezoStage(self.hardware_ports.piezo_stage, 9600)
-                self.piezo_stage_connected = 1
-                self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
-                self.logText('Connected to piezo stage')
-                self.add_thread([self.piezo_stage])
-                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
-                "    \n"
-                "    background-color: rgb(0, 255, 0);\n"
-                "}")
-                self.piezo_stage.A18_SetChannelOpenOrClose(False)
-                self.piezo_stage.zero_position=self.logger.load_zero_position()[3]
-                # self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.relative_position, 3)} μm')
-                self.piezo_stage.stopped.connect(self.update_indicated_positions)
-            except Exception as e:
-                print(e)
-                self.logWarningText('Connection to Piezo stages failed')
-                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
-                "    \n"
-                "    background-color: rgb(255, 15, 15);\n"
-                "}")
-        else:
-            try:
-                with open('PiezoStageStartPosition.json', 'w', encoding='utf-8') as file:
-                    json.dump({"X":self.piezo_stage.abs_position}, file)
-                del self.piezo_stage
-                self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n	\n	background-color: rgb(255, 15, 15);\n}")
-                self.piezo_stage_connected = 0
-            except Exception as e:
-                print(e)
-    
+        try:
+            self.piezo_stage = PiezoStage(self.hardware_ports.piezo_stage, 9600)
+            self.piezo_stage_connected = 1
+            # self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
+            self.logText('Connected to piezo stage')
+            self.add_thread([self.piezo_stage])
+            self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
+            "    \n"
+            "    background-color: rgb(0, 255, 0);\n"
+            "}")
+            self.piezo_stage.A18_SetChannelOpenOrClose(False)
+            self.piezo_stage.zero_position=self.logger.load_zero_position()[3]
+            self.piezo_stage.update_position()
+            # self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.relative_position, 3)} μm')
+            self.piezo_stage.stopped.connect(self.update_indicated_positions)
+            self.update_indicated_positions()
+            self.ui.groupBox_piezo.setEnabled(True)
+            self.enable_scanning_process()
+        except Exception as e:
+            print(e)
+            self.logWarningText('Connection to Piezo stages failed')
+            self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
+            "    \n"
+            "    background-color: rgb(255, 15, 15);\n"
+            "}")
+  
+
     
     # def set_ZeroPosToPiezoStage(self):
     #     if self.piezo_stage_connected == 1:
@@ -975,7 +970,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.label_PositionX.setText(str(X_rel))
         self.ui.label_PositionY.setText(str(Y_rel))
         self.ui.label_PositionZ.setText(str(Z_rel))
-        self.ui.label_piezo_rel_position.setText(str(piezoZ_rel))
+        self.ui.label_piezo_rel_position.setText('{:.4f}'.format(piezoZ_rel))
 
         self.ui.label_AbsPositionX.setText(str(X_abs))
         self.ui.label_AbsPositionY.setText(str(Y_abs))
@@ -985,9 +980,12 @@ class MainWindow(ThreadedMainWindow):
 
 
     def on_pushButton_zeroingPositions(self,key='X'):
-        X_0=(self.stages.abs_position['X'])
-        Y_0=(self.stages.abs_position['Y'])
-        Z_0=(self.stages.abs_position['Z'])
+        try:
+            X_0=(self.stages.abs_position['X'])
+            Y_0=(self.stages.abs_position['Y'])
+            Z_0=(self.stages.abs_position['Z'])
+        except:
+            X_0,Y_0,Z_0=0,0,0
         try:
             piezoZ_0=self.piezo_stage.abs_position
         except:
@@ -996,8 +994,14 @@ class MainWindow(ThreadedMainWindow):
             self.piezo_stage.zero_position=piezoZ_0
         else:
             self.stages.zero_position[key]=self.stages.abs_position[key]
-        self.stages.update_relative_positions()
-        self.piezo_stage.update_position()
+        try:
+            self.stages.update_relative_positions()
+        except:
+                pass
+        try:
+            self.piezo_stage.update_position()
+        except:
+            pass
         self.logger.save_zero_position(X_0,Y_0,Z_0,piezoZ_0)
         self.update_indicated_positions()
         
@@ -1085,9 +1089,10 @@ class MainWindow(ThreadedMainWindow):
         None.
 
         '''
-        if (self.ui.groupBox_stand.isEnabled() and self.ui.tabWidget_instruments.isEnabled()):
+        if ((self.ui.groupBox_stand.isEnabled() or self.ui.groupBox_piezo.isEnabled()) and self.ui.tabWidget_instruments.isEnabled()):
             self.scanningProcess.OSA=self.OSA
             self.scanningProcess.stages=self.stages
+            self.scanningProcess.piezo_stage=self.piezo_stage
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
             self.scanningProcess.S_saveData.connect(
@@ -1168,9 +1173,12 @@ class MainWindow(ThreadedMainWindow):
                 X=self.stages.relative_position['X']
                 Y=self.stages.relative_position['Y']
                 Z=self.stages.relative_position['Z']
-                piezo_Z=self.piezo_stage.relative_position
             else:
-                    X,Y,Z,piezo=[0,0,0,0]
+                X,Y,Z=0,0,0
+            try:
+                piezo_Z=self.piezo_stage.relative_position
+            except:
+                piezo_Z=0
 
             Ydata=self.painter.Ydata
             Data=self.painter.Xdata
@@ -1419,8 +1427,10 @@ class MainWindow(ThreadedMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             params=get_widget_values(dialog)
             self.scanningProcess.set_parameters(params)
-            
-            final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
+            if self.scanningProcess.axis_to_scan=='Piezo':
+                final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position
+            else:
+                final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
             self.ui.label_scanning_final_position.setText(str(final_position))
             self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
 

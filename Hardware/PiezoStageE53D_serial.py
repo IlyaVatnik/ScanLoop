@@ -88,13 +88,12 @@ def PrintingDataFromStage(data, whole_info=True, volts=False, move=False, *args)
 Создание класса PiezoStage, методы - основные команды для управления подвижкой
 '''
 class PiezoStage(QObject):
-    
+    stopped = pyqtSignal()
     is_connected = 0
     def __init__(self, COMPort, baudrate):
         super().__init__()
         self.serial = OpeningPort(COMPort=COMPort, baudrate=baudrate)
         self.event_counter = 1
-        stopped = pyqtSignal()
         try:
             with open('PiezoStageStartPosition.json', 'r', encoding='utf-8') as file:
                 tmp = json.load(file)
@@ -263,6 +262,7 @@ class PiezoStage(QObject):
         
     def move_by(self,shift):
         self.A01_SendMove(self.abs_position+shift)
+        sleep(0.1)
         self.update_position()
         self.stopped.emit()
         

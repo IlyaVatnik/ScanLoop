@@ -36,9 +36,9 @@ class Logger(QObject):
 
 
     def save_data(self, Data,name,X,Y,Z,piezo_Z,SourceOfData:str):
-        name=name+'_X={}_Y={}_Z={}_piezoZ={}_'.format(X,Y,Z,piezo_Z)
+        name=name+'_X={}_Y={}_Z={}_piezoZ={:.4f}_'.format(X,Y,Z,piezo_Z)
         if SourceOfData=='FromScope':
-            FileName=self.TDFolder+'TD_'+FileName+'.osc_pkl'
+            FileName=self.TDFolder+'TD_'+name+'.osc_pkl'
         elif SourceOfData=='FromOSA':
             FileName=self.SpectralDataFolder+'Sp_'+name+'.pkl'
         if self.saving_file_type=='txt':

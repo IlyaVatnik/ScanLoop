@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1252</width>
-    <height>703</height>
+    <height>796</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1232</width>
-         <height>536</height>
+         <width>1228</width>
+         <height>614</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -359,7 +359,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>383</height>
+             <height>437</height>
             </rect>
            </property>
            <attribute name="label">
@@ -820,7 +820,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>700</height>
             </rect>
            </property>
@@ -1042,14 +1042,14 @@
            </widget>
            <widget class="QGroupBox" name="groupBox_stand">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="geometry">
              <rect>
               <x>0</x>
               <y>0</y>
               <width>271</width>
-              <height>341</height>
+              <height>241</height>
              </rect>
             </property>
             <property name="title">
@@ -1183,14 +1183,14 @@
             </widget>
             <widget class="QGroupBox" name="groupBox_6">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="geometry">
               <rect>
                <x>10</x>
                <y>107</y>
                <width>251</width>
-               <height>121</height>
+               <height>111</height>
               </rect>
              </property>
              <property name="minimumSize">
@@ -1373,146 +1373,6 @@
               </property>
              </widget>
             </widget>
-            <widget class="QGroupBox" name="groupBox_piezo">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>230</y>
-               <width>251</width>
-               <height>101</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <family>MS Shell Dlg 2</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="title">
-              <string>Piezo control, in  μm (0: 202  μm)</string>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-             <widget class="QLineEdit" name="lineEdit_piezo_step">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>20</y>
-                <width>80</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>1</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="dragEnabled">
-               <bool>false</bool>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="pushButton_piezo_incr_Z">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>48</y>
-                <width>39</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>+pZ</string>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="pushButton_piezo_decr_Z">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>48</y>
-                <width>39</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>-pZ</string>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="pushButton_SetZero">
-              <property name="geometry">
-               <rect>
-                <x>10</x>
-                <y>75</y>
-                <width>80</width>
-                <height>23</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Zero Piezo Z</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_piezo_abs_position">
-              <property name="geometry">
-               <rect>
-                <x>190</x>
-                <y>20</y>
-                <width>51</width>
-                <height>21</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_piezo_rel_position">
-              <property name="geometry">
-               <rect>
-                <x>190</x>
-                <y>60</y>
-                <width>41</width>
-                <height>21</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>0</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_13">
-              <property name="geometry">
-               <rect>
-                <x>110</x>
-                <y>25</y>
-                <width>47</width>
-                <height>13</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Abs.pos.</string>
-              </property>
-             </widget>
-             <widget class="QLabel" name="label_15">
-              <property name="geometry">
-               <rect>
-                <x>111</x>
-                <y>65</y>
-                <width>50</width>
-                <height>13</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Rel.pos.</string>
-              </property>
-             </widget>
-            </widget>
            </widget>
            <widget class="QGroupBox" name="groupBox_save_data">
             <property name="geometry">
@@ -1604,8 +1464,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>32</width>
-               <height>20</height>
+               <width>37</width>
+               <height>22</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1664,7 +1524,7 @@
            </widget>
            <widget class="QGroupBox" name="groupBox_Scanning">
             <property name="enabled">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="geometry">
              <rect>
@@ -1800,13 +1660,156 @@
             <zorder>label_scanning_final_position</zorder>
             <zorder>label_4</zorder>
            </widget>
+           <widget class="QGroupBox" name="groupBox_piezo">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>240</y>
+              <width>251</width>
+              <height>101</height>
+             </rect>
+            </property>
+            <property name="font">
+             <font>
+              <family>MS Shell Dlg 2</family>
+              <pointsize>8</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>Piezo control, in  μm (0: 202  μm)</string>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
+            <widget class="QLineEdit" name="lineEdit_piezo_step">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>20</y>
+               <width>80</width>
+               <height>20</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>1</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="dragEnabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_piezo_incr_Z">
+             <property name="geometry">
+              <rect>
+               <x>50</x>
+               <y>48</y>
+               <width>39</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>+pZ</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_piezo_decr_Z">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>48</y>
+               <width>39</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>-pZ</string>
+             </property>
+            </widget>
+            <widget class="QPushButton" name="pushButton_SetZero">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>75</y>
+               <width>80</width>
+               <height>23</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Zero Piezo Z</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_piezo_abs_position">
+             <property name="geometry">
+              <rect>
+               <x>164</x>
+               <y>23</y>
+               <width>81</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_piezo_rel_position">
+             <property name="geometry">
+              <rect>
+               <x>166</x>
+               <y>61</y>
+               <width>81</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_13">
+             <property name="geometry">
+              <rect>
+               <x>110</x>
+               <y>25</y>
+               <width>47</width>
+               <height>13</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Abs.pos.</string>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_15">
+             <property name="geometry">
+              <rect>
+               <x>111</x>
+               <y>65</y>
+               <width>50</width>
+               <height>13</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Rel.pos.</string>
+             </property>
+            </widget>
+           </widget>
           </widget>
           <widget class="QWidget" name="page_laser_control">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>500</height>
             </rect>
            </property>
@@ -2337,7 +2340,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>383</height>
+             <height>437</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2507,7 +2510,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>283</width>
+             <width>279</width>
              <height>650</height>
             </rect>
            </property>
@@ -2526,7 +2529,7 @@
               <x>2</x>
               <y>-9</y>
               <width>302</width>
-              <height>646</height>
+              <height>649</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -3029,7 +3032,7 @@
      <x>0</x>
      <y>0</y>
      <width>1252</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuData">
