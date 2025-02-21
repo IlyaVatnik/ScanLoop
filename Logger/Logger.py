@@ -6,8 +6,8 @@ import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
-__version__='3'
-__date__='2025.02.20'
+__version__='3.1'
+__date__='2025.02.21'
 
 
 
@@ -36,7 +36,7 @@ class Logger(QObject):
 
 
     def save_data(self, Data,name,X,Y,Z,piezo_Z,SourceOfData:str):
-        FileName=name+'_X={}_Y={}_Z={}_piezo_Z={}_'.format(X,Y,Z,piezo_Z)
+        name=name+'_X={}_Y={}_Z={}_piezo_Z={}_'.format(X,Y,Z,piezo_Z)
         if SourceOfData=='FromScope':
             FileName=self.TDFolder+'TD_'+FileName+'.osc_pkl'
         elif SourceOfData=='FromOSA':
