@@ -74,7 +74,7 @@ class Spectral_processor(QObject):
 
     def find_between(self, s, first, last ): ## local function to find the substring between two given strings
         try:
-            start = s.index( first ) + len( first )
+            start = s.index( first ) + len( first ) # method finds the first occurrence of the specified value.
             end = s.index( last, start )
             return s[start:end]
         except ValueError:
@@ -111,11 +111,11 @@ class Spectral_processor(QObject):
             return float(string[2])
         else:
             if axis=='X':
-                return float(self.find_between(string,'X=','_Y'))
+                return float(self.find_between(string,'X=','_'))
             if axis=='Y':
-                return float(self.find_between(string,'Y=','_Z'))
+                return float(self.find_between(string,'Y=','_'))
             if axis=='Z':
-                return float(self.find_between(string,'Z=','_.'))
+                return float(self.find_between(string,'Z=','_'))
             if axis=='W':
                 try:
                     a=float(self.find_between(string,'W=','_'))
