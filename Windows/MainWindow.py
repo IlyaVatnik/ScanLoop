@@ -618,7 +618,7 @@ class MainWindow(ThreadedMainWindow):
                 "    background-color: rgb(0, 255, 0);\n"
                 "}")
                 self.piezo_stage.A18_SetChannelOpenOrClose(False)
-                self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.rel_position, 3)} μm')
+                self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.relative_position, 3)} μm')
             except Exception as e:
                 print(e)
                 self.logWarningText('Connection to Piezo stages failed')
@@ -643,10 +643,10 @@ class MainWindow(ThreadedMainWindow):
             _, move = self.piezo_stage.A06_ReadDataMove()
             self.piezo_stage.A01_SendMove(0.0001)
             self.piezo_stage.abs_position -= move
-            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
-            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
+            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
             self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
-            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.rel_position, 3)} μm')
+            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.relative_position, 3)} μm')
         else:
             self.logWarningText('Piezo stage is not connected')
             
@@ -654,14 +654,14 @@ class MainWindow(ThreadedMainWindow):
     def MovePiezoStage(self, direction=1):
         if self.piezo_stage_connected == 1:
             to_move = float(self.ui.lineEdit_Step.text())*direction
-            if 0 <= self.piezo_stage.rel_position + to_move <= 202:
+            if 0 <= self.piezo_stage.relative_position + to_move <= 202:
                 self.piezo_stage.abs_position += to_move
-                self.piezo_stage.rel_position += to_move
-                self.piezo_stage.A01_SendMove(self.piezo_stage.rel_position)
-            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
-            _, self.piezo_stage.rel_position = self.piezo_stage.A06_ReadDataMove()
+                self.piezo_stage.relative_position += to_move
+                self.piezo_stage.A01_SendMove(self.piezo_stage.relative_position)
+            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
+            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
             self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
-            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.rel_position, 3)} μm')
+            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.relative_position, 3)} μm')
         else:
             self.logWarningText('Piezo stage is not connected')
     
@@ -1146,7 +1146,7 @@ class MainWindow(ThreadedMainWindow):
                 X=self.stages.relative_position['X']
                 Y=self.stages.relative_position['Y']
                 Z=self.stages.relative_position['Z']
-                piezo_Z=self.piezo_stage.rel_position
+                piezo_Z=self.piezo_stage.relative_position
             else:
                     X,Y,Z,piezo=[0,0,0,0]
 

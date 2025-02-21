@@ -94,7 +94,7 @@ class PiezoStage(QObject):
         super().__init__()
         self.serial = OpeningPort(COMPort=COMPort, baudrate=baudrate)
         self.event_counter = 1
-        _, self.rel_position = self.A06_ReadDataMove()
+        _, self.relative_position = self.A06_ReadDataMove()
         self.abs_position = 0
         try:
             with open('PiezoStageStartPosition.json', 'r', encoding='utf-8') as file:
