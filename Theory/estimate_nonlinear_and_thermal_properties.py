@@ -23,7 +23,6 @@ __date__='2022.04.18'
 import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
-from numba import jit
 
 delta_c=0.5e7 # 2*pi*Hz
 delta_0=1e7 # 2*pi*Hz

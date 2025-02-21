@@ -18,7 +18,7 @@ from scipy.signal import find_peaks
 import scipy.optimize as sciopt
 from scipy.fftpack import rfft, irfft, fftfreq
 import pickle
-from numba import jit
+# from numba import jit
 
 
 
@@ -45,10 +45,11 @@ thermal_responses={# thermal optical coefficient, linear expansion coefficient
 
 REFRACTION = 1.4445
 
-@jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
+# @jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
 def SellmeierCoefficientsCalculating(material, T):
     T = T + 273
     sellmeier_coeffs = []
+    
     if material == 'SiO2':
         sellmeier_coeffs.append(1.10127 + T*(-4.94251E-5) + (T**2)*(5.27414E-7) +
         (T**3)*(-1.597E-9) + (T**4)*(1.75949E-12))

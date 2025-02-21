@@ -1,12 +1,13 @@
-__version__='0.4'
-__date__='2023.08.16'
+__version__='0.5'
+__date__='2025.02.21'
 
 
 
 import numpy as np
-import scipy.linalg as la
+# import scipy.linalg as la
+from scipy.linalg import inv,eigvals
 import pickle
-from numba import njit
+
 
 c=299792458 # m/s
 
@@ -96,7 +97,7 @@ class OVA_spectrum():
         pol_2=np.zeros(self.meas_num,dtype='complex_')
         
         for i,m in enumerate(self.jones_matrixes):
-            [pol_1[i],pol_2[i]]=la.eigvals(m)
+            [pol_1[i],pol_2[i]]=eigvals(m)
         
         return pol_1,pol_2
         
@@ -105,7 +106,7 @@ class OVA_spectrum():
         losses in two principal polarizations
         '''
         
-        diag_jones_squared=[la.eigvals(np.dot(m.conj().T,m)) for m in self.jones_matrixes]
+        diag_jones_squared=[eigvals(np.dot(m.conj().T,m)) for m in self.jones_matrixes]
         PDL1=[m[0] for m in diag_jones_squared]
         PDL2=[m[1] for m in diag_jones_squared]
         return 10*np.log10(np.array([abs(np.array(PDL1)), abs(np.array(PDL2))]))
@@ -114,7 +115,7 @@ class OVA_spectrum():
         '''
         complex losses in two principal polarizations
         '''        
-        diag_jones_squared=[la.eigvals(m) for m in self.jones_matrixes]
+        diag_jones_squared=[eigvals(m) for m in self.jones_matrixes]
         PDL1=[m[0] for m in diag_jones_squared]
         PDL2=[m[1] for m in diag_jones_squared]
         return np.array(PDL1,dtype='complex_'),np.array(PDL2,dtype='complex_')
@@ -154,7 +155,7 @@ def array_to_list_of_matrixes(array):
         l.append(np.array([row[0],row[1]],[row[2],row[3]]))
     return l
 
-# @njit    
+
 def complex_IL_remove_out_of_contact(T_in:OVA_spectrum,T_out:OVA_spectrum)->complex:
     '''
     linear Complex losses in two principal polarizations
@@ -174,7 +175,7 @@ def complex_IL_remove_out_of_contact(T_in:OVA_spectrum,T_out:OVA_spectrum)->comp
     for i,m_in in enumerate(T_in.jones_matrixes):
         # print(i)
         m_out=T_out.jones_matrixes[i]
-        [pol_1[i],pol_2[i]]=la.eigvals(np.dot(la.inv(m_out),m_in))
+        [pol_1[i],pol_2[i]]=eigvals(np.dot(inv(m_out),m_in))
     
     return pol_1,pol_2
 

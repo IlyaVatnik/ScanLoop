@@ -8,21 +8,22 @@ matplotlib 3.4.2 is needed!
 
 
 
-__version__='11.9.1'
-__date__='2024.07.16'
+__version__='12.0.1'
+__date__='2025.02.21'
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 
 import pickle
-import bottleneck as bn
 from scipy import interpolate
 import scipy.signal
 from  scipy.ndimage import center_of_mass
 from scipy.fftpack import rfft, irfft, fftfreq
-import scipy.optimize
-import scipy.linalg as la
+from scipy.optimize import curve_fit
+from scipy.linalg import eigvals, inv
+# import scipy.linalg as la
+
 
 # from numba import njit
 # from mpl_toolkits.mplot3d import Axes3D
@@ -203,12 +204,12 @@ class SNAP():
             diag_2=np.zeros(len(self.wavelengths))
             for jj in range(len(self.wavelengths)):
                 m=vector[jj,:,:]
-                # _,[l1,l2],_=la.svd(np.dot(m.conj().T,m))
+                # _,[l1,l2],_=svd(np.dot(m.conj().T,m))
                 
-                # _,[l1,l2],_=la.svd(m)
+                # _,[l1,l2],_=svd(m)
                 
-                l1,l2=la.eigvals(m)
-                # l1,l2=la.eigvals(np.dot(m.conj().T,m))
+                l1,l2=eigvals(m)
+                # l1,l2=eigvals(np.dot(m.conj().T,m))
                 
                 diag_1[jj]=abs(l1)**2/2
                 diag_2[jj]=abs(l2)**2/2
@@ -382,7 +383,7 @@ def extract_taper_jones_matrixes(jones_matrixes,out_of_contact_jones_matrixes):
     extracted_m=np.zeros(np.shape(jones_matrixes),dtype='complex_')
     for ii,m_in in enumerate(jones_matrixes):
         m_out=out_of_contact_jones_matrixes[ii,:,:]
-        [l1,l2]=la.eigvals(np.dot(la.inv(m_out),m_in))
+        [l1,l2]=eigvals(np.dot(inv(m_out),m_in))
         extracted_m[ii,0,0]=l1
         extracted_m[ii,1,1]=l2
     return extracted_m
@@ -500,9 +501,9 @@ def get_Fano_fit(waves,signal,peak_wavelength=None,scale_for_fitting='log'):
     
     try:
         if scale_for_fitting=='lin':
-            popt, pcov=scipy.optimize.curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds,method=method)
+            popt, pcov=curve_fit(linear_Fano_lorenzian,waves,signal_lin,p0=initial_guess,bounds=bounds,method=method)
         elif scale_for_fitting=='log':
-            popt, pcov=scipy.optimize.curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds,method=method)
+            popt, pcov=curve_fit(Fano_lorenzian,waves,signal,p0=initial_guess,bounds=bounds,method=method)
         perr = np.sqrt(np.diag(pcov))
         return popt,perr, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
@@ -542,7 +543,7 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
     re_im_signal=np.hstack([np.real(signal),np.imag(signal)])
     
     try:
-        popt, pcov=scipy.optimize.curve_fit(complex_Fano_lorenzian_splitted,np.hstack([waves,waves]),re_im_signal,p0=initial_guess,bounds=bounds)
+        popt, pcov=curve_fit(complex_Fano_lorenzian_splitted,np.hstack([waves,waves]),re_im_signal,p0=initial_guess,bounds=bounds)
         perr = np.sqrt(np.diag(pcov))
         return popt,perr, waves, complex_Fano_lorenzian(waves,*popt)
     except RuntimeError as E:

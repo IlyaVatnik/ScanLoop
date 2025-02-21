@@ -8,7 +8,7 @@ import json
 from scipy.signal import find_peaks
 import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
-import matplotlib
+from matplotlib import rcParams
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -456,7 +456,7 @@ class Analyzer(QObject):
             fig = plt.gcf()
 
         plt.clf()
-        matplotlib.rcParams.update({'font.size': p['font_size']})
+        rcParams.update({'font.size': p['font_size']})
 
         if not p['enable_offset']:
             plt.rcParams['axes.formatter.useoffset'] = False

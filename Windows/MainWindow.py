@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.1'
-__date__='2025.02.20'
+__version__='20.8.2'
+__date__='2025.02.21'
 
 import os
 if __name__=='__main__':
@@ -696,7 +696,7 @@ class MainWindow(ThreadedMainWindow):
 
         '''
         interface='serial'
-        COMPort=self.hardware_ports.laserlaser_Pure_Photonics
+        COMPort=self.hardware_ports.laser_Pure_Photonics
         try:
             if self.ui.comboBox_laser_protocol_type.currentText()=='pyvisa':
                 from Hardware.PurePhotonicsLaser_pyvisa import Laser   
