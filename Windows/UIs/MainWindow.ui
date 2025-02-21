@@ -1396,7 +1396,7 @@
              <property name="flat">
               <bool>false</bool>
              </property>
-             <widget class="QLineEdit" name="lineEdit_Step">
+             <widget class="QLineEdit" name="lineEdit_piezo_step">
               <property name="geometry">
                <rect>
                 <x>10</x>
@@ -1415,7 +1415,7 @@
                <bool>false</bool>
               </property>
              </widget>
-             <widget class="QPushButton" name="pushButton_piezo_incr_X">
+             <widget class="QPushButton" name="pushButton_piezo_incr_Z">
               <property name="geometry">
                <rect>
                 <x>50</x>
@@ -1425,10 +1425,10 @@
                </rect>
               </property>
               <property name="text">
-               <string>+X</string>
+               <string>+pZ</string>
               </property>
              </widget>
-             <widget class="QPushButton" name="pushButton_piezo_decr_X">
+             <widget class="QPushButton" name="pushButton_piezo_decr_Z">
               <property name="geometry">
                <rect>
                 <x>10</x>
@@ -1438,7 +1438,7 @@
                </rect>
               </property>
               <property name="text">
-               <string>-X</string>
+               <string>-pZ</string>
               </property>
              </widget>
              <widget class="QPushButton" name="pushButton_SetZero">
@@ -1451,39 +1451,65 @@
                </rect>
               </property>
               <property name="text">
-               <string>Set Zero</string>
+               <string>Zero Piezo Z</string>
               </property>
              </widget>
-             <widget class="QLabel" name="label_abs_position">
+             <widget class="QLabel" name="label_piezo_abs_position">
               <property name="geometry">
                <rect>
-                <x>120</x>
+                <x>190</x>
                 <y>20</y>
-                <width>111</width>
+                <width>51</width>
                 <height>21</height>
                </rect>
               </property>
               <property name="text">
-               <string>Abs:</string>
+               <string>0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
              </widget>
-             <widget class="QLabel" name="label_rel_position">
+             <widget class="QLabel" name="label_piezo_rel_position">
               <property name="geometry">
                <rect>
-                <x>120</x>
+                <x>190</x>
                 <y>60</y>
-                <width>111</width>
+                <width>41</width>
                 <height>21</height>
                </rect>
               </property>
               <property name="text">
-               <string>Rel:</string>
+               <string>0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_13">
+              <property name="geometry">
+               <rect>
+                <x>110</x>
+                <y>25</y>
+                <width>47</width>
+                <height>13</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Abs.pos.</string>
+              </property>
+             </widget>
+             <widget class="QLabel" name="label_15">
+              <property name="geometry">
+               <rect>
+                <x>111</x>
+                <y>65</y>
+                <width>50</width>
+                <height>13</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Rel.pos.</string>
               </property>
              </widget>
             </widget>

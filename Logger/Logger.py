@@ -74,11 +74,12 @@ class Logger(QObject):
             return None
         
     
-    def save_zero_position(self,X:int,Y:int,Z:int):
+    def save_zero_position(self,X:int,Y:int,Z:int,piezoZ:float):
         Dict={}
         Dict['X_0']=str(X)
         Dict['Y_0']=str(Y)
         Dict['Z_0']=str(Z)
+        Dict['piezoZ']=str(piezoZ)
         f=open(self.ZeroPositionFileName,'w')
         json.dump(Dict,f)
         f.close()
@@ -88,13 +89,13 @@ class Logger(QObject):
         try:
             f=open(self.ZeroPositionFileName)
         except FileNotFoundError:
-            return 0,0,0,
+            return 0,0,0,0
         try:
             dictionary=json.load(f)
             f.close()
-            return float(dictionary['X_0']),float(dictionary['Y_0']),float(dictionary['Z_0'])
+            return float(dictionary['X_0']),float(dictionary['Y_0']),float(dictionary['Z_0']),float(dictionary['piezoZ'])
         except:
-            return 0,0,0
+            return 0,0,0,0
 
 
     

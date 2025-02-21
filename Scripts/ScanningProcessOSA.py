@@ -55,7 +55,7 @@ class ScanningProcess(QObject):
         self.save_out_of_contact=False
         self.LunaJonesMeasurement=False
         
-        self.scanning_type='Along Z, get contact along X'
+        # self.scanning_type='Along Z, get contact along X'
         self.axis_to_scan='Z'
         self.axis_to_get_contact='X'
         
@@ -72,7 +72,7 @@ class ScanningProcess(QObject):
                 self.__setattr__(key, dictionary[key])
             except:
                 pass
-        self.set_axes()
+        
                 
     def get_parameters(self)->dict:
         '''
@@ -95,13 +95,13 @@ class ScanningProcess(QObject):
         except:
             self.IsHighRes=False
 
-    def set_axes(self): # set axis depending on choice in MainWindow
-        s=self.scanning_type
-        # try:
-        self.axis_to_get_contact=s.split(', get contact along ')[1]
+    # def set_axes(self): # set axis depending on choice in MainWindow
+    #     s=self.scanning_type
+    #     # try:
+    #     self.axis_to_get_contact=s.split(', get contact along ')[1]
         
-        self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
-        # except IndexError:
+    #     self.axis_to_scan=s.split(', get contact along ')[0].split('Along ')[1]
+    #     # except IndexError:
         #     if 'Nano' in s:
         #         self.axis_to_scan='Nano'
         #         self.axis_to_get_contact=None
@@ -145,7 +145,7 @@ class ScanningProcess(QObject):
         self.IsInContact=self.checkIfContact(spectrum) #check if there is contact already
         
         while not self.IsInContact:
-            self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
+            self.move_along_contact_axis(self.seeking_step)
             total_seeking_shift+=self.seeking_step
             self.S_print.emit('Moved to Sample')
             wavelengthdata, spectrum=self.OSA.acquire_spectrum()
@@ -169,7 +169,7 @@ class ScanningProcess(QObject):
     def losing_contact(self): ##move taper away from sample until contact is lost
         self.set_OSA_to_Searching_Contact_State()
         while self.IsInContact:
-            self.stages.shiftOnArbitrary(self.axis_to_get_contact,-self.backstep)
+            self.move_along_contact_axis(-self.backstep)
             self.S_print.emit('Moved Back from Sample')
             wavelengthdata,spectrum=self.OSA.acquire_spectrum()
             time.sleep(0.05)
@@ -192,6 +192,22 @@ class ScanningProcess(QObject):
         else:
             return False
 
+    def move_along_scan_axis(self,step):
+        if self.axis_to_scan == 'Nano':
+            self.piezo_stage.move_by(step)
+        elif self.axis_to_scan == 'None':
+            return
+        else:
+            self.stages.shiftOnArbitrary(self.axis_to_scan,step)
+    
+    def move_along_contact_axis(self,step):
+        if self.axis_to_get_contact == 'Nano':
+            self.piezo_stage.move_by(step)
+        elif self.axis_to_get_contact == 'None':
+            return
+        else:
+            self.stages.shiftOnArbitrary(self.axis_to_get_contact,step)
+        
 
     """
     Main function
@@ -199,10 +215,10 @@ class ScanningProcess(QObject):
     def run(self):
         time.sleep(0.05)
         ### main loop
-        self.set_axes()
+        
         self.update_OSA_parameters()
     
-           
+        
         while self.is_running and self.current_file_index<self.stop_file_index+1:
             self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
             if self.save_out_of_contact:
@@ -215,7 +231,8 @@ class ScanningProcess(QObject):
             if self.is_seeking_contact:
                 self.search_contact()
             else:
-                self.stages.shiftOnArbitrary(self.axis_to_get_contact,self.seeking_step)
+                self.move_along_contact_axis(self.seeking_step)
+                
 
 
             if not self.is_running:
@@ -243,13 +260,14 @@ class ScanningProcess(QObject):
             if self.is_seeking_contact:
                 self.losing_contact()
             else:
-                self.stages.shiftOnArbitrary(self.axis_to_get_contact,-self.seeking_step)
+                self.move_along_contact_axis(-self.seeking_step)
+                
 
             if not self.is_running:
                 break
      
             ##  move sample along scanning axis
-            self.stages.shiftOnArbitrary(self.axis_to_scan,self.scanning_step)
+            self.move_along_scan_axis(self.scanning_step)
             self.current_file_index+=1
 
             self.S_print.emit('\n Shifted along the scanning axis\n')

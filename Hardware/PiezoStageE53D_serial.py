@@ -94,18 +94,22 @@ class PiezoStage(QObject):
         super().__init__()
         self.serial = OpeningPort(COMPort=COMPort, baudrate=baudrate)
         self.event_counter = 1
-        _, self.relative_position = self.A06_ReadDataMove()
-        self.abs_position = 0
+        stopped = pyqtSignal()
         try:
             with open('PiezoStageStartPosition.json', 'r', encoding='utf-8') as file:
                 tmp = json.load(file)
-                self.abs_position = tmp["X"]
+                self.zero_position = tmp["X"]
         except Exception as e:
             print(e)
-            self.abs_position = 0
+            self.zero_position = 0
+        self.update_position()
         Logging(datetime.now().strftime('%d.%m.%Y %H:%M:%S'), 'Piezo stage is connected to COM5', self.event_counter)
     
     
+    def update_position(self):
+        _, self.abs_position = self.A06_ReadDataMove()
+        self.relative_position = self.abs_position-self.zero_position
+        
     def __del__(self):
         print(f'Destructor')
         self.serial.close()
@@ -257,7 +261,11 @@ class PiezoStage(QObject):
         sleep(0.1)
         return dat_from_stage
         
-
+    def move_by(self,shift):
+        self.A01_SendMove(self.abs_position+shift)
+        self.update_position()
+        self.stopped.emit()
+        
         
 #%%
 '''

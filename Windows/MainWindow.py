@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.2'
+__version__='20.8.3'
 __date__='2025.02.21'
 
 import os
@@ -96,6 +96,7 @@ class MainWindow(ThreadedMainWindow):
     force_OSA_acquireAll = pyqtSignal()
     force_OSA_acquire = pyqtSignal()
     force_stage_move = pyqtSignal(str,float)
+    force_piezo_stage_move=pyqtSignal(float)
     force_scope_acquire = pyqtSignal()
     force_scanning_process=pyqtSignal()
     force_laser_scanning_process=pyqtSignal()
@@ -119,6 +120,7 @@ class MainWindow(ThreadedMainWindow):
         self.scope=None
         self.laser=None
         self.powermeter=None
+        self.piezo_stage=None
         
         self.painter = MyPainter(self.ui.groupBox_spectrum)
         self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
@@ -173,15 +175,32 @@ class MainWindow(ThreadedMainWindow):
     def init_stages_interface(self):
         self.ui.pushButton_StagesConnect.pressed.connect(self.connect_stages)
         self.X_0,self.Y_0,self.Z_0=[0,0,0]
-    
+        self.ui.pushButton_MovePlusX.pressed.connect(
+            lambda :self.setStageMoving('X',float(self.ui.lineEdit_StepX.text())))
+        self.ui.pushButton_MoveMinusX.pressed.connect(
+            lambda :self.setStageMoving('X',-1*float(self.ui.lineEdit_StepX.text())))
+        self.ui.pushButton_MovePlusY.pressed.connect(
+            lambda :self.setStageMoving('Y',float(self.ui.lineEdit_StepY.text())))
+        self.ui.pushButton_MoveMinusY.pressed.connect(
+            lambda :self.setStageMoving('Y',-1*float(self.ui.lineEdit_StepY.text())))
+        self.ui.pushButton_MovePlusZ.pressed.connect(
+            lambda :self.setStageMoving('Z',float(self.ui.lineEdit_StepZ.text())))
+        self.ui.pushButton_MoveMinusZ.pressed.connect(
+            lambda :self.setStageMoving('Z',-1*float(self.ui.lineEdit_StepZ.text())))
+        self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
+        self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
+        self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
+        self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
+        self.ui.pushButton_zeroing_stages.pressed.connect(self.zeroing_stages)
 # =============================================================================
 #         Piezo Stage interface
 # =============================================================================
     def init_piezo_stage_interface(self):
         self.ui.pushButton_PiezoStageConnect.clicked.connect(self.connect_PiezoStages)
-        self.ui.pushButton_SetZero.clicked.connect(self.SetZeroPosToPiezoStage)
-        self.ui.pushButton_piezo_incr_X.clicked.connect(lambda: self.MovePiezoStage(direction=1))
-        self.ui.pushButton_piezo_decr_X.clicked.connect(lambda: self.MovePiezoStage(direction=-1))
+        self.ui.pushButton_SetZero.clicked.connect(lambda: self.on_pushButton_zeroingPositions('Piezo'))
+        self.ui.pushButton_piezo_decr_Z.pressed.connect(lambda: self.setPiezoStageMoving(-float(self.ui.lineEdit_piezo_step.text())))
+        self.ui.pushButton_piezo_incr_Z.pressed.connect(lambda: self.setPiezoStageMoving(float(self.ui.lineEdit_piezo_step.text())))
+        self.force_piezo_stage_move[float].connect(lambda i:self.piezo_stage.move_by(i))
 # =============================================================================
 #         # OSA interface
 # =============================================================================
@@ -565,28 +584,12 @@ class MainWindow(ThreadedMainWindow):
             if self.stages.isConnected>0:
                 self.logText('Connected to stages')
                 self.add_thread([self.stages])
-                self.stages.set_zero_positions(self.logger.load_zero_position())
-                self.update_indicated_positions()
-                self.ui.pushButton_MovePlusX.pressed.connect(
-                    lambda :self.setStageMoving('X',float(self.ui.lineEdit_StepX.text())))
-                self.ui.pushButton_MoveMinusX.pressed.connect(
-                    lambda :self.setStageMoving('X',-1*float(self.ui.lineEdit_StepX.text())))
-                self.ui.pushButton_MovePlusY.pressed.connect(
-                    lambda :self.setStageMoving('Y',float(self.ui.lineEdit_StepY.text())))
-                self.ui.pushButton_MoveMinusY.pressed.connect(
-                    lambda :self.setStageMoving('Y',-1*float(self.ui.lineEdit_StepY.text())))
-                self.ui.pushButton_MovePlusZ.pressed.connect(
-                    lambda :self.setStageMoving('Z',float(self.ui.lineEdit_StepZ.text())))
-                self.ui.pushButton_MoveMinusZ.pressed.connect(
-                    lambda :self.setStageMoving('Z',-1*float(self.ui.lineEdit_StepZ.text())))
-                self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
-                self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
-                self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
-                self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
+                self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
                 self.stages.stopped.connect(self.update_indicated_positions)
+                self.update_indicated_positions()
+             
                 self.ui.groupBox_stand.setEnabled(True)
-                self.ui.pushButton_zeroing_stages.pressed.connect(
-                    self.zeroing_stages)
+
     
                 self.enable_scanning_process()
         except Exception as e:
@@ -618,7 +621,9 @@ class MainWindow(ThreadedMainWindow):
                 "    background-color: rgb(0, 255, 0);\n"
                 "}")
                 self.piezo_stage.A18_SetChannelOpenOrClose(False)
-                self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.relative_position, 3)} μm')
+                self.piezo_stage.zero_position=self.logger.load_zero_position()[3]
+                # self.ui.label_rel_position.setText(f'Rel: {round(self.piezo_stage.relative_position, 3)} μm')
+                self.piezo_stage.stopped.connect(self.update_indicated_positions)
             except Exception as e:
                 print(e)
                 self.logWarningText('Connection to Piezo stages failed')
@@ -637,33 +642,26 @@ class MainWindow(ThreadedMainWindow):
                 print(e)
     
     
-    def SetZeroPosToPiezoStage(self):
-        if self.piezo_stage_connected == 1:
-            _, move = self.piezo_stage.A06_ReadDataMove()
-            _, move = self.piezo_stage.A06_ReadDataMove()
-            self.piezo_stage.A01_SendMove(0.0001)
-            self.piezo_stage.abs_position -= move
-            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
-            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
-            self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
-            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.relative_position, 3)} μm')
-        else:
-            self.logWarningText('Piezo stage is not connected')
+    # def set_ZeroPosToPiezoStage(self):
+    #     if self.piezo_stage_connected == 1:
+            
+    #     else:
+    #         self.logWarningText('Piezo stage is not connected')
             
     
-    def MovePiezoStage(self, direction=1):
-        if self.piezo_stage_connected == 1:
-            to_move = float(self.ui.lineEdit_Step.text())*direction
-            if 0 <= self.piezo_stage.relative_position + to_move <= 202:
-                self.piezo_stage.abs_position += to_move
-                self.piezo_stage.relative_position += to_move
-                self.piezo_stage.A01_SendMove(self.piezo_stage.relative_position)
-            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
-            _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
-            self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
-            self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.relative_position, 3)} μm')
-        else:
-            self.logWarningText('Piezo stage is not connected')
+    # def MovePiezoStage(self, direction=1):
+    #     if self.piezo_stage_connected == 1:
+    #         to_move = float(self.ui.lineEdit_Step.text())*direction
+    #         if 0 <= self.piezo_stage.relative_position + to_move <= 202:
+    #             self.piezo_stage.abs_position += to_move
+    #             self.piezo_stage.relative_position += to_move
+    #             self.piezo_stage.A01_SendMove(self.piezo_stage.relative_position)
+    #         _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
+    #         _, self.piezo_stage.relative_position = self.piezo_stage.A06_ReadDataMove()
+    #         self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')
+    #         self.ui.label_rel_position.setText(f'Rel:{round(self.piezo_stage.relative_position, 3)} μm')
+    #     else:
+    #         self.logWarningText('Piezo stage is not connected')
     
     
     def connect_powermeter(self):
@@ -951,24 +949,38 @@ class MainWindow(ThreadedMainWindow):
 
     def setStageMoving(self,key,step):
         self.force_stage_move.emit(key,step)
+        
+    def setPiezoStageMoving(self,step):
+        self.force_piezo_stage_move.emit(step)
 
     @pyqtSlotWExceptions("PyQt_PyObject")
     def update_indicated_positions(self):
-        X_abs=(self.stages.abs_position['X'])
-        Y_abs=(self.stages.abs_position['Y'])
-        Z_abs=(self.stages.abs_position['Z'])
+        try:
+            X_abs=(self.stages.abs_position['X'])
+            Y_abs=(self.stages.abs_position['Y'])
+            Z_abs=(self.stages.abs_position['Z'])
         
-        X_rel=(self.stages.relative_position['X'])
-        Y_rel=(self.stages.relative_position['Y'])
-        Z_rel=(self.stages.relative_position['Z'])
+            X_rel=(self.stages.relative_position['X'])
+            Y_rel=(self.stages.relative_position['Y'])
+            Z_rel=(self.stages.relative_position['Z'])
+        except:
+            X_abs,Y_abs,Z_abs=0,0,0
+            X_rel,Y_rel,Z_rel=0,0,0
+        try:
+            piezoZ_abs=self.piezo_stage.abs_position
+            piezoZ_rel=self.piezo_stage.relative_position
+        except:
+            piezoZ_abs,piezoZ_rel=0,0
 
         self.ui.label_PositionX.setText(str(X_rel))
         self.ui.label_PositionY.setText(str(Y_rel))
         self.ui.label_PositionZ.setText(str(Z_rel))
+        self.ui.label_piezo_rel_position.setText(str(piezoZ_rel))
 
         self.ui.label_AbsPositionX.setText(str(X_abs))
         self.ui.label_AbsPositionY.setText(str(Y_abs))
         self.ui.label_AbsPositionZ.setText(str(Z_abs))
+        self.ui.label_piezo_abs_position.setText(str(piezoZ_abs))
 
 
 
@@ -976,10 +988,20 @@ class MainWindow(ThreadedMainWindow):
         X_0=(self.stages.abs_position['X'])
         Y_0=(self.stages.abs_position['Y'])
         Z_0=(self.stages.abs_position['Z'])
-        self.stages.zero_position[key]=self.stages.abs_position[key]
+        try:
+            piezoZ_0=self.piezo_stage.abs_position
+        except:
+            piezoZ_0=0
+        if key=='Piezo':
+            self.piezo_stage.zero_position=piezoZ_0
+        else:
+            self.stages.zero_position[key]=self.stages.abs_position[key]
         self.stages.update_relative_positions()
-        self.logger.save_zero_position(X_0,Y_0,Z_0)
+        self.piezo_stage.update_position()
+        self.logger.save_zero_position(X_0,Y_0,Z_0,piezoZ_0)
         self.update_indicated_positions()
+        
+    
 
     '''
     Interface logic
