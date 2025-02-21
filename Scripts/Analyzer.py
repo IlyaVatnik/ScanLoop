@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.7.2'
-__date__ = '2025.02.18'
+__version__ = '2.7.3'
+__date__ = '2025.02.21'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -731,7 +731,8 @@ class Analyzer(QObject):
         else:
             self.S_print_error.emit('Error: No peaks found')
         # plt.tight_layout()
-        fig.canvas.draw_idle()
+        # fig.canvas.draw_idle()
+        fig.show() 
 
     def apply_FFT_to_spectrum(self, fig):
         from scipy.fftpack import rfft, irfft, fftfreq
