@@ -820,7 +820,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>279</width>
+             <width>79</width>
              <height>700</height>
             </rect>
            </property>
@@ -1809,8 +1809,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>576</height>
+             <width>79</width>
+             <height>500</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2339,8 +2339,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>300</width>
-             <height>576</height>
+             <width>100</width>
+             <height>30</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2509,7 +2509,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-41</y>
              <width>279</width>
              <height>650</height>
             </rect>
@@ -2958,16 +2958,16 @@
                  </rect>
                 </property>
                 <property name="text">
-                 <string>Analyze oscillogram</string>
+                 <string>Fit Lorenzian</string>
                 </property>
                </widget>
                <widget class="QLabel" name="label_analyzer_single_oscillogram_file">
                 <property name="geometry">
                  <rect>
-                  <x>100</x>
-                  <y>20</y>
-                  <width>24</width>
-                  <height>16</height>
+                  <x>113</x>
+                  <y>23</y>
+                  <width>31</width>
+                  <height>20</height>
                  </rect>
                 </property>
                 <property name="text">
@@ -2982,7 +2982,7 @@
                  <rect>
                   <x>10</x>
                   <y>20</y>
-                  <width>79</width>
+                  <width>101</width>
                   <height>23</height>
                  </rect>
                 </property>
