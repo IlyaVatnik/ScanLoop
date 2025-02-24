@@ -6,8 +6,8 @@ Created on Tue Nov 20 19:09:12 2018
 @author: Ilya
 """
 
-__date__='2023.03.17'
-__version__='3.2'
+__date__='2025.02.24'
+__version__='3.3'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -84,6 +84,7 @@ class ScanningProcess(QObject):
         d=dict(vars(self)).copy() #make a copy of the vars dictionary
         del d['stages']
         del d['OSA']
+        del d['piezo_stage']
         return d
     
     def update_OSA_parameters(self):

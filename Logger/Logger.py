@@ -6,8 +6,8 @@ import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
-__version__='3.1'
-__date__='2025.02.21'
+__version__='3.2'
+__date__='2025.02.24'
 
 
 

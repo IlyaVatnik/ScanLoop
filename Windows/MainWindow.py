@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.3'
-__date__='2025.02.21'
+__version__='20.8.4'
+__date__='2025.02.24'
 
 import os
 if __name__=='__main__':
@@ -230,7 +230,7 @@ class MainWindow(ThreadedMainWindow):
             lambda:self.OSA.change_range(stop_wavelength=float(self.ui.lineEdit_StopWavelength.text())) 
             if (isfloat(self.ui.lineEdit_StopWavelength.text())) else 0)      
         
-        
+
         
 
 # =============================================================================
@@ -548,6 +548,7 @@ class MainWindow(ThreadedMainWindow):
             self.on_pushButton_acquireSpectrum_pressed()
             self.enable_scanning_process()
             self.painter.TypeOfData='FromOSA'
+            self.OSA.S_print_error[str].connect(self.logWarningText)
         except Exception as e:
             print(e)
             self.logWarningText('Connection to OSA failed')
@@ -975,7 +976,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.label_AbsPositionX.setText(str(X_abs))
         self.ui.label_AbsPositionY.setText(str(Y_abs))
         self.ui.label_AbsPositionZ.setText(str(Z_abs))
-        self.ui.label_piezo_abs_position.setText(str(piezoZ_abs))
+        self.ui.label_piezo_abs_position.setText('{:.4f}'.format(piezoZ_abs))
 
 
 
@@ -1122,7 +1123,10 @@ class MainWindow(ThreadedMainWindow):
 
                 if self.ui.tabWidget_instruments.currentIndex()==0: ## if OSA is active, scanning
                     self.scanningProcess.is_running=True
-                    final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
+                    if self.scanningProcess.axis_to_scan=='Piezo':
+                        final_position='{:.4f}'.format((self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position)
+                    else:
+                        final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
                     self.ui.label_scanning_final_position.setText(str(final_position))
                     self.ui.label_scanning_axis.setText(self.scanningProcess.axis_to_scan)
                                           ## with OSA
@@ -1164,7 +1168,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_set_scanning_parameters.setEnabled(True)
         except:
             print(sys.exc_info())
-            self.logWarningText('Some error')
+            self.logWarningText('Some error when making scanning')
 
 
     def on_pushButton_save_data(self):
@@ -1192,7 +1196,7 @@ class MainWindow(ThreadedMainWindow):
                         self.OSA.save_binary( f"{self.logger.SpectralBinaryDataFolder}"
                             + f"Sp_{FilePrefix}_X={X}"
                             + f"_Y={Y}"
-                            + f"_Z={Z}_piezoZ={piezo_Z}_.bin")
+                            + f"_Z={Z}_"+"piezoZ={:.4f}_.bin".format(piezo_Z))
                         self.logText("Saving Luna as bin")
 
             else:
@@ -1428,7 +1432,7 @@ class MainWindow(ThreadedMainWindow):
             params=get_widget_values(dialog)
             self.scanningProcess.set_parameters(params)
             if self.scanningProcess.axis_to_scan=='Piezo':
-                final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position
+                final_position='{:.4f}'.format((self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position)
             else:
                 final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
             self.ui.label_scanning_final_position.setText(str(final_position))

@@ -5,8 +5,8 @@ from datetime import datetime
 from time import perf_counter, sleep
 from PyQt5.QtCore import QObject, pyqtSignal    
 
-__version__ = '1'
-__date__ = '27.09.2023'
+__version__ = '2'
+__date__ = '2025.02.24'
 
 
 #%%

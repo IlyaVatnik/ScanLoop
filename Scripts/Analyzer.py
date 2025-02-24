@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.7.3'
-__date__ = '2025.02.21'
+__version__ = '2.7.4'
+__date__ = '2025.02.24'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -661,6 +661,9 @@ class Analyzer(QObject):
         plot_with_high_point_number = True
         axes = fig.gca()
         line = axes.get_lines()[0]
+        if  (line.get_c()) == 'black':
+            line = axes.get_lines()[1]
+            
         waves = line.get_xdata()
         signal = line.get_ydata()
         wave_min, wave_max = axes.get_xlim()
@@ -731,8 +734,8 @@ class Analyzer(QObject):
         else:
             self.S_print_error.emit('Error: No peaks found')
         # plt.tight_layout()
-        # fig.canvas.draw_idle()
-        fig.show() 
+        fig.canvas.draw_idle()
+        # fig.show() 
 
     def apply_FFT_to_spectrum(self, fig):
         from scipy.fftpack import rfft, irfft, fftfreq
