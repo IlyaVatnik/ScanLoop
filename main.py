@@ -3,7 +3,7 @@ from Windows.MainWindow import MainWindow
 from PyQt5 import QtWidgets
 from packaging import version
 import sys
-__version__ = '20.7.4'
+__version__ = '20.7.5'
 __date__ = '2025.02.24'
 
 

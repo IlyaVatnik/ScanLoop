@@ -7,7 +7,7 @@ Created on Tue Nov 20 19:09:12 2018
 """
 
 __date__='2025.02.24'
-__version__='3.3'
+__version__='3.4'
 
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
@@ -59,6 +59,7 @@ class ScanningProcess(QObject):
         # self.scanning_type='Along Z, get contact along X'
         self.axis_to_scan='Z'
         self.axis_to_get_contact='X'
+        self.no_backstep=False
         
         self.is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
     ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
@@ -259,10 +260,11 @@ class ScanningProcess(QObject):
             if not self.is_running:
                 break
 
-            if self.is_seeking_contact:
-                self.losing_contact()
-            else:
-                self.move_along_contact_axis(-self.seeking_step)
+            if not self.no_backstep:
+                if self.is_seeking_contact:
+                    self.losing_contact()
+                else:
+                    self.move_along_contact_axis(-self.seeking_step)
                 
 
             if not self.is_running:
