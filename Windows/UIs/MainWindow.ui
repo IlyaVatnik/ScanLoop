@@ -55,8 +55,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1543</width>
-         <height>786</height>
+         <width>1547</width>
+         <height>801</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -359,7 +359,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>609</height>
+             <height>648</height>
             </rect>
            </property>
            <attribute name="label">
@@ -820,7 +820,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>79</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -1042,7 +1042,7 @@
            </widget>
            <widget class="QGroupBox" name="groupBox_stand">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="geometry">
              <rect>
@@ -1183,7 +1183,7 @@
             </widget>
             <widget class="QGroupBox" name="groupBox_6">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="geometry">
               <rect>
@@ -1244,6 +1244,9 @@
               </property>
              </widget>
              <widget class="QPushButton" name="pushButton_zero_position_Y">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>100</x>
@@ -1360,6 +1363,9 @@
               </property>
              </widget>
              <widget class="QPushButton" name="pushButton_zero_position_Z">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="geometry">
                <rect>
                 <x>180</x>
@@ -1464,8 +1470,8 @@
               <rect>
                <x>130</x>
                <y>110</y>
-               <width>37</width>
-               <height>22</height>
+               <width>32</width>
+               <height>20</height>
               </rect>
              </property>
              <property name="toolTip">
@@ -1809,8 +1815,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>79</width>
-             <height>500</height>
+             <width>300</width>
+             <height>648</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2339,8 +2345,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>100</width>
-             <height>30</height>
+             <width>300</width>
+             <height>648</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2509,8 +2515,8 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-41</y>
-             <width>279</width>
+             <y>0</y>
+             <width>283</width>
              <height>650</height>
             </rect>
            </property>
@@ -3032,7 +3038,7 @@
      <x>0</x>
      <y>0</y>
      <width>1567</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuData">

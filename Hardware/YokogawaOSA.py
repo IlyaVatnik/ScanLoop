@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+__version__='2'
+__date__='2025.02.26'
+
 import socket
 #from string import atof, atoi
 # import atexit
@@ -11,6 +14,7 @@ class OSA_AQ6370(QObject):
     received_spectra = pyqtSignal(object,object)
     received_spectrum = pyqtSignal(np.ndarray,list,list)
     connected = pyqtSignal(int)
+    S_print_error = pyqtSignal(str)
 
     def __init__(self,
                  parent:QObject,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.4'
-__date__='2025.02.24'
+__version__='20.8.5'
+__date__='2025.02.26'
 
 import os
 if __name__=='__main__':
@@ -1096,10 +1096,21 @@ class MainWindow(ThreadedMainWindow):
             self.scanningProcess.piezo_stage=self.piezo_stage
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
-            self.scanningProcess.S_saveData.connect(
-                        lambda Data,prefix: self.logger.save_data(Data,prefix,
-                            self.stages.relative_position['X'], self.stages.relative_position['Y'],
-                            self.stages.relative_position['Z'],self.piezo_stage.relative_position,'FromOSA'))
+            if self.piezo_stage!=None and self.stages!=None:
+                self.scanningProcess.S_saveData.connect(
+                            lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                self.stages.relative_position['X'], self.stages.relative_position['Y'],
+                                self.stages.relative_position['Z'],self.piezo_stage.relative_position,'FromOSA'))
+            elif self.stages!=None:
+                self.scanningProcess.S_saveData.connect(
+                            lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                self.stages.relative_position['X'], self.stages.relative_position['Y'],
+                                self.stages.relative_position['Z'],0,'FromOSA'))
+            elif self.piezo_stage!=None:
+                self.scanningProcess.S_saveData.connect(
+                            lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                0, 0,
+                                0,self.piezo_stage.relative_position,'FromOSA'))
             self.scanningProcess.S_finished.connect(lambda: self.ui.pushButton_scan_in_space.setChecked(False))
             self.scanningProcess.S_finished.connect(
                     lambda : self.on_pushButton_scan_in_space(False))

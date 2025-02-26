@@ -17,21 +17,20 @@ eq(23)
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__='3.2'
-__date__='2022.04.18'
+__version__='3.3'
+__date__='2025.02.24'
 
 import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
 
-delta_c=0.5e7 # 2*pi*Hz
-delta_0=1e7 # 2*pi*Hz
+delta_c=7e6 # 2*pi*Hz
+delta_0=7e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
-n=1.445
 
-length=300 # micron
-R_0=62.5 #micron
+length=50 # micron
+R_0=100 #micron
 delta_theta=1 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
 
 
@@ -41,8 +40,9 @@ P_in=0.05 # W
 C_2=1.5e4 # micron/microsec
 Im_D=5.1e4 # micron/microsec
 Gamma=10 # 1/microsec
-w=32 # micron, gussian distribution
+# w=32 # micron, gussian distribution
 a=433 # micron, maximum position
+
 '''
 
 
@@ -203,7 +203,7 @@ def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
 if __name__=='__main__':
     delta=(delta_0+delta_c)*2
     
-    print(get_cross_section(62.5)*1e12)
+    print(get_cross_section(R_0)*1e12)
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
     min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)

@@ -206,7 +206,7 @@ class Ui_Dialog(object):
         self.comboBox_axis_to_scan.setItemText(1, _translate("Dialog", "Y"))
         self.comboBox_axis_to_scan.setItemText(2, _translate("Dialog", "X"))
         self.comboBox_axis_to_scan.setItemText(3, _translate("Dialog", "Piezo"))
-        self.comboBox_axis_to_get_contact.setCurrentText(_translate("Dialog", "Z"))
+        self.comboBox_axis_to_get_contact.setCurrentText(_translate("Dialog", "X"))
         self.comboBox_axis_to_get_contact.setItemText(0, _translate("Dialog", "Z"))
         self.comboBox_axis_to_get_contact.setItemText(1, _translate("Dialog", "Y"))
         self.comboBox_axis_to_get_contact.setItemText(2, _translate("Dialog", "X"))
