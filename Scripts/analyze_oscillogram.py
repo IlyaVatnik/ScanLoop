@@ -15,8 +15,8 @@ from scipy.constants import c
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 
-__version__ = '0.2'
-__date__ = '2025.02.18'
+__version__ = '0.3'
+__date__ = '2025.02.28'
 
 def Lorenz(det_f,non_resonant_transmission,X_0,delta_c,delta_0,phi):
     delta_freq=det_f-X_0
@@ -86,20 +86,21 @@ def give_detuning(dittering_frequency,detuning,Time):
     return Det
 
 def get_curve(X,Y, peak_number,dith_frequency,noise_level,detuning):
-    X,Y,index_shift=cut_wave(X,Y,dith_frequency)
+    # X,Y,index_shift=cut_wave(X,Y,dith_frequency)
     
     # Peak_moment=find_Pigs(X,Y)
     Y-=noise_level
     
-    Peak_moment=find_peaks((abs((Y-np.max(Y))/np.max(Y))),prominence=0.4,distance=300)[0]
+    Peak_moment=find_peaks((abs((Y-np.max(Y))/np.max(Y))),prominence=0.4)[0]
     # print(np.min(np.diff(Peak_moment)))
+    
     # plt.plot(X[Peak_moment],Y[Peak_moment],'o')
     Detuning_points=[ int(m) for m in ( (Peak_moment[1:]+Peak_moment[:-1])/2 )]
     Det=give_detuning(dith_frequency,detuning,X[Detuning_points[peak_number-1]:Detuning_points[peak_number]]) 
     Signal=Y[Detuning_points[peak_number-1]:Detuning_points[peak_number]]
     # Signal-=noise_level
-    Signal=Signal
-    return Det,Signal,Peak_moment[peak_number]+index_shift
+    #Signal=Signal
+    return Det,Signal,Peak_moment[peak_number]#+index_shift
 
 def analyze_oscillogram(X,Y,noise_level,dith_frequency,detuning_range): #x,Y = массив напряжения и времени,
     #get_data(way,amount_to_aver,step)
@@ -122,13 +123,29 @@ def analyze_oscillogram(X,Y,noise_level,dith_frequency,detuning_range): #x,Y = �
     return  nonresonant_transmission,x0,delta_c,delta_0,phi,index_of_peak # deltas in mks^-1
 
 if __name__=='__main__':
+    dith_frequency=888 # Hz
+    noise_level=0.007 # V
+    tuninge_range=80 # MHz
+    
+    
+    tuning_coeff=2*np.pi*tuninge_range*2*dith_frequency
+    
+    def lorenz_fit(times,non_res_transmission, Fano_phase, time0, delta_0, delta_c):
+        delta_0/=tuning_coeff
+        delta_c/=tuning_coeff
+        return(non_res_transmission*np.abs( np.exp(1j*phi*np.pi)-2*delta_c/( (delta_0+delta_c+1j*(time0-times)) ) )**2)+noise_level
+      
+        
     import pickle
-    file=r"C:\Users\Илья\Desktop\test_data.osc_pkl"
+    file=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\TimeDomainData\TD_3_X=0_Y=0_Z=0_piezoZ=0.0000_.osc_pkl"
     with open(file, 'rb') as f:
         data=pickle.load(f)
     times, signal=data[:,0],data[:,1]
     import matplotlib.pyplot as plt
-    signal=savgol_filter(signal,21,1)
     plt.plot(times, signal)
-    nonresonant_transmission,x0,delta_c,delta_0,phi,index_of_peak=analyze_oscillogram(times,signal,0.007,888,80)
-    print(nonresonant_transmission,x0,delta_c,delta_0,phi)
+    nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak=analyze_oscillogram(times,signal,noise_level,dith_frequency,tuninge_range)
+    print(nonresonant_transmission,X0,delta_c,delta_0,phi)
+    time0=times[index_of_peak]
+    signal_fitted = lorenz_fit(times, nonresonant_transmission, phi, time0, delta_0, delta_c)
+    plt.plot(times,signal_fitted,color='green')
+    

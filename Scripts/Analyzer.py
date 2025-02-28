@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.7.4'
-__date__ = '2025.02.24'
+__version__ = '2.7.5'
+__date__ = '2025.02.28'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -83,9 +83,12 @@ class Analyzer(QObject):
         self.quantum_numbers_fitter_R_min=62000
         self.quantum_numbers_fitter_R_max=64000
         self.quantum_numbers_fitter_type_of_cavity='cylinder'
-
+        self.quantum_numbers_R_0=62500
+        self.quantum_numbers_fitter_R_range=1000
         self.temperature = 20
+        self.temperature_range=10
         self.quantum_numbers_fitter_vary_temperature = False
+        self.quantum_numbers_fitter_type_of_formula=False
 
         self.SNAP = None
 
@@ -137,6 +140,7 @@ class Analyzer(QObject):
         del d['SNAP']
         del d['single_spectrum_figure']
         del d['figure_spectrogram']
+        del d['single_oscillogram_figure']
         return d
 
 
@@ -641,7 +645,6 @@ class Analyzer(QObject):
         time0=times[index_of_peak]
         signal_fitted = lorenz_fit(times, nonresonant_transmission, phi, time0, delta_0, delta_c)
         axes.plot(times,signal_fitted,color='green')
-        # fig.canvas.draw_idle()
         results_text2 = '\n $\delta_c$=({:.2f} ) '.format(
             delta_c)+'$\mu s^{-1}$'
         results_text3 = '\n $\delta_0$=({:.2f} ) '.format(
@@ -651,6 +654,7 @@ class Analyzer(QObject):
                   horizontalalignment='center',
                   verticalalignment='center',
                   transform=axes.transAxes)
+        fig.canvas.draw_idle()
         self.S_print.emit('delta_c,delta_0 are  {:.3f} , {:.3f} 1/mks'.format(delta_c,delta_0))
         
 
