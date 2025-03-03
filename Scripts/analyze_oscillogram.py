@@ -15,8 +15,8 @@ from scipy.constants import c
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 
-__version__ = '0.3'
-__date__ = '2025.02.28'
+__version__ = '0.4'
+__date__ = '2025.03.03'
 
 def Lorenz(det_f,non_resonant_transmission,X_0,delta_c,delta_0,phi):
     delta_freq=det_f-X_0
@@ -32,50 +32,7 @@ def fit_Lorenz(Det,Y,func,p0,detuning_range):
     return popt
 
 
-def cut_wave(X,Y,dith_frequency):
-    dittering_Period=1/dith_frequency
-    ind_left=np.where(abs(X+dittering_Period*3.2)<1e-7)[0]
-    ind_right=np.where(abs(X-dittering_Period*3.2)<1e-7)[0]
-    #print('ind_left',ind_left[0])
-    #print('ind_right',ind_right[0])
-    X=X[ind_left[0]:ind_right[0]]
-    Y=Y[ind_left[0]:ind_right[0]]
-    return X,Y,ind_left[0]
-
-def find_Pigs(X,Y):
-    N=len(X)
-    Pig_array=np.array([])
-    I_Pig=np.array([])
-    Peak_moment=np.array([])
-    
-    Y_min=np.min(Y)
-    Y_threshold=1-(1-np.min(Y))/2
-    #print('Y_threshold',Y_threshold)
-    new_Pig=0#
-    i_previous=0
-    for i in range(0,N):
-        
-        if Y[i]<Y_threshold or i==N-1:
-            #print('i',i)
-            if (i-i_previous>300 and i_previous!=0) or i==N-1:# проверяем перескочили ли мы на следующий пик - большой скачок по индексу
-                #print(i-i_previous)
-                new_Pig=1
-            if new_Pig==1:# это значит, что мы перескочили на другой пик, массив X_Pig содержит времена  предыдущего пика
-                #найдем время центра предыдущего пика
-                #print(I_Pig)
-                Peak_moment=np.append(Peak_moment,int(np.mean(I_Pig))) #запомнили положение пика index!
-                
-                I_Pig=np.array([])
-                new_Pig=0# продолжим работать над пиком
-                
-            if new_Pig==0:
-                #print('w')
-                i_previous=i
-                I_Pig=np.append(I_Pig,i)
-                
-    return Peak_moment
-
-def give_detuning(dittering_frequency,detuning,Time):
+def give_detunings(dittering_frequency,detuning,Time):
     ramp=1
     sinus=0
     Time=Time-Time[0]
@@ -83,44 +40,29 @@ def give_detuning(dittering_frequency,detuning,Time):
         Det=Time*detuning*dittering_frequency*2# половина периода только 
     if sinus==1:
         Det=detuning*np.sin(dittering_frequency*Time*2)
-    return Det
+    return Det*2*np.pi # в обратные микросекунды
 
-def get_curve(X,Y, peak_number,dith_frequency,noise_level,detuning):
-    # X,Y,index_shift=cut_wave(X,Y,dith_frequency)
+def get_range_to_fit(Y, peak_number,prominence,distance):
     
-    # Peak_moment=find_Pigs(X,Y)
-    Y-=noise_level
+    Peak_moments=find_peaks((abs((Y-np.max(Y))/np.max(Y))),prominence=prominence,distance=distance)[0]
+    Detuning_points=[ int(m) for m in ( (Peak_moments[1:]+Peak_moments[:-1])/2 )]
     
-    Peak_moment=find_peaks((abs((Y-np.max(Y))/np.max(Y))),prominence=0.4)[0]
-    # print(np.min(np.diff(Peak_moment)))
-    
-    # plt.plot(X[Peak_moment],Y[Peak_moment],'o')
-    Detuning_points=[ int(m) for m in ( (Peak_moment[1:]+Peak_moment[:-1])/2 )]
-    Det=give_detuning(dith_frequency,detuning,X[Detuning_points[peak_number-1]:Detuning_points[peak_number]]) 
-    Signal=Y[Detuning_points[peak_number-1]:Detuning_points[peak_number]]
-    # Signal-=noise_level
-    #Signal=Signal
-    return Det,Signal,Peak_moment[peak_number]#+index_shift
+    return Detuning_points[peak_number-1],Detuning_points[peak_number],Peak_moments[peak_number],Peak_moments#,+index_shift
 
-def analyze_oscillogram(X,Y,noise_level,dith_frequency,detuning_range): #x,Y = массив напряжения и времени,
-    #get_data(way,amount_to_aver,step)
+def analyze_oscillogram(times,signal,noise_level,dith_frequency,detuning_range,prominence): #x,Y = массив напряжения и времени,
     peak_number=2 # номер пика в осциллограмме, который булем анализировать
+    max_peak_width=30 #MHz
     
-    Det,Signal,index_of_peak=get_curve(X,Y, peak_number,dith_frequency,noise_level,detuning_range) #поулчаем пропускание через 1 резонанс,
-
     
-    # plt.plot(Det,Signal)
-    Det=Det*2*np.pi # получаем обратные микросекунды
-    # center0=Det[np.where(Signal==min(Signal))][0] #сдвигаем центр пика в ноль
-    # Det=Det-center0
+    distance=int(max_peak_width/(2*dith_frequency*detuning_range)/(times[1]-times[0]))
+    index_start,index_stop,index_of_peak,Peak_moments=get_range_to_fit(signal, peak_number,prominence,distance) #поулчаем пропускание через 1 резонанс,
+    detunings=give_detunings(dith_frequency,detuning_range,times[index_start:index_stop])  
     
-    #print(center0)n
     p0= 1,1,1,1,1#splitted_Lorenz(nonresonant_transmission, det_f,X_0,delta_c,delta_0,g)
-    popt_Lor=fit_Lorenz(Det,Signal,Lorenz,p0,detuning_range)
+    popt_Lor=fit_Lorenz(detunings,signal[index_start:index_stop]-noise_level,Lorenz,p0,detuning_range)
     
     nonresonant_transmission,x0,delta_c,delta_0,phi=popt_Lor
-    #axSKO.legend(loc='upper left')
-    return  nonresonant_transmission,x0,delta_c,delta_0,phi,index_of_peak # deltas in mks^-1
+    return  index_start,index_stop,nonresonant_transmission,x0,delta_c,delta_0,phi,index_of_peak, Peak_moments # deltas in mks^-1
 
 if __name__=='__main__':
     dith_frequency=888 # Hz

@@ -3,8 +3,8 @@ from Windows.MainWindow import MainWindow
 from PyQt5 import QtWidgets
 from packaging import version
 import sys
-__version__ = '20.7.7'
-__date__ = '2025.02.28'
+__version__ = '20.7.8'
+__date__ = '2025.03.03'
 
 
 # from conda import __version__ as condaVersion

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.5'
-__date__='2025.02.26'
+__version__='20.8.6'
+__date__='2025.03.03'
 
 import os
 if __name__=='__main__':
@@ -164,7 +164,10 @@ class MainWindow(ThreadedMainWindow):
     def init_menu_bar(self):
         self.ui.action_save_parameters.triggered.connect(self.save_parameters_to_file)
         self.ui.action_load_parameters.triggered.connect(self.load_parameters_from_file)
-        self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
+        if plt.get_backend()!='TkAgg':
+            self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
+        else:
+            self.ui.action_delete_all_figures.triggered.connect(lambda: self.logWarningText('deleting figures is not supported with TKinter backend'))
         self.ui.action_delete_all_measured_spectral_data.triggered.connect(self.delete_data_from_folders)
         
     def init_hardware_parameters_toolbox(self):

@@ -8,14 +8,17 @@ import json
 from scipy.signal import find_peaks
 import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
+from matplotlib import get_backend
 from matplotlib import rcParams
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-__version__ = '2.7.5'
-__date__ = '2025.02.28'
+import time
+
+__version__ = '2.7.6'
+__date__ = '2025.03.03'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -98,6 +101,7 @@ class Analyzer(QObject):
         self.osc_noise_level=0.1
         self.osc_dith_frequency=888
         self.osc_detuning=80
+        self.osc_prominence=0.2
 
         '''
             Временно. Для постройки графика функции ошибки от радиуса и температуры
@@ -629,33 +633,50 @@ class Analyzer(QObject):
         '''
         anayze the osciilogram captured frin the scope when ui.tabWidget_instruments is set to '1' (to 'scope')
         '''
-        tuning_coeff=2*np.pi*self.osc_detuning*2*self.osc_dith_frequency
-        def lorenz_fit(times,non_res_transmission, Fano_phase, time0, delta_0, delta_c):
-            delta_0/=tuning_coeff
-            delta_c/=tuning_coeff
-            return(non_res_transmission*np.abs( np.exp(1j*phi*np.pi)-2*delta_c/( (delta_0+delta_c+1j*(time0-times)) ) )**2)+self.osc_noise_level
+        try:
+            tuning_coeff=2*np.pi*self.osc_detuning*2*self.osc_dith_frequency
+            def lorenz_fit(times,non_res_transmission, Fano_phase, time0, delta_0, delta_c):
+                delta_0/=tuning_coeff
+                delta_c/=tuning_coeff
+                return(non_res_transmission*np.abs( np.exp(1j*phi*np.pi)-2*delta_c/( (delta_0+delta_c+1j*(time0-times)) ) )**2)+self.osc_noise_level
+                
+            
+            from Scripts.analyze_oscillogram import analyze_oscillogram
+            axes = fig.gca()
+            line = axes.get_lines()[0]
+            
+            times = line.get_xdata().copy()
+            signal = line.get_ydata().copy()
+            index_start,index_stop,nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak,peak_indexes=analyze_oscillogram(times,signal,self.osc_noise_level,
+                                                                                                           self.osc_dith_frequency,self.osc_detuning,
+                                                                                                           self.osc_prominence)
+            plt.plot(times[peak_indexes],signal[peak_indexes],'o',color='red')
+            time0=times[index_of_peak]
+            signal_fitted = lorenz_fit(times[index_start:index_stop], nonresonant_transmission, phi, time0, delta_0, delta_c)
+            axes.plot(times[index_start:index_stop],signal_fitted,color='green',linewidth=3)
+            results_text2 = ' $\delta_c$=({:.2f} ) '.format(
+                delta_c)+'$\mu s^{-1}$'
+            results_text3 = ' $\delta_0$=({:.2f} ) '.format(
+                delta_0)+'$\mu s^{-1}$'
+            results_text=results_text2+results_text3
+            axes.set_title(results_text)
+            # axes.text(0.8, 0.5, results_text,
+            #           horizontalalignment='center',
+            #           verticalalignment='center',
+            #           transform=axes.transAxes)
+            
+            plt.tight_layout()
+            if get_backend()=='TkAgg':
+                plt.show()
+            else:
+                fig.canvas.draw_idle()
+            self.S_print.emit('delta_c,delta_0 are  {:.3f} , {:.3f} 1/mks'.format(delta_c,delta_0))
+            
+        except Exception as e:
+            self.S_print_error.emit(str(e))
             
         
-        from Scripts.analyze_oscillogram import analyze_oscillogram
-        axes = fig.gca()
-        line = axes.get_lines()[0]
-        times = line.get_xdata()
-        signal = line.get_ydata()
-        nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak=analyze_oscillogram(times,signal,self.osc_noise_level,self.osc_dith_frequency,self.osc_detuning)
-        time0=times[index_of_peak]
-        signal_fitted = lorenz_fit(times, nonresonant_transmission, phi, time0, delta_0, delta_c)
-        axes.plot(times,signal_fitted,color='green')
-        results_text2 = '\n $\delta_c$=({:.2f} ) '.format(
-            delta_c)+'$\mu s^{-1}$'
-        results_text3 = '\n $\delta_0$=({:.2f} ) '.format(
-            delta_0)+'$\mu s^{-1}$'
-        results_text=results_text2+results_text3
-        axes.text(0.8, 0.5, results_text,
-                  horizontalalignment='center',
-                  verticalalignment='center',
-                  transform=axes.transAxes)
-        fig.canvas.draw_idle()
-        self.S_print.emit('delta_c,delta_0 are  {:.3f} , {:.3f} 1/mks'.format(delta_c,delta_0))
+
         
 
     def analyze_spectrum(self, fig):

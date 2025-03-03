@@ -1,1137 +1,477 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>597</width>
-    <height>578</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Dialog</string>
-  </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>540</x>
-     <y>10</y>
-     <width>51</width>
-     <height>241</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="groupBox">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>0</y>
-     <width>521</width>
-     <height>561</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Analyzer options</string>
-   </property>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>501</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Find_peaks parameters</string>
-    </property>
-    <widget class="QLabel" name="label_31">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>10</y>
-       <width>61</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of peaks to be find&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_number_of_peaks_to_search">
-     <property name="geometry">
-      <rect>
-       <x>200</x>
-       <y>20</y>
-       <width>31</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>1</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_min_peak_distance">
-     <property name="geometry">
-      <rect>
-       <x>395</x>
-       <y>20</y>
-       <width>51</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>0.05</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_32">
-     <property name="geometry">
-      <rect>
-       <x>340</x>
-       <y>10</y>
-       <width>61</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between peaks, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_17">
-     <property name="geometry">
-      <rect>
-       <x>240</x>
-       <y>10</y>
-       <width>61</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Peak prominence, dB&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_min_peak_level">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>20</y>
-       <width>31</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>3</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_16">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>40</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;max&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_15">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>10</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;min&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_min_wave">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>20</y>
-       <width>41</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>1500</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_max_wave">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>50</y>
-       <width>41</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>1600</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_43">
-     <property name="geometry">
-      <rect>
-       <x>460</x>
-       <y>10</y>
-       <width>41</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;scale&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_scale_for_fitting">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>450</x>
-       <y>30</y>
-       <width>41</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="editable">
-      <bool>false</bool>
-     </property>
-     <item>
-      <property name="text">
-       <string>log</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>lin</string>
-      </property>
-     </item>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_11">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>320</y>
-      <width>501</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>220</width>
-      <height>50</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>270000</width>
-      <height>50</height>
-     </size>
-    </property>
-    <property name="title">
-     <string>FFT filter options</string>
-    </property>
-    <widget class="QLineEdit" name="lineEdit_FFTFilter_low_freq_edge">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>23</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>0.00001</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_FFTFilter_high_freq_edge">
-     <property name="geometry">
-      <rect>
-       <x>358</x>
-       <y>23</y>
-       <width>51</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>0.01</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_40">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>18</y>
-       <width>81</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Min freq&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_41">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>306</x>
-       <y>18</y>
-       <width>81</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Max freq&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_12">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>380</y>
-      <width>501</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>220</width>
-      <height>50</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>270000</width>
-      <height>240</height>
-     </size>
-    </property>
-    <property name="title">
-     <string>Quantum number fitter parameters</string>
-    </property>
-    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_p_max">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>20</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>3</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_36">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>41</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;P_max&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_quantum_numbers_fitter_polarizations">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>20</y>
-       <width>69</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>both</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>single</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_37">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>20</y>
-       <width>81</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Polarizations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_38">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>60</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Type of optimizer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_quantum_numbers_fitter_type_of_optimizer">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>60</y>
-       <width>69</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>bruteforce</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Nelder-Mead</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_42">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Temperature&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_temperature">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>50</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>20</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_dispersion">
-     <property name="geometry">
-      <rect>
-       <x>380</x>
-       <y>20</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>consider dispersion</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_vary_temperature">
-     <property name="geometry">
-      <rect>
-       <x>380</x>
-       <y>60</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>vary temperature</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_44">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>120</y>
-       <width>41</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R_max&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_45">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>90</y>
-       <width>41</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;R_min&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_R_min">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>90</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>61500</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_quantum_numbers_fitter_R_max">
-     <property name="geometry">
-      <rect>
-       <x>80</x>
-       <y>120</y>
-       <width>61</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>63500</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_quantum_numbers_fitter_type_of_formula">
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>90</y>
-       <width>111</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>Simple formula</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox_quantum_numbers_fitter_type_of_cavity">
-     <property name="geometry">
-      <rect>
-       <x>260</x>
-       <y>100</y>
-       <width>69</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>cylinder</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>cylinder_simplified</string>
-      </property>
-     </item>
-    </widget>
-    <widget class="QLabel" name="label_46">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>100</y>
-       <width>101</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Type of cavity&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_13">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>501</width>
-      <height>50</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>220</width>
-      <height>50</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>270000</width>
-      <height>50</height>
-     </size>
-    </property>
-    <property name="title">
-     <string>Plotted value (for LUNA data)</string>
-    </property>
-    <widget class="QComboBox" name="comboBox_type_of_spectrogram">
-     <property name="geometry">
-      <rect>
-       <x>228</x>
-       <y>20</y>
-       <width>201</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <item>
-      <property name="text">
-       <string>insertion losses</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>chromatic dispersion</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>first polarization</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>second polarization</string>
-      </property>
-     </item>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>160</y>
-      <width>501</width>
-      <height>141</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>ERV_and_delta_0_delta_c_defining</string>
-    </property>
-    <widget class="QCheckBox" name="checkBox_plot_results_separately">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>Plot separately</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_find_widths">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>91</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>7</pointsize>
-      </font>
-     </property>
-     <property name="whatsThis">
-      <string comment="Plot results on new figures"/>
-     </property>
-     <property name="text">
-      <string>find widths</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QGroupBox" name="groupBox_4">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>10</y>
-       <width>311</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="title">
-      <string>find width parameters</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-     <widget class="QLabel" name="label_33">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>101</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;bandwidth for fit, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineEdit_bandwidth_for_fitting">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>30</y>
-        <width>41</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_35">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>60</y>
-        <width>81</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;iterating over Bandwidth&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="checkBox_iterate_different_bandwidths">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>60</y>
-        <width>16</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="locale">
-       <locale language="Russian" country="Russia"/>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="autoRepeat">
-       <bool>false</bool>
-      </property>
-      <property name="autoRepeatInterval">
-       <number>-5</number>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineEdit_max_bandwidth_for_fitting">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>150</x>
-        <y>30</y>
-        <width>41</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>1</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_34">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>10</y>
-        <width>131</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;max bandwidth for fit, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="comboBox_iterating_cost_function_type">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>60</y>
-        <width>69</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <item>
-       <property name="text">
-        <string>linewidth</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>net error</string>
-       </property>
-      </item>
-     </widget>
-     <widget class="QLabel" name="label_39">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>60</y>
-        <width>41</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;minimize&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QLabel" name="label_18">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;λ&lt;span style=&quot; vertical-align:sub;&quot;&gt;0&lt;/span&gt;, nm&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_lambda_0_for_ERV">
-     <property name="geometry">
-      <rect>
-       <x>60</x>
-       <y>26</y>
-       <width>71</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string comment="Set 0 if need auto" extracomment="Set 0 if need auto"/>
-     </property>
-     <property name="text">
-      <string>0</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="checkBox_derive_taper_cavity_params">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>110</y>
-       <width>121</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>derive C,D,Gamma</string>
-     </property>
-    </widget>
-   </widget>
-  </widget>
- </widget>
- <resources/>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_iterate_different_bandwidths</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>lineEdit_bandwidth_for_fitting</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>425</x>
-     <y>149</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>350</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_iterate_different_bandwidths</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>lineEdit_max_bandwidth_for_fitting</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>275</x>
-     <y>179</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>440</x>
-     <y>179</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>checkBox_iterate_different_bandwidths</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>comboBox_iterating_cost_function_type</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>237</x>
-     <y>199</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>414</x>
-     <y>199</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
-</ui>
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'analyzer_dialog.ui'
+#
+# Created by: PyQt5 UI code generator 5.15.7
+#
+# WARNING: Any manual changes made to this file will be lost when pyuic5 is
+# run again.  Do not edit this file unless you know what you are doing.
+
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(704, 716)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setGeometry(QtCore.QRect(630, 20, 51, 241))
+        self.buttonBox.setOrientation(QtCore.Qt.Vertical)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.groupBox = QtWidgets.QGroupBox(Dialog)
+        self.groupBox.setGeometry(QtCore.QRect(10, 0, 611, 631))
+        self.groupBox.setObjectName("groupBox")
+        self.groupBox_2 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_2.setGeometry(QtCore.QRect(10, 90, 531, 81))
+        self.groupBox_2.setObjectName("groupBox_2")
+        self.label_31 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_31.setGeometry(QtCore.QRect(140, 10, 61, 61))
+        self.label_31.setWordWrap(True)
+        self.label_31.setObjectName("label_31")
+        self.lineEdit_number_of_peaks_to_search = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_number_of_peaks_to_search.setGeometry(QtCore.QRect(200, 20, 31, 31))
+        self.lineEdit_number_of_peaks_to_search.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_number_of_peaks_to_search.setObjectName("lineEdit_number_of_peaks_to_search")
+        self.lineEdit_min_peak_distance = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_min_peak_distance.setGeometry(QtCore.QRect(395, 20, 51, 31))
+        self.lineEdit_min_peak_distance.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_min_peak_distance.setObjectName("lineEdit_min_peak_distance")
+        self.label_32 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_32.setGeometry(QtCore.QRect(340, 10, 61, 61))
+        self.label_32.setWordWrap(True)
+        self.label_32.setObjectName("label_32")
+        self.label_17 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_17.setGeometry(QtCore.QRect(240, 10, 61, 61))
+        self.label_17.setWordWrap(True)
+        self.label_17.setObjectName("label_17")
+        self.lineEdit_min_peak_level = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_min_peak_level.setGeometry(QtCore.QRect(300, 20, 31, 31))
+        self.lineEdit_min_peak_level.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_min_peak_level.setObjectName("lineEdit_min_peak_level")
+        self.label_16 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_16.setGeometry(QtCore.QRect(20, 40, 41, 31))
+        self.label_16.setWordWrap(True)
+        self.label_16.setObjectName("label_16")
+        self.label_15 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_15.setGeometry(QtCore.QRect(20, 10, 41, 31))
+        self.label_15.setWordWrap(True)
+        self.label_15.setObjectName("label_15")
+        self.lineEdit_min_wave = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_min_wave.setGeometry(QtCore.QRect(80, 20, 41, 20))
+        self.lineEdit_min_wave.setObjectName("lineEdit_min_wave")
+        self.lineEdit_max_wave = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_max_wave.setGeometry(QtCore.QRect(80, 50, 41, 20))
+        self.lineEdit_max_wave.setObjectName("lineEdit_max_wave")
+        self.label_43 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_43.setGeometry(QtCore.QRect(460, 10, 41, 21))
+        self.label_43.setWordWrap(True)
+        self.label_43.setObjectName("label_43")
+        self.comboBox_scale_for_fitting = QtWidgets.QComboBox(self.groupBox_2)
+        self.comboBox_scale_for_fitting.setEnabled(True)
+        self.comboBox_scale_for_fitting.setGeometry(QtCore.QRect(450, 30, 41, 22))
+        self.comboBox_scale_for_fitting.setEditable(False)
+        self.comboBox_scale_for_fitting.setObjectName("comboBox_scale_for_fitting")
+        self.comboBox_scale_for_fitting.addItem("")
+        self.comboBox_scale_for_fitting.addItem("")
+        self.groupBox_11 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_11.setGeometry(QtCore.QRect(10, 360, 531, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_11.sizePolicy().hasHeightForWidth())
+        self.groupBox_11.setSizePolicy(sizePolicy)
+        self.groupBox_11.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_11.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_11.setObjectName("groupBox_11")
+        self.lineEdit_FFTFilter_low_freq_edge = QtWidgets.QLineEdit(self.groupBox_11)
+        self.lineEdit_FFTFilter_low_freq_edge.setGeometry(QtCore.QRect(210, 23, 61, 21))
+        self.lineEdit_FFTFilter_low_freq_edge.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_FFTFilter_low_freq_edge.setObjectName("lineEdit_FFTFilter_low_freq_edge")
+        self.lineEdit_FFTFilter_high_freq_edge = QtWidgets.QLineEdit(self.groupBox_11)
+        self.lineEdit_FFTFilter_high_freq_edge.setGeometry(QtCore.QRect(358, 23, 51, 21))
+        self.lineEdit_FFTFilter_high_freq_edge.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_FFTFilter_high_freq_edge.setObjectName("lineEdit_FFTFilter_high_freq_edge")
+        self.label_40 = QtWidgets.QLabel(self.groupBox_11)
+        self.label_40.setEnabled(False)
+        self.label_40.setGeometry(QtCore.QRect(150, 18, 81, 31))
+        self.label_40.setWordWrap(True)
+        self.label_40.setObjectName("label_40")
+        self.label_41 = QtWidgets.QLabel(self.groupBox_11)
+        self.label_41.setEnabled(False)
+        self.label_41.setGeometry(QtCore.QRect(306, 18, 81, 31))
+        self.label_41.setWordWrap(True)
+        self.label_41.setObjectName("label_41")
+        self.groupBox_12 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_12.setGeometry(QtCore.QRect(10, 420, 531, 201))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_12.sizePolicy().hasHeightForWidth())
+        self.groupBox_12.setSizePolicy(sizePolicy)
+        self.groupBox_12.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_12.setMaximumSize(QtCore.QSize(270000, 240))
+        self.groupBox_12.setObjectName("groupBox_12")
+        self.lineEdit_quantum_numbers_fitter_p_max = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_quantum_numbers_fitter_p_max.setGeometry(QtCore.QRect(80, 20, 61, 21))
+        self.lineEdit_quantum_numbers_fitter_p_max.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_quantum_numbers_fitter_p_max.setObjectName("lineEdit_quantum_numbers_fitter_p_max")
+        self.label_36 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_36.setGeometry(QtCore.QRect(10, 20, 41, 21))
+        self.label_36.setWordWrap(True)
+        self.label_36.setObjectName("label_36")
+        self.comboBox_quantum_numbers_fitter_polarizations = QtWidgets.QComboBox(self.groupBox_12)
+        self.comboBox_quantum_numbers_fitter_polarizations.setGeometry(QtCore.QRect(260, 20, 69, 22))
+        self.comboBox_quantum_numbers_fitter_polarizations.setObjectName("comboBox_quantum_numbers_fitter_polarizations")
+        self.comboBox_quantum_numbers_fitter_polarizations.addItem("")
+        self.comboBox_quantum_numbers_fitter_polarizations.addItem("")
+        self.label_37 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_37.setGeometry(QtCore.QRect(170, 20, 81, 21))
+        self.label_37.setWordWrap(True)
+        self.label_37.setObjectName("label_37")
+        self.label_38 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_38.setGeometry(QtCore.QRect(170, 60, 101, 21))
+        self.label_38.setWordWrap(True)
+        self.label_38.setObjectName("label_38")
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer = QtWidgets.QComboBox(self.groupBox_12)
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.setGeometry(QtCore.QRect(260, 60, 69, 22))
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.setObjectName("comboBox_quantum_numbers_fitter_type_of_optimizer")
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.addItem("")
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.addItem("")
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.addItem("")
+        self.label_42 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_42.setGeometry(QtCore.QRect(10, 50, 61, 21))
+        self.label_42.setWordWrap(True)
+        self.label_42.setObjectName("label_42")
+        self.lineEdit_temperature = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_temperature.setGeometry(QtCore.QRect(80, 50, 61, 21))
+        self.lineEdit_temperature.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_temperature.setObjectName("lineEdit_temperature")
+        self.checkBox_quantum_numbers_fitter_dispersion = QtWidgets.QCheckBox(self.groupBox_12)
+        self.checkBox_quantum_numbers_fitter_dispersion.setGeometry(QtCore.QRect(380, 20, 111, 20))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.checkBox_quantum_numbers_fitter_dispersion.setFont(font)
+        self.checkBox_quantum_numbers_fitter_dispersion.setWhatsThis("")
+        self.checkBox_quantum_numbers_fitter_dispersion.setChecked(True)
+        self.checkBox_quantum_numbers_fitter_dispersion.setTristate(False)
+        self.checkBox_quantum_numbers_fitter_dispersion.setObjectName("checkBox_quantum_numbers_fitter_dispersion")
+        self.checkBox_quantum_numbers_fitter_vary_temperature = QtWidgets.QCheckBox(self.groupBox_12)
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setGeometry(QtCore.QRect(380, 60, 111, 20))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setFont(font)
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setWhatsThis("")
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setChecked(False)
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setTristate(False)
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setObjectName("checkBox_quantum_numbers_fitter_vary_temperature")
+        self.label_44 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_44.setGeometry(QtCore.QRect(10, 150, 51, 31))
+        self.label_44.setWordWrap(True)
+        self.label_44.setObjectName("label_44")
+        self.lineEdit_quantum_numbers_fitter_R_range = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_quantum_numbers_fitter_R_range.setGeometry(QtCore.QRect(80, 150, 61, 21))
+        self.lineEdit_quantum_numbers_fitter_R_range.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_quantum_numbers_fitter_R_range.setObjectName("lineEdit_quantum_numbers_fitter_R_range")
+        self.checkBox_quantum_numbers_fitter_type_of_formula = QtWidgets.QCheckBox(self.groupBox_12)
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setGeometry(QtCore.QRect(390, 90, 111, 20))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setFont(font)
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setWhatsThis("")
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setChecked(False)
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setTristate(False)
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setObjectName("checkBox_quantum_numbers_fitter_type_of_formula")
+        self.comboBox_quantum_numbers_fitter_type_of_cavity = QtWidgets.QComboBox(self.groupBox_12)
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.setGeometry(QtCore.QRect(260, 100, 69, 22))
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.setObjectName("comboBox_quantum_numbers_fitter_type_of_cavity")
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.addItem("")
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.addItem("")
+        self.label_46 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_46.setGeometry(QtCore.QRect(170, 100, 101, 21))
+        self.label_46.setWordWrap(True)
+        self.label_46.setObjectName("label_46")
+        self.label_47 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_47.setGeometry(QtCore.QRect(10, 80, 61, 31))
+        self.label_47.setWordWrap(True)
+        self.label_47.setObjectName("label_47")
+        self.lineEdit_temperature_range = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_temperature_range.setGeometry(QtCore.QRect(80, 80, 61, 21))
+        self.lineEdit_temperature_range.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_temperature_range.setObjectName("lineEdit_temperature_range")
+        self.label_20 = QtWidgets.QLabel(self.groupBox_12)
+        self.label_20.setGeometry(QtCore.QRect(10, 110, 41, 31))
+        self.label_20.setWordWrap(True)
+        self.label_20.setObjectName("label_20")
+        self.lineEdit_quantum_numbers_R_0 = QtWidgets.QLineEdit(self.groupBox_12)
+        self.lineEdit_quantum_numbers_R_0.setGeometry(QtCore.QRect(80, 116, 61, 20))
+        self.lineEdit_quantum_numbers_R_0.setToolTip("")
+        self.lineEdit_quantum_numbers_R_0.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_quantum_numbers_R_0.setObjectName("lineEdit_quantum_numbers_R_0")
+        self.groupBox_13 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_13.setGeometry(QtCore.QRect(10, 40, 531, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_13.sizePolicy().hasHeightForWidth())
+        self.groupBox_13.setSizePolicy(sizePolicy)
+        self.groupBox_13.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_13.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_13.setObjectName("groupBox_13")
+        self.comboBox_type_of_spectrogram = QtWidgets.QComboBox(self.groupBox_13)
+        self.comboBox_type_of_spectrogram.setGeometry(QtCore.QRect(228, 20, 201, 22))
+        self.comboBox_type_of_spectrogram.setObjectName("comboBox_type_of_spectrogram")
+        self.comboBox_type_of_spectrogram.addItem("")
+        self.comboBox_type_of_spectrogram.addItem("")
+        self.comboBox_type_of_spectrogram.addItem("")
+        self.comboBox_type_of_spectrogram.addItem("")
+        self.comboBox_type_of_spectrogram.addItem("")
+        self.groupBox_3 = QtWidgets.QGroupBox(self.groupBox)
+        self.groupBox_3.setGeometry(QtCore.QRect(10, 180, 531, 161))
+        self.groupBox_3.setObjectName("groupBox_3")
+        self.checkBox_plot_results_separately = QtWidgets.QCheckBox(self.groupBox_3)
+        self.checkBox_plot_results_separately.setGeometry(QtCore.QRect(10, 80, 91, 20))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.checkBox_plot_results_separately.setFont(font)
+        self.checkBox_plot_results_separately.setWhatsThis("")
+        self.checkBox_plot_results_separately.setTristate(False)
+        self.checkBox_plot_results_separately.setObjectName("checkBox_plot_results_separately")
+        self.checkBox_find_widths = QtWidgets.QCheckBox(self.groupBox_3)
+        self.checkBox_find_widths.setGeometry(QtCore.QRect(10, 100, 91, 20))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.checkBox_find_widths.setFont(font)
+        self.checkBox_find_widths.setWhatsThis("")
+        self.checkBox_find_widths.setTristate(False)
+        self.checkBox_find_widths.setObjectName("checkBox_find_widths")
+        self.groupBox_4 = QtWidgets.QGroupBox(self.groupBox_3)
+        self.groupBox_4.setEnabled(True)
+        self.groupBox_4.setGeometry(QtCore.QRect(170, 10, 341, 91))
+        self.groupBox_4.setFlat(False)
+        self.groupBox_4.setCheckable(False)
+        self.groupBox_4.setObjectName("groupBox_4")
+        self.label_33 = QtWidgets.QLabel(self.groupBox_4)
+        self.label_33.setGeometry(QtCore.QRect(10, 10, 101, 21))
+        self.label_33.setWordWrap(True)
+        self.label_33.setObjectName("label_33")
+        self.lineEdit_bandwidth_for_fitting = QtWidgets.QLineEdit(self.groupBox_4)
+        self.lineEdit_bandwidth_for_fitting.setEnabled(True)
+        self.lineEdit_bandwidth_for_fitting.setGeometry(QtCore.QRect(60, 30, 41, 21))
+        self.lineEdit_bandwidth_for_fitting.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_bandwidth_for_fitting.setObjectName("lineEdit_bandwidth_for_fitting")
+        self.label_35 = QtWidgets.QLabel(self.groupBox_4)
+        self.label_35.setEnabled(True)
+        self.label_35.setGeometry(QtCore.QRect(60, 60, 81, 31))
+        self.label_35.setWordWrap(True)
+        self.label_35.setObjectName("label_35")
+        self.checkBox_iterate_different_bandwidths = QtWidgets.QCheckBox(self.groupBox_4)
+        self.checkBox_iterate_different_bandwidths.setEnabled(True)
+        self.checkBox_iterate_different_bandwidths.setGeometry(QtCore.QRect(40, 60, 16, 21))
+        self.checkBox_iterate_different_bandwidths.setLocale(QtCore.QLocale(QtCore.QLocale.Russian, QtCore.QLocale.Russia))
+        self.checkBox_iterate_different_bandwidths.setText("")
+        self.checkBox_iterate_different_bandwidths.setAutoRepeat(False)
+        self.checkBox_iterate_different_bandwidths.setAutoRepeatInterval(-5)
+        self.checkBox_iterate_different_bandwidths.setObjectName("checkBox_iterate_different_bandwidths")
+        self.lineEdit_max_bandwidth_for_fitting = QtWidgets.QLineEdit(self.groupBox_4)
+        self.lineEdit_max_bandwidth_for_fitting.setEnabled(False)
+        self.lineEdit_max_bandwidth_for_fitting.setGeometry(QtCore.QRect(150, 30, 41, 21))
+        self.lineEdit_max_bandwidth_for_fitting.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_max_bandwidth_for_fitting.setObjectName("lineEdit_max_bandwidth_for_fitting")
+        self.label_34 = QtWidgets.QLabel(self.groupBox_4)
+        self.label_34.setGeometry(QtCore.QRect(130, 10, 131, 21))
+        self.label_34.setWordWrap(True)
+        self.label_34.setObjectName("label_34")
+        self.comboBox_iterating_cost_function_type = QtWidgets.QComboBox(self.groupBox_4)
+        self.comboBox_iterating_cost_function_type.setEnabled(False)
+        self.comboBox_iterating_cost_function_type.setGeometry(QtCore.QRect(190, 60, 69, 22))
+        self.comboBox_iterating_cost_function_type.setObjectName("comboBox_iterating_cost_function_type")
+        self.comboBox_iterating_cost_function_type.addItem("")
+        self.comboBox_iterating_cost_function_type.addItem("")
+        self.label_39 = QtWidgets.QLabel(self.groupBox_4)
+        self.label_39.setGeometry(QtCore.QRect(140, 60, 41, 21))
+        self.label_39.setWordWrap(True)
+        self.label_39.setObjectName("label_39")
+        self.label_18 = QtWidgets.QLabel(self.groupBox_3)
+        self.label_18.setGeometry(QtCore.QRect(10, 20, 41, 31))
+        self.label_18.setWordWrap(True)
+        self.label_18.setObjectName("label_18")
+        self.lineEdit_lambda_0_for_ERV = QtWidgets.QLineEdit(self.groupBox_3)
+        self.lineEdit_lambda_0_for_ERV.setGeometry(QtCore.QRect(60, 26, 71, 20))
+        self.lineEdit_lambda_0_for_ERV.setToolTip("")
+        self.lineEdit_lambda_0_for_ERV.setObjectName("lineEdit_lambda_0_for_ERV")
+        self.checkBox_derive_taper_cavity_params = QtWidgets.QCheckBox(self.groupBox_3)
+        self.checkBox_derive_taper_cavity_params.setGeometry(QtCore.QRect(10, 120, 121, 20))
+        self.checkBox_derive_taper_cavity_params.setObjectName("checkBox_derive_taper_cavity_params")
+        self.lineEdit_fiber_radius = QtWidgets.QLineEdit(self.groupBox)
+        self.lineEdit_fiber_radius.setGeometry(QtCore.QRect(420, 16, 71, 20))
+        self.lineEdit_fiber_radius.setToolTip("")
+        self.lineEdit_fiber_radius.setObjectName("lineEdit_fiber_radius")
+        self.label_19 = QtWidgets.QLabel(self.groupBox)
+        self.label_19.setGeometry(QtCore.QRect(370, 10, 41, 31))
+        self.label_19.setWordWrap(True)
+        self.label_19.setObjectName("label_19")
+        self.groupBox_14 = QtWidgets.QGroupBox(Dialog)
+        self.groupBox_14.setGeometry(QtCore.QRect(10, 640, 661, 50))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_14.sizePolicy().hasHeightForWidth())
+        self.groupBox_14.setSizePolicy(sizePolicy)
+        self.groupBox_14.setMinimumSize(QtCore.QSize(220, 50))
+        self.groupBox_14.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_14.setObjectName("groupBox_14")
+        self.lineEdit_osc_noise_level = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_noise_level.setGeometry(QtCore.QRect(100, 20, 61, 21))
+        self.lineEdit_osc_noise_level.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_noise_level.setObjectName("lineEdit_osc_noise_level")
+        self.lineEdit_osc_dith_frequency = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_dith_frequency.setGeometry(QtCore.QRect(300, 20, 51, 21))
+        self.lineEdit_osc_dith_frequency.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_dith_frequency.setObjectName("lineEdit_osc_dith_frequency")
+        self.label_49 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_49.setEnabled(True)
+        self.label_49.setGeometry(QtCore.QRect(20, 13, 81, 31))
+        self.label_49.setWordWrap(True)
+        self.label_49.setObjectName("label_49")
+        self.label_50 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_50.setEnabled(True)
+        self.label_50.setGeometry(QtCore.QRect(184, 17, 101, 31))
+        self.label_50.setWordWrap(True)
+        self.label_50.setObjectName("label_50")
+        self.label_51 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_51.setEnabled(True)
+        self.label_51.setGeometry(QtCore.QRect(366, 13, 101, 31))
+        self.label_51.setWordWrap(True)
+        self.label_51.setObjectName("label_51")
+        self.lineEdit_osc_detuning = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_detuning.setGeometry(QtCore.QRect(480, 20, 51, 21))
+        self.lineEdit_osc_detuning.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_detuning.setObjectName("lineEdit_osc_detuning")
+        self.lineEdit_osc_prominence = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_prominence.setGeometry(QtCore.QRect(600, 20, 51, 21))
+        self.lineEdit_osc_prominence.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_prominence.setObjectName("lineEdit_osc_prominence")
+        self.label_21 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_21.setGeometry(QtCore.QRect(540, 0, 61, 61))
+        self.label_21.setWordWrap(True)
+        self.label_21.setObjectName("label_21")
+
+        self.retranslateUi(Dialog)
+        self.buttonBox.accepted.connect(Dialog.accept) # type: ignore
+        self.buttonBox.rejected.connect(Dialog.reject) # type: ignore
+        self.checkBox_iterate_different_bandwidths.clicked['bool'].connect(self.lineEdit_bandwidth_for_fitting.setDisabled) # type: ignore
+        self.checkBox_iterate_different_bandwidths.clicked['bool'].connect(self.lineEdit_max_bandwidth_for_fitting.setEnabled) # type: ignore
+        self.checkBox_iterate_different_bandwidths.clicked['bool'].connect(self.comboBox_iterating_cost_function_type.setEnabled) # type: ignore
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.groupBox.setTitle(_translate("Dialog", "Analyzer options"))
+        self.groupBox_2.setTitle(_translate("Dialog", "Find_peaks parameters"))
+        self.label_31.setText(_translate("Dialog", "<html><head/><body><p>Number of peaks to be find</p></body></html>"))
+        self.lineEdit_number_of_peaks_to_search.setText(_translate("Dialog", "1"))
+        self.lineEdit_min_peak_distance.setText(_translate("Dialog", "0.05"))
+        self.label_32.setText(_translate("Dialog", "<html><head/><body><p>Distance between peaks, nm</p></body></html>"))
+        self.label_17.setText(_translate("Dialog", "<html><head/><body><p>Peak prominence, dB</p></body></html>"))
+        self.lineEdit_min_peak_level.setText(_translate("Dialog", "3"))
+        self.label_16.setText(_translate("Dialog", "<html><head/><body><p>λ<span style=\" vertical-align:sub;\">max</span>, nm</p></body></html>"))
+        self.label_15.setText(_translate("Dialog", "<html><head/><body><p>λ<span style=\" vertical-align:sub;\">min</span>, nm</p></body></html>"))
+        self.lineEdit_min_wave.setText(_translate("Dialog", "1500"))
+        self.lineEdit_max_wave.setText(_translate("Dialog", "1600"))
+        self.label_43.setText(_translate("Dialog", "<html><head/><body><p>scale</p></body></html>"))
+        self.comboBox_scale_for_fitting.setItemText(0, _translate("Dialog", "log"))
+        self.comboBox_scale_for_fitting.setItemText(1, _translate("Dialog", "lin"))
+        self.groupBox_11.setTitle(_translate("Dialog", "FFT filter options"))
+        self.lineEdit_FFTFilter_low_freq_edge.setText(_translate("Dialog", "0.00001"))
+        self.lineEdit_FFTFilter_high_freq_edge.setText(_translate("Dialog", "0.01"))
+        self.label_40.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Min freq</p></body></html>"))
+        self.label_41.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Max freq</p></body></html>"))
+        self.groupBox_12.setTitle(_translate("Dialog", "Quantum number fitter parameters"))
+        self.lineEdit_quantum_numbers_fitter_p_max.setText(_translate("Dialog", "5"))
+        self.label_36.setText(_translate("Dialog", "<html><head/><body><p>P_max</p></body></html>"))
+        self.comboBox_quantum_numbers_fitter_polarizations.setItemText(0, _translate("Dialog", "both"))
+        self.comboBox_quantum_numbers_fitter_polarizations.setItemText(1, _translate("Dialog", "single"))
+        self.label_37.setText(_translate("Dialog", "<html><head/><body><p>Polarizations</p></body></html>"))
+        self.label_38.setText(_translate("Dialog", "<html><head/><body><p>Type of optimizer</p></body></html>"))
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.setItemText(0, _translate("Dialog", "bruteforce"))
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.setItemText(1, _translate("Dialog", "Nelder-Mead"))
+        self.comboBox_quantum_numbers_fitter_type_of_optimizer.setItemText(2, _translate("Dialog", "None"))
+        self.label_42.setText(_translate("Dialog", "<html><head/><body><p>Temperature</p></body></html>"))
+        self.lineEdit_temperature.setText(_translate("Dialog", "25"))
+        self.checkBox_quantum_numbers_fitter_dispersion.setText(_translate("Dialog", "consider dispersion"))
+        self.checkBox_quantum_numbers_fitter_vary_temperature.setText(_translate("Dialog", "vary temperature"))
+        self.label_44.setText(_translate("Dialog", "<html><head/><body><p>R range, mkm</p><p><br/></p></body></html>"))
+        self.lineEdit_quantum_numbers_fitter_R_range.setText(_translate("Dialog", "1"))
+        self.checkBox_quantum_numbers_fitter_type_of_formula.setText(_translate("Dialog", "Simple formula"))
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.setItemText(0, _translate("Dialog", "cylinder"))
+        self.comboBox_quantum_numbers_fitter_type_of_cavity.setItemText(1, _translate("Dialog", "cylinder_simplified"))
+        self.label_46.setText(_translate("Dialog", "<html><head/><body><p>Type of cavity</p></body></html>"))
+        self.label_47.setText(_translate("Dialog", "<html><head/><body><p>Temperature range</p></body></html>"))
+        self.lineEdit_temperature_range.setText(_translate("Dialog", "10"))
+        self.label_20.setText(_translate("Dialog", "<html><head/><body><p>R<span style=\" vertical-align:sub;\">0</span>, mkm</p></body></html>"))
+        self.lineEdit_quantum_numbers_R_0.setText(_translate("Dialog", "62.5"))
+        self.groupBox_13.setTitle(_translate("Dialog", "Plotted value (for LUNA data)"))
+        self.comboBox_type_of_spectrogram.setItemText(0, _translate("Dialog", "insertion losses"))
+        self.comboBox_type_of_spectrogram.setItemText(1, _translate("Dialog", "group delay"))
+        self.comboBox_type_of_spectrogram.setItemText(2, _translate("Dialog", "chromatic dispersion"))
+        self.comboBox_type_of_spectrogram.setItemText(3, _translate("Dialog", "first polarization IL"))
+        self.comboBox_type_of_spectrogram.setItemText(4, _translate("Dialog", "second polarization IL"))
+        self.groupBox_3.setTitle(_translate("Dialog", "ERV_and_delta_0_delta_c_defining"))
+        self.checkBox_plot_results_separately.setText(_translate("Dialog", "Plot separately"))
+        self.checkBox_find_widths.setText(_translate("Dialog", "find widths"))
+        self.groupBox_4.setTitle(_translate("Dialog", "find width parameters"))
+        self.label_33.setText(_translate("Dialog", "<html><head/><body><p>bandwidth for fit, nm</p></body></html>"))
+        self.lineEdit_bandwidth_for_fitting.setText(_translate("Dialog", "0"))
+        self.label_35.setText(_translate("Dialog", "<html><head/><body><p>iterating over Bandwidth</p></body></html>"))
+        self.lineEdit_max_bandwidth_for_fitting.setText(_translate("Dialog", "1"))
+        self.label_34.setText(_translate("Dialog", "<html><head/><body><p>max bandwidth for fit, nm</p></body></html>"))
+        self.comboBox_iterating_cost_function_type.setItemText(0, _translate("Dialog", "linewidth"))
+        self.comboBox_iterating_cost_function_type.setItemText(1, _translate("Dialog", "net error"))
+        self.label_39.setText(_translate("Dialog", "<html><head/><body><p>minimize</p></body></html>"))
+        self.label_18.setText(_translate("Dialog", "<html><head/><body><p>λ<span style=\" vertical-align:sub;\">0</span>, nm</p></body></html>"))
+        self.lineEdit_lambda_0_for_ERV.setText(_translate("Dialog", "0"))
+        self.checkBox_derive_taper_cavity_params.setText(_translate("Dialog", "derive C,D,Gamma"))
+        self.lineEdit_fiber_radius.setText(_translate("Dialog", "62.5"))
+        self.label_19.setText(_translate("Dialog", "<html><head/><body><p>R<span style=\" vertical-align:sub;\">0</span>, mkm</p></body></html>"))
+        self.groupBox_14.setTitle(_translate("Dialog", "Oscillogram analyzer"))
+        self.lineEdit_osc_noise_level.setText(_translate("Dialog", "0.007"))
+        self.lineEdit_osc_dith_frequency.setText(_translate("Dialog", "888"))
+        self.label_49.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Noise level, V</p></body></html>"))
+        self.label_50.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">dittering_frequency, Hz</p></body></html>"))
+        self.label_51.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">detuning range, MHz</p></body></html>"))
+        self.lineEdit_osc_detuning.setText(_translate("Dialog", "80"))
+        self.lineEdit_osc_prominence.setText(_translate("Dialog", "0.5"))
+        self.label_21.setText(_translate("Dialog", "<html><head/><body><p>Peak prominence, arb.u.</p></body></html>"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    Dialog = QtWidgets.QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(Dialog)
+    Dialog.show()
+    sys.exit(app.exec_())

@@ -3,8 +3,8 @@ By Alexandr Nesterok
 Modified by Ilya
 Using serial interface
 '''
-__version__='2'
-__date__='2023.03.29'
+__version__='3'
+__date__='2025.03.03'
 
 
 import serial
@@ -15,6 +15,8 @@ if __name__=='__main__':
 else:
     from Hardware.LaserLibs import ITLA_serial as ITLA
 import numpy as np
+
+from PyQt5.QtCore import pyqtSignal    
 
 def nmToDGHz(nm : float):
     return int(299792458 / nm * 10)
@@ -30,7 +32,8 @@ def nmToDGHz(nm : float):
 class Laser(serial.Serial):#,QObject,metaclass=MultiMetaclass):
     
  
-     
+    S_print=pyqtSignal(str) # signal used to print into main 1text browser
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
     # S_print=pyqtSignal(str) # signal used to print into main 1text browser
     # S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
     
@@ -47,26 +50,26 @@ class Laser(serial.Serial):#,QObject,metaclass=MultiMetaclass):
         self.maximum_tuning=200.1 # in pm
         self.tuning=0
         self.main_wavelength=0 # in nm
-        print('Connected to laser using Serial module')
-        # self.S_print.emit('Connected to laser using Serial module')
+        # print('Connected to laser using Serial module')
+        self.S_print.emit('Connected to laser using Serial module')
 
 
     def setOn(self):
         res=ITLA.ITLA(self, ITLA.REG_Resena, 8, ITLA.WRITE)
-        print('Laser is on')
-        # self.S_print.emit('Laser is on')
+        # print('Laser is on')
+        self.S_print.emit('Laser is on')
         return res
 
     def setOff(self):
         res=ITLA.ITLA(self, ITLA.REG_Resena, 0, ITLA.WRITE)
-        print('Laser is off')
-        # self.S_print.emit('Laser is off')
+        # print('Laser is off')
+        self.S_print.emit('Laser is off')
         return res
     
     def setPower(self,Power): # in 0.01 dB
         res=ITLA.ITLA(self, ITLA.REG_Power, Power, ITLA.WRITE)
-        print('Laser power is changed')
-        # self.S_print.emit('Laser power is changed')
+        # print('Laser power is changed')
+        self.S_print.emit('Laser power is changed')
         return res
     
     def setMode(self, ModeKey):
@@ -99,7 +102,7 @@ class Laser(serial.Serial):#,QObject,metaclass=MultiMetaclass):
             self.tuning=pm
             return ITLA.ITLA(self, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
         else:
-            print('Tuning larger than max possible')
+            # print('Tuning larger than max possible')
             self.S_print_error.emit('Laser is off')
 
 

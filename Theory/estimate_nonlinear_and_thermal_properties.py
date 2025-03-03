@@ -202,7 +202,7 @@ def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
 
 if __name__=='__main__':
     delta=(delta_0+delta_c)*2
-    
+    w=32
     print(get_cross_section(R_0)*1e12)
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
@@ -221,9 +221,12 @@ if __name__=='__main__':
     r_min=R*0.8
     r_max=R*1.1
     
-    # Rarray=np.arange(r_min,r_max,step)
-    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=1))**2
-    # plt.plot(Rarray,Intenisty_TM_Array)
+    Rarray=np.arange(r_min,r_max,step)
+    Intenisty_TM_Array=[abs(E(x,pol='TE', R=R,p=5))**2 for x in Rarray]
+    plt.plot(Rarray,Intenisty_TM_Array)
+    plt.axvline(R,color='red')
+    plt.xlabel('radius, mkm')
+    plt.ylabel('Intensity, arb.u.')
     
     
     # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=2))**2
