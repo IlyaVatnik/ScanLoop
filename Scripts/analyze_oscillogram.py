@@ -15,8 +15,8 @@ from scipy.constants import c
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 
-__version__ = '0.4'
-__date__ = '2025.03.03'
+__version__ = '0.5'
+__date__ = '2025.03.06'
 
 def Lorenz(det_f,non_resonant_transmission,X_0,delta_c,delta_0,phi):
     delta_freq=det_f-X_0
@@ -49,8 +49,8 @@ def get_range_to_fit(Y, peak_number,prominence,distance):
     
     return Detuning_points[peak_number-1],Detuning_points[peak_number],Peak_moments[peak_number],Peak_moments#,+index_shift
 
-def analyze_oscillogram(times,signal,noise_level,dith_frequency,detuning_range,prominence): #x,Y = массив напряжения и времени,
-    peak_number=2 # номер пика в осциллограмме, который булем анализировать
+def analyze_oscillogram(times,signal,peak_number,noise_level,dith_frequency,detuning_range,prominence): #x,Y = массив напряжения и времени,
+    # номер пика в осциллограмме, который булем анализировать
     max_peak_width=30 #MHz
     
     

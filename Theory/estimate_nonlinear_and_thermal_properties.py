@@ -17,15 +17,15 @@ eq(23)
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__='3.3'
-__date__='2025.02.24'
+__version__='4'
+__date__='2025.03.04'
 
 import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
 
-delta_c=7e6 # 2*pi*Hz
-delta_0=7e6 # 2*pi*Hz
+delta_c=10e6 # 2*pi*Hz
+delta_0=10e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 
@@ -174,8 +174,8 @@ def Kerr_threshold(wave,delta_c,delta_0,length,R):
 
     '''
     omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
-    delta=(delta_0+delta_c)*2
-    thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Kolesnikova 2023
+    delta=((delta_0+delta_c))
+    thres=n**2*volume(length,R)*np.power(delta,3,dtype = np.float64)/c/omega/n2/delta_c # Kolesnikova 2023
     return thres
 
 
@@ -201,14 +201,15 @@ def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
     return min_threshold, optimal_position # in W, in micron
 
 if __name__=='__main__':
-    delta=(delta_0+delta_c)*2
+    delta=(delta_0+delta_c)
     w=32
-    print(get_cross_section(R_0)*1e12)
+    print()
     threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
     heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
     min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
     
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
+    print('Cross section={} mkm^2, volume={} mkm^3'.format(get_cross_section(R_0)*1e12,volume(length, R_0)*1e18))
     print('Minimal Threshold at optimized point={} W'.format(min_threshold))
     print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume(length,R_0),volume(length,R_0)*1e18))
     print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
@@ -217,12 +218,14 @@ if __name__=='__main__':
     
     #%%
     R=62.5
+    wavelength=1.55
+    m=int(2*np.pi*R*n/wavelength)
     step=R*0.0005 # Number of points
     r_min=R*0.8
     r_max=R*1.1
     
     Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=[abs(E(x,pol='TE', R=R,p=5))**2 for x in Rarray]
+    Intenisty_TM_Array=[abs(E(x,pol='TE', R=R,p=1))**2 for x in Rarray]
     plt.plot(Rarray,Intenisty_TM_Array)
     plt.axvline(R,color='red')
     plt.xlabel('radius, mkm')

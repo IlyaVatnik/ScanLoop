@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(704, 716)
+        Dialog.resize(704, 774)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(630, 20, 51, 241))
         self.buttonBox.setOrientation(QtCore.Qt.Vertical)
@@ -313,14 +313,14 @@ class Ui_Dialog(object):
         self.label_19.setWordWrap(True)
         self.label_19.setObjectName("label_19")
         self.groupBox_14 = QtWidgets.QGroupBox(Dialog)
-        self.groupBox_14.setGeometry(QtCore.QRect(10, 640, 661, 50))
+        self.groupBox_14.setGeometry(QtCore.QRect(10, 640, 671, 80))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_14.sizePolicy().hasHeightForWidth())
         self.groupBox_14.setSizePolicy(sizePolicy)
         self.groupBox_14.setMinimumSize(QtCore.QSize(220, 50))
-        self.groupBox_14.setMaximumSize(QtCore.QSize(270000, 50))
+        self.groupBox_14.setMaximumSize(QtCore.QSize(270000, 80))
         self.groupBox_14.setObjectName("groupBox_14")
         self.lineEdit_osc_noise_level = QtWidgets.QLineEdit(self.groupBox_14)
         self.lineEdit_osc_noise_level.setGeometry(QtCore.QRect(100, 20, 61, 21))
@@ -357,6 +357,15 @@ class Ui_Dialog(object):
         self.label_21.setGeometry(QtCore.QRect(540, 0, 61, 61))
         self.label_21.setWordWrap(True)
         self.label_21.setObjectName("label_21")
+        self.label_52 = QtWidgets.QLabel(self.groupBox_14)
+        self.label_52.setEnabled(True)
+        self.label_52.setGeometry(QtCore.QRect(20, 50, 81, 31))
+        self.label_52.setWordWrap(True)
+        self.label_52.setObjectName("label_52")
+        self.lineEdit_osc_peak_number = QtWidgets.QLineEdit(self.groupBox_14)
+        self.lineEdit_osc_peak_number.setGeometry(QtCore.QRect(100, 52, 61, 21))
+        self.lineEdit_osc_peak_number.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_osc_peak_number.setObjectName("lineEdit_osc_peak_number")
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept) # type: ignore
@@ -465,6 +474,12 @@ class Ui_Dialog(object):
         self.lineEdit_osc_detuning.setText(_translate("Dialog", "80"))
         self.lineEdit_osc_prominence.setText(_translate("Dialog", "0.2"))
         self.label_21.setText(_translate("Dialog", "<html><head/><body><p>Peak prominence, arb.u.</p></body></html>"))
+        self.label_52.setText(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Peak number</p></body></html>"))
+        self.lineEdit_osc_peak_number.setText(_translate("Dialog", "2"))
 
 
 if __name__ == "__main__":

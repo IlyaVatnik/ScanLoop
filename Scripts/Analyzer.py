@@ -17,8 +17,8 @@ import sys
 import os
 import time
 
-__version__ = '2.7.6'
-__date__ = '2025.03.03'
+__version__ = '2.7.7'
+__date__ = '2025.03.06'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -102,6 +102,7 @@ class Analyzer(QObject):
         self.osc_dith_frequency=888
         self.osc_detuning=80
         self.osc_prominence=0.2
+        self.osc_peak_number=2
 
         '''
             Временно. Для постройки графика функции ошибки от радиуса и температуры
@@ -647,7 +648,8 @@ class Analyzer(QObject):
             
             times = line.get_xdata().copy()
             signal = line.get_ydata().copy()
-            index_start,index_stop,nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak,peak_indexes=analyze_oscillogram(times,signal,self.osc_noise_level,
+            index_start,index_stop,nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak,peak_indexes=analyze_oscillogram(times,signal,self.osc_peak_number,
+                                                                                                                                  self.osc_noise_level,
                                                                                                            self.osc_dith_frequency,self.osc_detuning,
                                                                                                            self.osc_prominence)
             plt.plot(times[peak_indexes],signal[peak_indexes],'o',color='red')

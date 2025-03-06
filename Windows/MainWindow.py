@@ -9,8 +9,10 @@ if __name__=='__main__':
     
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import sys
 import json
+import time 
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
@@ -164,10 +166,7 @@ class MainWindow(ThreadedMainWindow):
     def init_menu_bar(self):
         self.ui.action_save_parameters.triggered.connect(self.save_parameters_to_file)
         self.ui.action_load_parameters.triggered.connect(self.load_parameters_from_file)
-        if plt.get_backend()!='TkAgg':
-            self.ui.action_delete_all_figures.triggered.connect(lambda:plt.close(plt.close('all')))
-        else:
-            self.ui.action_delete_all_figures.triggered.connect(lambda: self.logWarningText('deleting figures is not supported with TKinter backend'))
+        self.ui.action_delete_all_figures.triggered.connect(self.delete_all_figures)
         self.ui.action_delete_all_measured_spectral_data.triggered.connect(self.delete_data_from_folders)
         
     def init_hardware_parameters_toolbox(self):
@@ -1292,6 +1291,19 @@ class MainWindow(ThreadedMainWindow):
     def plotSampleShape(self,DirName,axis):
         self.spectral_processor.plot_sample_shape()
 
+    def delete_all_figures(self):
+        if plt.get_backend()!='TkAgg':  
+            for i in plt.get_fignums():
+                plt.close(i)
+        else:
+            self.logWarningText('Deleting figures does not work with TKinter backend')
+        # if plt.get_backend()!='TkAgg':
+        #     plt.close(plt.close('all'))
+        # else:
+        #     matplotlib.use("Agg")
+        #     plt.close(plt.close('all'))
+        #     time.sleep(0.5)
+        #     matplotlib.use("TkAgg")
 
     def save_parameters_to_file(self):
         '''
