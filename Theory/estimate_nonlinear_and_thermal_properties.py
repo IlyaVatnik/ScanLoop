@@ -24,8 +24,8 @@ import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
 
-delta_c=10e6 # 2*pi*Hz
-delta_0=10e6 # 2*pi*Hz
+delta_c=0.5e6 # 2*pi*Hz
+delta_0=3e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 

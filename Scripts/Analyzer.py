@@ -17,8 +17,8 @@ import sys
 import os
 import time
 
-__version__ = '2.7.7'
-__date__ = '2025.03.06'
+__version__ = '2.7.9'
+__date__ = '2025.03.20'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -95,8 +95,7 @@ class Analyzer(QObject):
 
         self.SNAP = None
 
-        self.cost_function_figure = None
-        self.cost_function_ax = None
+
         
         self.osc_noise_level=0.1
         self.osc_dith_frequency=888
@@ -761,7 +760,11 @@ class Analyzer(QObject):
         else:
             self.S_print_error.emit('Error: No peaks found')
         # plt.tight_layout()
-        fig.canvas.draw_idle()
+        if get_backend()=='TkAgg':
+            plt.show()
+        else:
+            fig.canvas.draw_idle()
+        
         # fig.show() 
 
     def apply_FFT_to_spectrum(self, fig):
@@ -1092,7 +1095,7 @@ class Analyzer(QObject):
                   fitter.signal[fitter.resonances_indexes], '.')
         self.single_spectrum_figure.canvas.draw()
 
-        fitter.run(self.cost_function_figure, self.cost_function_ax)
+        fitter.run()
         self.S_print.emit('quantum numbers found')
 
         resonances, labels = fitter.th_resonances.create_unstructured_list(

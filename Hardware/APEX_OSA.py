@@ -2,8 +2,8 @@
 Version Oct 18 2019
 @author: Ilya
 """
-__version__='2'
-__date__='2025.02.24'
+__version__='2.2'
+__date__='2025.03.20'
 
 import socket
 import os, sys, re
@@ -69,7 +69,7 @@ class APEX_OSA_with_additional_features(OSA,QObject):
         if self.IsHighRes:
             try:
                 self.SaveToFile("D:temp", Type="txt")
-                time.sleep(0.1)
+                # time.sleep(0.1)
                 temp = np.loadtxt('//' + self.host + '/D/temp_spectrum.txt', skiprows=3, dtype=np.float64)
                 self.spectrum=temp[:,1]
                 self.wavelengtharray=temp[:,0]
@@ -80,17 +80,19 @@ class APEX_OSA_with_additional_features(OSA,QObject):
             temp= (np.array(self.GetData()))
             self.spectrum=temp[0,::-1]
             self.wavelengtharray=temp[1,::-1]
+            time.sleep(0.1)
         self.received_spectrum.emit(self.wavelengtharray,list([self.spectrum]),[0])
+        time.sleep(0.1)
         return self.wavelengtharray, self.spectrum
 
 
     def change_range(self,start_wavelength=None,stop_wavelength=None):
         if (start_wavelength is not None) and (start_wavelength>=self.min_wavelength):
             self.SetStartWavelength(start_wavelength)
-            time.sleep(0.1)
+            time.sleep(0.2)
         if (stop_wavelength is not None) and (stop_wavelength<=self.max_wavelength):
             self.SetStopWavelength(stop_wavelength)
-            time.sleep(0.1)
+            time.sleep(0.2)
         if self.IsHighRes:
             self.SetNPoints(int((self._StopWavelength-self._StartWavelength)/self.__SamplingRateForHighRes))
         else:
