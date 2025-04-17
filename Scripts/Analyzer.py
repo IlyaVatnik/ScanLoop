@@ -22,7 +22,7 @@ __date__ = '2025.03.20'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
-    import Scripts.QuantumNumbersStructure as QuantumNumbersStructure
+    import Theory.Resonances_wavelengths as QuantumNumbersStructure
 except ModuleNotFoundError as E:
     print(E)
 

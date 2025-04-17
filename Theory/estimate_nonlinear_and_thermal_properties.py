@@ -11,27 +11,30 @@ Estimate different mode parameters:
     - Change of the temperature of the cavity under pumping
     
 
-Mode distributions are derived following Demchenko, Y. A. and Gorodetsky, M. L., “Analytical estimates of eigenfrequencies, dispersion, and field distribution in whispering gallery resonators,” J. Opt. Soc. Am. B 30(11), 3056 (2013).
-eq(23)
 
 Estimations given following М. Л. Городецкий, Оптические Микрорезонаторы с Гигантской Добротностью (2012).
 """
 
-__version__='4'
-__date__='2025.03.04'
+__version__='5'
+__date__='2025.03.28'
 
 import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
+from Field_distributions import get_V_jj,get_Veff,get_cross_section
 
-delta_c=0.5e6 # 2*pi*Hz
-delta_0=3e6 # 2*pi*Hz
+delta_c=4e6 # 2*pi*Hz
+delta_0=8e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 
-length=50 # micron
-R_0=100 #micron
+length=20 # micron
+R=110 #micron
 delta_theta=1 # s^-1, thermal dissipation time, (11.35) from Gorodetsky, calculated numerically
+m=355
+p=1
+pol='TE'
+
 
 
 P_in=0.05 # W
@@ -48,8 +51,7 @@ a=433 # micron, maximum position
 
 '''
 
-m=355
-p=1
+
 
 
 
@@ -74,73 +76,7 @@ hi_3=4*n2/3*epsilon_0*c*n**2
 omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
 
 
-def E(x,R,pol='TE',p=1): #phase not considered
-    T_mp=special.jn_zeros(m,p)[p-1]
-    if pol=='TE':
-        P=1
-    elif pol=='TM':
-        P=1/n**2
-    k_0=m/R/n
-    gamma=np.sqrt(n**2-1)*k_0
-    R_eff=R+P/gamma
-    
-   
-    if x<R:
-        return special.jn(m,x/R_eff*T_mp)
-    else:
-        return 1/P *special.jn(m,R/R_eff*T_mp)*np.exp(-gamma*(x-R))
 
-def get_cross_section(R):
-    '''
-    
-
-    Parameters
-    ----------
-    R : cavity radius in microns
-
-    Returns
-    -------
-    integral e(r,\phi)**2 d2r with max(e(r,\phi)**2)=1 in m*2
-
-    '''
-    '''
-
-    '''
-       
-    step=R*0.001 # Number of points
-    r_min=R*0.8
-    r_max=R*1.1
-    
-    F = np.vectorize(E)
-    Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R))**2
-    # Intenisty_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
-    Integral=sum(Intenisty_TM_Array*Rarray*2*np.pi)*step
-    return Integral/max(Intenisty_TM_Array)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
-
-def get_cross_section_2(R):
-    '''
-    integral e(r,\phi)**4 d2r with max(e(r,\phi)**2)=1
-    '''
-
-        
-    
-    step=R*0.001 # Number of points
-    r_min=R*0.8
-    r_max=R*1.1
-    
-    F = np.vectorize(E)
-    Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=abs(F(Rarray,pol='TM', R=R_0))**2
-    # Intenisty_TE_Array=abs(F(Rarray,pol='TE',R=R_0))**2
-    Integral=sum(Intenisty_TM_Array**2*Rarray*2*np.pi)*step
-    return Integral/max(Intenisty_TM_Array**2)*1e-12 # in m**2 , here we consider distributions normilized as max(I(r))=1
-
-
-def volume(length,R): #length, R - in microns
-    cross_section=get_cross_section(R) # in m
-    volume=cross_section*length*1e-6 # m**3
-    return volume
     
 def F(delta_c,length,R): # NOTE that definition follows Gorodetsky, not Kolesnikova 2023
     return np.sqrt(4*P_in*delta_c/(epsilon_0*n**2*volume(length,R)))  #(11.21) 
@@ -150,10 +86,18 @@ def get_field_intensity(delta_c,length,R):
     return field_intensity
 
 
-def Kerr_threshold_gorodetski(wave,delta_c,delta_0,length,R):
-    omega=c/(lambda_0*1e-9)*2*np.pi # 1/sec
-    delta=(delta_0+delta_c)*2
-    thres=n**2*volume(length,R)*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
+def Kerr_threshold_gorodetski(wavelength,delta_c,delta_0,volume_jj):
+    '''
+    volume_jj in m^3
+    
+    delta_c : in 1/mks.
+    delta_0 : in 1/mks
+    
+    wavelength, nm
+    '''
+    omega=c/(wavelength*1e-9)*2*np.pi # 1/sec
+    delta=(delta_0+delta_c)
+    thres=n**2*volume_jj*delta**3/c/omega/n2/delta_c # Gorodecky (11.25)
     return thres
 
 def Kerr_threshold(wave,delta_c,delta_0,length,R):
@@ -201,41 +145,20 @@ def get_min_threshold(R,wave,potential_center,potential_width,C2,ImD,Gamma):
     return min_threshold, optimal_position # in W, in micron
 
 if __name__=='__main__':
-    delta=(delta_0+delta_c)
-    w=32
-    print()
-    threshold=Kerr_threshold(lambda_0,delta_c,delta_0,length,R_0)
-    heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
-    min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
+    
+    delta=delta_c+delta_0
+    volume_jj=get_V_jj(R,length,m,p,pol)
+    threshold=Kerr_threshold_gorodetski(lambda_0,delta_c,delta_0,volume_jj)
+    # heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
+    # min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
     
     print('Threshold for Kerr nonlinearity={} W'.format(threshold))
-    print('Cross section={} mkm^2, volume={} mkm^3'.format(get_cross_section(R_0)*1e12,volume(length, R_0)*1e18))
-    print('Minimal Threshold at optimized point={} W'.format(min_threshold))
-    print('Q_factor={:.2e}, V={} m^3={} micron^3'.format(omega/delta,volume(length,R_0),volume(length,R_0)*1e18))
-    print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
-    print('Thermal shift {} K '.format(temperature_shift))
-    print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
+    print('Cross section={:.3e} mkm^2, volume={:.3e} mkm^3, v_jj={:.3e} mkm^3'.format(get_cross_section(R,m,p,pol)*1e12,get_Veff(R, length, m,p,pol)*1e18,get_V_jj(R, length, m,p,pol)*1e18))
+    # print('Minimal Threshold at optimized point={} W'.format(min_threshold))
+    print('Q_factor={:.2e}'.format(omega/delta))
+    # print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
+    # print('Thermal shift {} K '.format(temperature_shift))
+    # print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))
     
     #%%
-    R=62.5
-    wavelength=1.55
-    m=int(2*np.pi*R*n/wavelength)
-    step=R*0.0005 # Number of points
-    r_min=R*0.8
-    r_max=R*1.1
-    
-    Rarray=np.arange(r_min,r_max,step)
-    Intenisty_TM_Array=[abs(E(x,pol='TE', R=R,p=1))**2 for x in Rarray]
-    plt.plot(Rarray,Intenisty_TM_Array)
-    plt.axvline(R,color='red')
-    plt.xlabel('radius, mkm')
-    plt.ylabel('Intensity, arb.u.')
-    
-    
-    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=2))**2
-    # plt.plot(Rarray,Intenisty_TM_Array)
-    
-    
-    # Intenisty_TM_Array=abs(F(Rarray,pol='TE', R=R,p=5))**2
-    # plt.plot(Rarray,Intenisty_TM_Array)
-    
+ 

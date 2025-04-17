@@ -33,7 +33,7 @@ T_MAX = 28  #  В градусах Цельсия
 T_step=0.5
 
 c = 299792458  #  m/s
-thermal_optical_responce = 1.25e9  #  Hz/Celcium, detuning of the effective_ra
+
 
 
 Sellmeier_coeffs={
@@ -147,7 +147,7 @@ def lambda_m_p_Sumetsky(m, p, polarization, n, R_0, dispersion = False,
 def lambda_m_p_Gorodetsky(m, p, polarization, n, R_0, dispersion = False,
                         medium = 'SiO2', temperature = 20,sellmeier_coeffs=None): # following formula A3 from Demchenko and Gorodetsky
     '''
-    R_0 here - radius at temperature
+    R_0 here - radius at temperature, in nm
     '''
         # R_T= R_0*(1+thermal_responses[medium][1]*(temperature-T_0))
     R_T=R_0
@@ -367,6 +367,8 @@ def FFTFilter(y_array):
     f_array[Indexes] = 0
     # f_array[] = 0
     return irfft(f_array)
+
+
 
 
 class Fitter():

@@ -14,7 +14,7 @@ from matplotlib.widgets import Slider, Button, RadioButtons
 from scipy.fftpack import rfft, irfft, fftfreq
 from scipy.signal import find_peaks
 import pickle
-from QuantumNumbersStructure import Resonances
+from Resonances_wavelengths import Resonances
 #from ComputingAzimuthalAndRadialModes import Resonances
 
 
@@ -27,9 +27,11 @@ Wavelength_min=1538
 Wavelength_max=1556
 
 # FileName=r"C:\Users\Илья\Desktop\Sp_spec2_X=0_Y=0_Z=0_piezoZ=0.1990__resaved.pkl"
-FileName=r"F:\!Projects\!SNAP system\Misc\2025.03 How to distinguish radial numbers\try 2\Sp_temp 29_3 tr4_X=0.0_Y=90.0_Z=0.0_piezoZ=22.9612__resaved.pkl"
+# FileName=r"F:\!Projects\!SNAP system\Misc\2025.03 How to distinguish radial numbers\try 5\p 5_resaved.pkl"
+# FileName=r"F:\!Projects\!SNAP system\Misc\2025.03 How to distinguish radial numbers\try 2\Sp_temp 29_3 tr4_X=0.0_Y=90.0_Z=0.0_piezoZ=22.9612__resaved.pkl"
+FileName=r"F:\!Projects\!SNAP system\Misc\2025.03 How to distinguish radial numbers\MM 50125\Processed_spectrogram_at_-7145.0_resaved.pkl"
 
-R0 = 107.7362
+R0 = 62.43
 range_R=1
 n0 = 1.45
 p0=15
@@ -70,7 +72,7 @@ def get_experimental_data():
     # Wavelengths_TM=Wavelengths_TM[index_TM_min:index_TM_max]
     Wavelengths_TM=0
     Signals_TM=0
-    Resonances_TE_indexes,_=find_peaks(-Signals_TE,height=MinimumPeakDepth,distance=MinimumPeakDistance,threshold=threshold)
+    Resonances_TE_indexes,_=find_peaks(-Signals_TE,prominence=MinimumPeakDepth,distance=MinimumPeakDistance,threshold=threshold)
     Resonances_TE_exp=Wavelengths_TE[Resonances_TE_indexes]
     return Wavelengths_TE,Signals_TE,Wavelengths_TM,Signals_TM,Resonances_TE_indexes,Resonances_TE_exp
 

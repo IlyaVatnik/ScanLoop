@@ -699,9 +699,10 @@ class MainWindow(ThreadedMainWindow):
             elif self.ui.comboBox_laser_protocol_type.currentText()=='serial':
                 from Hardware.PurePhotonicsLaser_serial import Laser
             self.laser=Laser(COMPort)
-            if interface=='pyvisa':
-                self.laser.S_print[str].connect(self.logText)
-                self.laser.S_print_error[str].connect(self.logWarningText)
+            
+            self.laser.S_print[str].connect(self.logText)
+            self.laser.S_print_error[str].connect(self.logWarningText)
+            
             self.laser.fineTuning(0)
             self.ui.pushButton_laser_On.setEnabled(True)
             # self.ui.groupBox_laser_sweeping.setEnabled(False)
@@ -727,7 +728,7 @@ class MainWindow(ThreadedMainWindow):
             self.force_laser_scanning_process.connect(self.laser_scanning_process.run)
             self.laser_scanning_process.S_print[str].connect(self.logText)
             self.laser_scanning_process.S_print_error[str].connect(self.logWarningText)
-
+            self.logText('Connected to Pure Photonics Laser')
         except Exception as e:
             print(e)
             self.logWarningText('Connection to laser failed. Check the COM port number')
