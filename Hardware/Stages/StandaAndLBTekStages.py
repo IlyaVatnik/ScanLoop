@@ -12,17 +12,21 @@ NOTE that positions are in microns!
 
 '''
 
-__data__='2025.08.12'
+__data__='2025.08.13'
 __version__='1'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
 import numpy as np
-from Hardware.Stages.LBTEK_stage import LBTEK_stage
-from Hardware.Stages.StandaStages import StandaStages
+if __name__ != '__main__':
+    from Hardware.Stages.LBTEK_stage import LBTEK_stage
+    from Hardware.Stages.Standa.StandaStages import StandaStages
+else:
+    from LBTEK_stage import LBTEK_stage
+    from Standa.StandaStages import StandaStages
 
-
+LBTek_stage_key='Y'
 
 class StandaAndLBTekStages(StandaStages):
    
@@ -32,17 +36,26 @@ class StandaAndLBTekStages(StandaStages):
 
 
 
-    
+    def move_home(self):
+        self.LBTek_stage.move_home()
+        self.abs_position[LBTek_stage_key]=0
 
     def shiftOnArbitrary(self, key:str, distance:float):
-        if key=='Z':
+        if key==LBTek_stage_key:
+            new_position=round(self.LBTek_stage.get_position()+distance)
             self.LBTek_stage.jog_by(distance)
-            self.abs_position[key]=self.LBTek_stage.get_position()
+            self.abs_position[key]=new_position
             self.update_relative_positions()
             self.stopped.emit()
 
         else:
-           self.shiftOnArbitrary(key, distance)
+            device_id=self.Stage_key[key]
+            result = self.lib.command_movr(device_id, int(distance/2.5), 0)
+    #        if (result>-1):
+            self.lib.command_wait_for_stop(device_id, 11)
+            self.abs_position[key]=self.get_position(device_id)
+            self.update_relative_positions()
+            self.stopped.emit()
 
 #    def shift(self, key:str,Sign_key):
 #        device_id=self.Stage_key[key]
@@ -60,11 +73,12 @@ class StandaAndLBTekStages(StandaStages):
         del self.LBTek_stage
 
 if __name__ == "__main__":
-    stages=StandaStages()
-    d=5
-    # stages.shiftOnArbitrary('X',d)
+    s=StandaAndLBTekStages()
+    # d=5
+    s.move_home()
+    s.shiftOnArbitrary('Z',500)
 
-    del stages
+
 
 #################################### CLOSE CONNECTION #######################################
 

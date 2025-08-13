@@ -5,6 +5,9 @@ import platform
 # Load library
 
 # use cdecl on unix and stdcall on windows
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
 def ximc_shared_lib():
     if platform.system() == "Linux":
         return CDLL("libximc.so")
@@ -13,7 +16,9 @@ def ximc_shared_lib():
     elif platform.system() == "Darwin":
         return CDLL("libximc.framework/libximc")
     elif platform.system() == "Windows":
-        return WinDLL("libximc.dll")
+        # return WinDLL("libximc.dll")
+        dll_path = os.path.join(base_dir,  "libximc.dll")
+        return WinDLL(dll_path)
     else:
         return None
 

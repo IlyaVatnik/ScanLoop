@@ -566,10 +566,10 @@ class MainWindow(ThreadedMainWindow):
         '''
         try:
             if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
-                from Hardware.Stages.StandaStages import StandaStages
+                from Hardware.Stages.Standa.StandaStages import StandaStages
                 self.stages=StandaStages()
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Standa + LBTEK':
-                from Hardware.Stages.StandaAndLBTek import StandaAndLBTekStages
+                from Hardware.Stages.StandaAndLBTekStages import StandaAndLBTekStages
                 self.stages=StandaAndLBTekStages()
                 
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (Cube+NRT100)':

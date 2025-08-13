@@ -7,7 +7,7 @@ Created on Fri Jul  4 15:01:59 2025
 """
 
 __version__ = '1'
-__date__ = '2025.08.12'
+__date__ = '2025.08.13'
 
 
 
@@ -17,6 +17,7 @@ from ctypes import c_int, c_float, c_char_p, POINTER
 import struct
 # Загружаем библиотеку
 from pathlib import Path
+from threading import Lock
 try:
     # Для Windows
     module_dir = Path(__file__).parent.absolute()
@@ -64,7 +65,11 @@ class LBTEK_stage:
         else:
             print("Устройство закрыто")
             
+        self._dll_lock = Lock()
+        # dll.GetCurrentPos.argtypes = [c_int, c_int]  # handle (int), axis_id (int)
         dll.GetCurrentPos.restype = c_float
+
+        
         dll.setJogTime.argtypes = [c_int, c_int, c_int]
         dll.setJogStep.argtypes = [c_int, c_int, c_float]
         dll.setJogDelay.argtypes = [c_int, c_int, c_int]
@@ -104,8 +109,12 @@ class LBTEK_stage:
 
     def move_code_stop(self, id=1): #MOVE_CODE_STOP      0x01
         return dll.moveEmcvx(self.handle, id, 0x01)
+    
     def move_home(self, id=1): #MOVE_CODE_RESTORE   0x02    // вернуться к истокам
-        return dll.moveEmcvx(self.handle, id, 0x02)
+        result=dll.moveEmcvx(self.handle, id, 0x02)
+        self.wait_until_idle()  
+        return result
+    
     def move_code_driver_r(self, id=1): #MOVE_CODE_DRIVE_R   0x04    // positive direction 
         return dll.moveEmcvx(self.handle, id, 0x04)
     def move_code_driver_l(self, id=1): #MOVE_CODE_DRIVE_L   0x05    // negative direction 
@@ -188,7 +197,9 @@ class LBTEK_stage:
     def get_position(self, id=1):
         # Предполагаем, что функция возвращает float
         # in mkm! 
-        return dll.GetCurrentPos(self.handle, id)*1e3
+        with self._dll_lock:
+            result=dll.GetCurrentPos(self.handle, id)*1e3
+            return result
             
     def setInputEnable(self, enabled,id=1): 
             dll.setInputEnable(self.handle, id, enabled)
@@ -270,6 +281,24 @@ class LBTEK_stage:
         # Настройка типов аргументов и возвращаемого значения
         return dll.getErrorCode(self.handle, id)
         
+    def wait_until_idle(self, id=1, timeout=15.0, check_interval=0.05):
+        """
+        Ожидает завершения всех движений оси.
+        
+        Параметры:
+            id (int): номер оси
+            timeout (float): максимальное время ожидания в секундах
+            check_interval (float): интервал проверки состояния в секундах
+        """
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            if self.get_doing_state(id) == 0:
+                # print('finished at {}'.format(time.time() - start_time))
+                # self.get_doing_state()
+                return True
+            time.sleep(check_interval)
+        return False
+
     def jog_by(self,step,id=1):
         if self.jog_step!=abs(step):
             self.set_jog_step(abs(step))
@@ -277,9 +306,10 @@ class LBTEK_stage:
             self.jog_pos()
         elif step<0:
             self.jog_neg()
-      
+        self.wait_until_idle()  
         
-
+        time.sleep(0.01)
+         
     
     def get_all_models(self):
         """Получить все модели"""
@@ -306,12 +336,20 @@ class LBTEK_stage:
     #%%
 # Пример работы с устройством
 if __name__ == "__main__":
-    s=LBTEK_stage('Com3')
-    s.get_speed()
+    s=LBTEK_stage()
+    # s.get_speed()
     # stage.set_jog_step(1)
     # stage.get_jog_delay()
     # stage.get_absolute_disp()
-    s.move_home()    
+    # s.move_home()    
     # # stage.set_jog_step(100)
     # # stage.
-    # stage.jog_pos()
+    #%%
+    # s.jog_by(-500)
+    
+    print(s.get_position())
+
+    s.get_position()
+    time.sleep(1)
+    s.get_position()
+#%%

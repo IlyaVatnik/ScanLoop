@@ -5,8 +5,8 @@ NOTE that positions are in microns!
 
 '''
 
-__data__='2025.02.18'
-__version__='2'
+__data__='2025.08.13'
+__version__='2.2'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
@@ -15,40 +15,26 @@ import numpy as np
 
 
 
-OldPath=os.getcwd()
-#    if (os.path.dirname(sys.argv[0])+'/Hardware') not in sys.path:
-#        sys.path.append(os.path.dirname(sys.argv[0])+'/Hardware')
-if __name__ != "__main__":
-#    os.chdir(os.path.dirname(sys.argv[0])+'/Hardware')
-    os.chdir(os.path.dirname(__file__))
-    # print(os.path.dirname(__file__))
-    '''
-    you may have to directly indicate the path to the dll libraries
-    '''
-    os.add_dll_directory(os.path.dirname(__file__))
 if sys.version_info >= (3,0):
     import urllib.parse
-try:
+if __name__ == "__main__":
     from pyximc import *
-except ImportError as err:
-    print ("Can't import pyximc module. The most probable reason is that you haven't copied pyximc.py to the working directory. See developers' documentation for details.")
-    exit()
-except OSError as err:
-    print ("Can't load libximc library. Please add all shared libraries to the appropriate places (next to pyximc.py on Windows). It is decribed in detailes in developers' documentation.")
-    exit()
+else:
+    try:
+        from .pyximc import *
+    except ImportError as err:
+        print ("Can't import pyximc module. The most probable reason is that you haven't copied pyximc.py to the working directory. See developers' documentation for details.")
+        exit()
+    except OSError as err:
+        print ("Can't load libximc library. Please add all shared libraries to the appropriate places (next to pyximc.py on Windows). It is decribed in detailes in developers' documentation.")
+        exit()
 
-# variable 'lib' points to a loaded library
-# note that ximc uses stdcall on win
-
-print("Library loaded")
-os.chdir(OldPath)
 
 
 
 class StandaStages(QObject):
     connected = pyqtSignal()
     stopped = pyqtSignal()
-#    StepSize={'X':10,'Y':10,'Z':10}
     Stage_key={'X':None,'Y':None,'Z':None}
     abs_position={}
     relative_position={}
@@ -169,15 +155,6 @@ class StandaStages(QObject):
         self.update_relative_positions()
         self.stopped.emit()
 
-#    def shift(self, key:str,Sign_key):
-#        device_id=self.Stage_key[key]
-#        distance=int(np.sign(Sign_key)*self.StepSize[key])
-#        print(distance)
-#        result = self.lib.command_movr(device_id, distance, 0)
-#        if (result>-1):
-#            self.abs_position[key]+=distance
-#        print("Result: Shifted - " + str(bool(result+1)))
-#        self.stopped.emit()
 
     def wait_for_stop(self, device_id, interval):
         print("\nWaiting for stop")
