@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.8.6'
-__date__='2025.03.03'
+__version__='20.9.0'
+__date__='2025.08.12'
 
 import os
 if __name__=='__main__':
@@ -21,7 +21,7 @@ import importlib
 import Common.Consts
 
 from Hardware.Config import Config
-from Hardware.PiezoStageE53D_serial import PiezoStage
+
 
 '''
 from Hardware.Interrogator import Interrogator
@@ -566,22 +566,26 @@ class MainWindow(ThreadedMainWindow):
         '''
         try:
             if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
-                from Hardware.MyStanda import StandaStages
+                from Hardware.Stages.Standa.StandaStages import StandaStages
                 self.stages=StandaStages()
+            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Standa + LBTEK':
+                from Hardware.Stages.StandaAndLBTekStages import StandaAndLBTekStages
+                self.stages=StandaAndLBTekStages()
+                
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (Cube+NRT100)':
-                import Hardware.MyThorlabsStages
-                self.stages=Hardware.MyThorlabsStages.ThorlabsStages()
+                import Hardware.Stages.MyThorlabsStages
+                self.stages=Hardware.Stages.MyThorlabsStages.ThorlabsStages()
                 self.ui.pushButton_MovePlusY.setEnabled(False)
                 self.ui.pushButton_MoveMinusY.setEnabled(False)
                 
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (2 Cubes)':
-                import Hardware.MyThorlabsStages_2_Cubes
+                import Hardware.Stages.MyThorlabsStages_2_Cubes
                 self.stages=Hardware.MyThorlabsStages_2_Cubes.ThorlabsStages_2_Cubes()
                 self.ui.pushButton_MovePlusY.setEnabled(False)
                 self.ui.pushButton_MoveMinusY.setEnabled(False)
             elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
-                import Hardware.PIStages
-                self.stages=Hardware.PIStages.PIStages()
+                import Hardware.Stages.PIStages
+                self.stages=Hardware.Stages.PIStages.PIStages()
     
             if self.stages.isConnected>0:
                 self.logText('Connected to stages')
@@ -613,6 +617,7 @@ class MainWindow(ThreadedMainWindow):
     
     def connect_PiezoStages(self):
         try:
+            from Hardware.Stages.PiezoStageE53D_serial import PiezoStage
             self.piezo_stage = PiezoStage(self.hardware_ports.piezo_stage, 9600)
             self.piezo_stage_connected = 1
             # self.ui.label_abs_position.setText(f'Abs:{round(self.piezo_stage.abs_position, 3)} μm')

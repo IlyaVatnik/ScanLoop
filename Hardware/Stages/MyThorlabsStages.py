@@ -28,8 +28,8 @@ from ctypes import (
 )
 if __name__ == "__main__":
     os.chdir('..')
-from Hardware.thorlabs_kinesis import benchtop_stepper_motor as bsm
-from Hardware.thorlabs_kinesis import KCube_DC_Servo as kdc
+from Hardware.Stages.thorlabs_kinesis import benchtop_stepper_motor as bsm
+from Hardware.Stages.thorlabs_kinesis import KCube_DC_Servo as kdc
     
 
 
@@ -156,8 +156,8 @@ class ThorlabsStages(QObject):
             pos[K]=self.get_position(K)
         return pos
     
-    def shiftOnArbitrary(self, key:str, distance:int,blocking=True):
-                #for the sage of uniformity, distance is taken in steps 2.5 um each
+    def shiftOnArbitrary(self, key:str, distance:float,blocking=True):
+                #for the sage of uniformity, distance is taken in mkm
         if key=='X':
             kdc.CC_StartPolling(self._serial_no_x, self.milliseconds)
             kdc.CC_ClearMessageQueue(self._serial_no_x)

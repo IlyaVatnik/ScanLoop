@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1567</width>
-    <height>968</height>
+    <height>949</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -56,7 +56,7 @@
          <x>0</x>
          <y>0</y>
          <width>1547</width>
-         <height>801</height>
+         <height>782</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
@@ -359,7 +359,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>648</height>
+             <height>629</height>
             </rect>
            </property>
            <attribute name="label">
@@ -427,6 +427,11 @@
                <item>
                 <property name="text">
                  <string>3x Standa</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>2x Standa + LBTEK</string>
                 </property>
                </item>
                <item>
@@ -1816,7 +1821,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>648</height>
+             <height>629</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2346,7 +2351,7 @@
              <x>0</x>
              <y>0</y>
              <width>300</width>
-             <height>648</height>
+             <height>629</height>
             </rect>
            </property>
            <attribute name="label">
