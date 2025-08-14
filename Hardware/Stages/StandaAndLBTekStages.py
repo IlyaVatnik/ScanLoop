@@ -19,6 +19,7 @@ from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
 import os
 import numpy as np
+
 if __name__ != '__main__':
     from Hardware.Stages.LBTEK_stage import LBTEK_stage
     from Hardware.Stages.Standa.StandaStages import StandaStages
@@ -31,8 +32,12 @@ LBTek_stage_key='Y'
 class StandaAndLBTekStages(StandaStages):
    
     def __init__(self):
+        '''
+        Подвижка LBTek пишется _поверх_подвижки
+        '''
         super().__init__()
         self.LBTek_stage=LBTEK_stage()
+        
 
 
 
@@ -42,7 +47,12 @@ class StandaAndLBTekStages(StandaStages):
 
     def shiftOnArbitrary(self, key:str, distance:float):
         if key==LBTek_stage_key:
-            new_position=round(self.LBTek_stage.get_position()+distance)
+            new_position=round(self.LBTek_stage.get_position()+distance) 
+            '''
+            опрос позиции _перед_ тем, как сдвинуть подвижку - вынужденная мера, поскольку по невыясненным причинам в обрятном порядке эти две функции не работают
+            Испробованы добавления пауз
+            '''
+            
             self.LBTek_stage.jog_by(distance)
             self.abs_position[key]=new_position
             self.update_relative_positions()
@@ -57,15 +67,6 @@ class StandaAndLBTekStages(StandaStages):
             self.update_relative_positions()
             self.stopped.emit()
 
-#    def shift(self, key:str,Sign_key):
-#        device_id=self.Stage_key[key]
-#        distance=int(np.sign(Sign_key)*self.StepSize[key])
-#        print(distance)
-#        result = self.lib.command_movr(device_id, distance, 0)
-#        if (result>-1):
-#            self.abs_position[key]+=distance
-#        print("Result: Shifted - " + str(bool(result+1)))
-#        self.stopped.emit()
 
 
     def __del__(self):
