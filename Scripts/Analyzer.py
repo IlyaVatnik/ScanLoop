@@ -17,8 +17,8 @@ import sys
 import os
 import time
 
-__version__ = '2.7.9'
-__date__ = '2025.03.20'
+__version__ = '2.7.10'
+__date__ = '2025.09.01'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -521,9 +521,9 @@ class Analyzer(QObject):
                 if self.SNAP.signal_scale == 'log':
                     if p['colorbar_title_position'] == 'right':
                         clb.ax.set_ylabel(
-                            'dB', rotation=p['colorbar_title_rotation'], labelpad=5)
+                            p['colorbar_text'], rotation=p['colorbar_title_rotation'], labelpad=5)
                     else:
-                        clb.ax.set_title('dB')
+                        clb.ax.set_title(p['colorbar_text'])
                 if p['title']:
                     plt.title(self.SNAP.type_of_signal)
                 try:
@@ -549,9 +549,9 @@ class Analyzer(QObject):
                 if self.SNAP.signal_scale == 'log':
                     if p['colorbar_title_position'] == 'right':
                         clb.ax.set_ylabel(
-                            'дБ', rotation=p['colorbar_title_rotation'])
+                            p['colorbar_text'], rotation=p['colorbar_title_rotation'])
                     else:
-                        clb.ax.set_title('дБ')
+                        clb.ax.set_title(p['colorbar_text'])
                 if p['title']:
                     plt.title(self.SNAP.type_of_signal)
                 try:
