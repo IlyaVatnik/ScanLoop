@@ -6,8 +6,8 @@ Created on Fri Jul  4 15:01:59 2025
 @authors: Аркаша, Ilya
 """
 
-__version__ = '1'
-__date__ = '2025.08.13'
+__version__ = '1.2'
+__date__ = '2025.09.09'
 
 
 
@@ -38,6 +38,7 @@ class LBTEK_stage:
     '''
     
     def __init__(self, serial_no=None):
+        self.id=1 # номер оси 
         
         if serial_no==None:
             # Создаем буфер для списка портов
@@ -52,24 +53,30 @@ class LBTEK_stage:
                 self.handle = dll.openEmcvx(self.serial_no)
                 if self.handle > 0:
                     if dll.isOpen(self.serial_no):
-                        break
+                        if self.init_axis(1, "EM-LSS65-30C1", 1) == 0: #EM-LSS65-30C1 #EM-CV2-1
+                            print("Устройство EM-CV2-1 открыто")
+                            print("Ось инициализирована успешно")
+                            break
                 
         else:
             self.serial_no = serial_no.encode('utf-8')  # Преобразуем строку в bytes
             self.handle = dll.openEmcvx(self.serial_no)
             if self.handle <= 0:
                 raise Exception("Не удалось открыть устройство")
+            if dll.isOpen(self.serial_no):
+                print("Устройство EM-CV2-1 открыто")
+            else:
+                print("Устройство закрыто")
+            if self.init_axis(1, "EM-LSS65-30C1", 1) == 0: #EM-LSS65-30C1 #EM-CV2-1
+                print("Ось инициализирована успешно")
+                
             
-        if dll.isOpen(self.serial_no):
-            print("Устройство EM-CV2-1 открыто")
-        else:
-            print("Устройство закрыто")
+
+
             
         self._dll_lock = Lock()
         # dll.GetCurrentPos.argtypes = [c_int, c_int]  # handle (int), axis_id (int)
         dll.GetCurrentPos.restype = c_float
-
-        
         dll.setJogTime.argtypes = [c_int, c_int, c_int]
         dll.setJogStep.argtypes = [c_int, c_int, c_float]
         dll.setJogDelay.argtypes = [c_int, c_int, c_int]
@@ -90,17 +97,16 @@ class LBTEK_stage:
         dll.getErrorCode.argtypes = [c_int, c_int]
         dll.getErrorCode.restype = c_int
         
-        self.jog_step=self.get_jog_step() # in mkm
-        self.set_axis_enable(1,0) #/1- выключить ось  , 0 -включить
         '''
         Включена первая ось! 
         '''
-        self.id=1 # номер оси 
-        print(f"Статус оси: {self.get_axis_enable_status(1)}")
-        if self.init_axis(1, "EM-LSS65-30C1", 1) == 0: #EM-LSS65-30C1 #EM-CV2-1
-            print("Ось инициализирована успешно")
-        else:
-            raise Exception("Ошибка инициализации оси")
+        self.jog_step=self.get_jog_step() # in mkm
+        self.set_axis_enable(1,0) #/1- выключить ось  , 0 -включить
+   
+
+        # print(f"Статус оси: {self.get_axis_enable_status(1)}")
+
+
             
    
     
