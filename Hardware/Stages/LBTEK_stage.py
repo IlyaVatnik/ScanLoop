@@ -203,9 +203,15 @@ class LBTEK_stage:
     def get_position(self, id=1):
         # Предполагаем, что функция возвращает float
         # in mkm! 
-        with self._dll_lock:
-            result=dll.GetCurrentPos(self.handle, id)*1e3
-            return result
+        # with self._dll_lock:
+        Error=True
+        while Error:
+            try:
+                result=dll.GetCurrentPos(self.handle, id)*1e3
+                Error=False
+            except OSError:
+                pass
+        return round(result)
             
     def setInputEnable(self, enabled,id=1): 
             dll.setInputEnable(self.handle, id, enabled)
@@ -290,7 +296,7 @@ class LBTEK_stage:
     def wait_until_idle(self, id=1, timeout=15.0, check_interval=0.05):
         """
         Ожидает завершения всех движений оси.
-        
+        Почему-то не работает! Вместо этого вставлен try-except модуль в запрос позиции.
         Параметры:
             id (int): номер оси
             timeout (float): максимальное время ожидания в секундах
@@ -312,9 +318,8 @@ class LBTEK_stage:
             self.jog_pos()
         elif step<0:
             self.jog_neg()
-        self.wait_until_idle()  
-        
-        time.sleep(0.01)
+        self.wait_until_idle()
+
          
     
     def get_all_models(self):
@@ -339,7 +344,7 @@ class LBTEK_stage:
             raise Exception(f"Ошибка инициализации оси: {result}")
         return result
     
-    #%%
+    
 # Пример работы с устройством
 if __name__ == "__main__":
     s=LBTEK_stage()
@@ -347,12 +352,13 @@ if __name__ == "__main__":
     # stage.set_jog_step(1)
     # stage.get_jog_delay()
     # stage.get_absolute_disp()
-    # s.move_home()    
+    s.move_home()    
     # # stage.set_jog_step(100)
     # # stage.
     #%%
-    # s.jog_by(-500)
-    
+    s.jog_by(-10)
+    s.get_position()
+       #%%
     print(s.get_position())
 
     s.get_position()
