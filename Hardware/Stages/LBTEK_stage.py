@@ -6,8 +6,8 @@ Created on Fri Jul  4 15:01:59 2025
 @authors: Аркаша, Ilya
 """
 
-__version__ = '1.2'
-__date__ = '2025.09.09'
+__version__ = '1.3'
+__date__ = '2025.09.16'
 
 
 
@@ -29,6 +29,8 @@ try:
 except Exception as e:
     print(f"Ошибка при загрузке библиотеки: {e}")
     
+class LimitPositionException(Exception):
+    pass
 
 # Пример использования
 class LBTEK_stage:
@@ -36,6 +38,9 @@ class LBTEK_stage:
     This is for EM-CV2-1 controller
     
     '''
+    
+    min_position=-15000
+    max_position=15000 # mkm
     
     def __init__(self, serial_no=None):
         self.id=1 # номер оси 
@@ -312,13 +317,17 @@ class LBTEK_stage:
         return False
 
     def jog_by(self,step,id=1):
-        if self.jog_step!=abs(step):
-            self.set_jog_step(abs(step))
-        if step>0:
-            self.jog_pos()
-        elif step<0:
-            self.jog_neg()
-        self.wait_until_idle()
+        current_pos=self.get_position()
+        if (current_pos+step>self.min_position) & (current_pos+step<self.max_position):
+            if self.jog_step!=abs(step):
+                self.set_jog_step(abs(step))
+            if step>0:
+                self.jog_pos()
+            elif step<0:
+                self.jog_neg()
+            self.wait_until_idle()
+        else:
+            raise LimitPositionException('Error: Limit position would be exceeded')
 
          
     

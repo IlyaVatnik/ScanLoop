@@ -13,20 +13,19 @@ NOTE that positions are in microns!
 '''
 
 __data__='2025.09.16'
-__version__='1.3'
+__version__='1.4'
 
 
 
 if __name__ != '__main__':
-    from Hardware.Stages.LBTEK_stage import LBTEK_stage
+    from Hardware.Stages.LBTEK_stage import LBTEK_stage,LimitPositionException
     from Hardware.Stages.Standa.StandaStages import StandaStages
 else:
     from LBTEK_stage import LBTEK_stage
     from Standa.StandaStages import StandaStages
 
 LBTek_stage_key='Y'
-LBTek_stage_min_position=0
-LBTek_stage_max_position=30000 # mkm
+
 
 class StandaAndLBTekStages(StandaStages):
    
@@ -36,6 +35,7 @@ class StandaAndLBTekStages(StandaStages):
         '''
         super().__init__()
         self.LBTek_stage=LBTEK_stage()
+        self.abs_position[LBTek_stage_key]=self.LBTek_stage.get_position()
         
 
 
@@ -53,13 +53,12 @@ class StandaAndLBTekStages(StandaStages):
             опрос позиции _перед_ тем, как сдвинуть подвижку - вынужденная мера, поскольку по невыясненным причинам в обрятном порядке эти две функции не работают
             Испробованы добавления пауз
             '''
-            current_pos=self.abs_position[LBTek_stage_key]
-            if (current_pos+distance>LBTek_stage_min_position) & (current_pos+distance<LBTek_stage_max_position):
+            try:
                 self.LBTek_stage.jog_by(distance)
                 self.abs_position[LBTek_stage_key]=self.LBTek_stage.get_position()
                 self.update_relative_positions()
                 self.stopped.emit()
-            else:
+            except LimitPositionException:
                 self.S_print_error.emit('Error: destination position exceeds the maximum allowed to LBTek stage')
 
         else:
