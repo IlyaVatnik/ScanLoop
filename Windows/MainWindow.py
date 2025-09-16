@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.9.0'
-__date__='2025.08.12'
+__version__='20.9.1'
+__date__='2025.09.16'
 
 import os
 if __name__=='__main__':
@@ -571,6 +571,7 @@ class MainWindow(ThreadedMainWindow):
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Standa + LBTEK':
                 from Hardware.Stages.StandaAndLBTekStages import StandaAndLBTekStages
                 self.stages=StandaAndLBTekStages()
+                self.stages.S_print_error[str].connect(self.logWarningText)
                 
             elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (Cube+NRT100)':
                 import Hardware.Stages.MyThorlabsStages

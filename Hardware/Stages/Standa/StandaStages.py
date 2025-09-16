@@ -5,8 +5,8 @@ NOTE that positions are in microns!
 
 '''
 
-__data__='2025.08.13'
-__version__='2.2'
+__data__='2025.09.16'
+__version__='2.3'
 
 from PyQt5.QtCore import QObject,  pyqtSignal
 import sys
@@ -39,6 +39,7 @@ class StandaStages(QObject):
     abs_position={}
     relative_position={}
     zero_position={'X':0,'Y':0,'Z':0}
+    S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
 
     def __init__(self):
         super().__init__()

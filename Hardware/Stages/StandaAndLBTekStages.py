@@ -12,13 +12,10 @@ NOTE that positions are in microns!
 
 '''
 
-__data__='2025.09.09'
-__version__='1.2'
+__data__='2025.09.16'
+__version__='1.3'
 
-from PyQt5.QtCore import QObject,  pyqtSignal
-import sys
-import os
-import numpy as np
+
 
 if __name__ != '__main__':
     from Hardware.Stages.LBTEK_stage import LBTEK_stage
@@ -28,6 +25,8 @@ else:
     from Standa.StandaStages import StandaStages
 
 LBTek_stage_key='Y'
+LBTek_stage_min_position=0
+LBTek_stage_max_position=30000 # mkm
 
 class StandaAndLBTekStages(StandaStages):
    
@@ -54,15 +53,18 @@ class StandaAndLBTekStages(StandaStages):
             опрос позиции _перед_ тем, как сдвинуть подвижку - вынужденная мера, поскольку по невыясненным причинам в обрятном порядке эти две функции не работают
             Испробованы добавления пауз
             '''
-            
-            self.LBTek_stage.jog_by(distance)
-            self.abs_position[key]=self.LBTek_stage.get_position()
-            self.update_relative_positions()
-            self.stopped.emit()
+            current_pos=self.abs_position[LBTek_stage_key]
+            if (current_pos+distance>LBTek_stage_min_position) & (current_pos+distance<LBTek_stage_max_position):
+                self.LBTek_stage.jog_by(distance)
+                self.abs_position[LBTek_stage_key]=self.LBTek_stage.get_position()
+                self.update_relative_positions()
+                self.stopped.emit()
+            else:
+                self.S_print_error.emit('Error: destination position exceeds the maximum allowed to LBTek stage')
 
         else:
             device_id=self.Stage_key[key]
-            result = self.lib.command_movr(device_id, int(distance/2.5), 0)
+            self.lib.command_movr(device_id, int(distance/2.5), 0)
     #        if (result>-1):
             self.lib.command_wait_for_stop(device_id, 11)
             self.abs_position[key]=self.get_position(device_id)
