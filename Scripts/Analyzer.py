@@ -17,8 +17,8 @@ import sys
 import os
 import time
 
-__version__ = '2.7.10'
-__date__ = '2025.09.01'
+__version__ = '2.7.11'
+__date__ = '2025.11.27'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -470,11 +470,14 @@ class Analyzer(QObject):
             plt.rcParams['axes.formatter.useoffset'] = False
 
         ax_Wavelengths = fig.subplots()
-        if p['use_contourf'] == True:
+        if p['use_contourf_or_pcolorfast_or_pcolormesh'] == 'contourf':
             levels = p['contourf_levels']
             im = ax_Wavelengths.contourf(x, self.SNAP.wavelengths, self.SNAP.signal,
                                          cmap=p['cmap'], levels=levels, vmin=p['vmin'], vmax=p['vmax'])
-        else:
+        elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolorfast':
+            im = ax_Wavelengths.pcolorfast(
+                x, self.SNAP.wavelengths, self.SNAP.signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
+        elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolormesh':
             im = ax_Wavelengths.pcolormesh(
                 x, self.SNAP.wavelengths, self.SNAP.signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
             # im = ax_Wavelengths.imshow(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
@@ -783,6 +786,7 @@ class Analyzer(QObject):
             # plt.plot(W,f_array)
             # plt.ylim((-1000,1000))
             return irfft(f_array)
+        
     #            f_array[] = 0
         self.S_print.emit('Applying FFT filter to single spectrum...')
         axes = fig.gca()
