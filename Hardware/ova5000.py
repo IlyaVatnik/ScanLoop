@@ -4,8 +4,8 @@ import time
 from PyQt5.QtCore import QObject,pyqtSignal
 import numpy as np
 
-__version__='2'
-__date__='2023.03.17'
+__version__='2.1'
+__date__='2023.12.01'
 
 RESPONSE_TIMEOUT = 2 # seconds
 
@@ -23,6 +23,7 @@ class Luna(QObject):
     received_spectrum = pyqtSignal(np.ndarray,list,list)
     min_wavelength=1525
     max_wavelength=1610
+    S_print_error=pyqtSignal(str)
 
     def __init__(self, host='localhost', port=1):
         QObject.__init__(self)
