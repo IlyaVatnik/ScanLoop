@@ -24,7 +24,7 @@ else:
     from Hardware.PyApex.AP2XXX.tls import TunableLaser
     from Hardware.PyApex.AP2XXX.osa import OSA
 
-
+print('Modules loaded')
 
 class APEX_OSA_with_additional_features(OSA,QObject):
     received_wavelengths = pyqtSignal(object)

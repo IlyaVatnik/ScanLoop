@@ -195,6 +195,7 @@ class ThorlabsStages(QObject):
             bsm.SBC_StopPolling(self._serial_no_z, self.channel_z) 
         time.sleep(self._short_pause)
         self.abs_position[key]=self.get_position(key)
+        
         self.update_relative_positions()
         print('stage moved')
         self.stopped.emit()

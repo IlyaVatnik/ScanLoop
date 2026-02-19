@@ -15,8 +15,8 @@ from scipy.constants import c
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
 
-__version__ = '0.5'
-__date__ = '2025.03.06'
+__version__ = '0.6'
+__date__ = '2026.02.18'
 
 def Lorenz(det_f,non_resonant_transmission,X_0,delta_c,delta_0,phi):
     delta_freq=det_f-X_0
@@ -55,7 +55,10 @@ def analyze_oscillogram(times,signal,peak_number,noise_level,dith_frequency,detu
     
     
     distance=int(max_peak_width/(2*dith_frequency*detuning_range)/(times[1]-times[0]))
-    index_start,index_stop,index_of_peak,Peak_moments=get_range_to_fit(signal, peak_number,prominence,distance) #поулчаем пропускание через 1 резонанс,
+    try:
+        index_start,index_stop,index_of_peak,Peak_moments=get_range_to_fit(signal, peak_number,prominence,distance) #поулчаем пропускание через 1 резонанс,
+    except Exception as e:
+        raise Exception('There is no peak with number {} in the oscilloscope part under consideration'.format(peak_number))
     detunings=give_detunings(dith_frequency,detuning_range,times[index_start:index_stop])  
     
     p0= 1,1,1,1,1#splitted_Lorenz(nonresonant_transmission, det_f,X_0,delta_c,delta_0,g)

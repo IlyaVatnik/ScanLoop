@@ -17,8 +17,8 @@ import sys
 import os
 import time
 
-__version__ = '2.7.11'
-__date__ = '2025.11.27'
+__version__ = '2.7.12'
+__date__ = '2026.02.18'
 
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
@@ -27,7 +27,7 @@ except ModuleNotFoundError as E:
     print(E)
 
     import SNAP_experiment
-    import QuantumNumbersStructure
+    import Theory.Resonances_wavelengths as QuantumNumbersStructure
 
 
 c = 299792458  # m/s
@@ -103,7 +103,7 @@ class Analyzer(QObject):
         self.osc_prominence=0.2
         self.osc_peak_number=2
 
-        '''
+        r'''
             Временно. Для постройки графика функции ошибки от радиуса и температуры
             
             self.cost_function_figure=plt.figure()
@@ -112,7 +112,7 @@ class Analyzer(QObject):
             self.cost_function_ax.set_title('Radius dependent cost function', fontsize=14)
             self.cost_function_ax.set_xlabel('Radius, $\mu m$', fontsize=14)
             self.cost_function_ax.set_ylabel('Cost function', fontsize=14)
-            '''
+        '''
 
         self.type_of_SNAP_file = 'SNAP'
 
@@ -476,7 +476,7 @@ class Analyzer(QObject):
                                          cmap=p['cmap'], levels=levels, vmin=p['vmin'], vmax=p['vmax'])
         elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolorfast':
             im = ax_Wavelengths.pcolorfast(
-                x, self.SNAP.wavelengths, self.SNAP.signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
+                x, self.SNAP.wavelengths, self.SNAP.signal[:-1,:-1], cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
         elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolormesh':
             im = ax_Wavelengths.pcolormesh(
                 x, self.SNAP.wavelengths, self.SNAP.signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
@@ -650,6 +650,13 @@ class Analyzer(QObject):
             
             times = line.get_xdata().copy()
             signal = line.get_ydata().copy()
+            
+            time_min, time_max = axes.get_xlim()
+            index_min = np.argmin(abs(times-time_min))
+            index_max = np.argmin(abs(times-time_max))
+            times = times[index_min:index_max]
+            signal = signal[index_min:index_max]
+            
             index_start,index_stop,nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak,peak_indexes=analyze_oscillogram(times,signal,self.osc_peak_number,
                                                                                                                                   self.osc_noise_level,
                                                                                                            self.osc_dith_frequency,self.osc_detuning,
@@ -657,7 +664,9 @@ class Analyzer(QObject):
             plt.plot(times[peak_indexes],signal[peak_indexes],'o',color='red')
             time0=times[index_of_peak]
             signal_fitted = lorenz_fit(times[index_start:index_stop], nonresonant_transmission, phi, time0, delta_0, delta_c)
+            signal_fitted_2 = lorenz_fit(times[index_start:index_stop], nonresonant_transmission, phi, time0, delta_c, delta_0)
             axes.plot(times[index_start:index_stop],signal_fitted,color='green',linewidth=3)
+            axes.plot(times[index_start:index_stop],signal_fitted,color='red',linewidth=1)
             results_text2 = ' $\delta_c$=({:.2f} ) '.format(
                 delta_c)+'$\mu s^{-1}$'
             results_text3 = ' $\delta_0$=({:.2f} ) '.format(
@@ -1162,7 +1171,7 @@ if __name__ == "__main__":
 
     a.plotting_parameters_file_path = os.getcwd()+'\\plotting_parameters.txt'
     # f=r"C:\!WorkFolder\!Experiments\!SNAP system\2022.12 playing with parameters\potential 6\central.SNAP"
-    f =r"F:\!Projects\!SNAP system\Modifications\Deposition\2023.05 deposition\Sp_full spectrum_deposition X=500.0_Y=-10000.0_Z=0.0_.pkl"
+    f =r"F:\!Projects\!SNAP system\Cappilary\2025.11 good capillary\2 попытка тонким тейпером\with_water.SNAP"
     a.single_spectrum_path = f
     fig=a.plot_single_spectrum()
     # a.FFTFilter_high_freq_edge = 2

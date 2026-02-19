@@ -23,8 +23,8 @@ from scipy import special
 import matplotlib.pyplot as plt 
 from Field_distributions import get_V_jj,get_Veff,get_cross_section
 
-delta_c=4e6 # 2*pi*Hz
-delta_0=8e6 # 2*pi*Hz
+delta_0=4e6 # 2*pi*Hz
+delta_c=67e6 # 2*pi*Hz
 lambda_0=1550 # nm
 
 

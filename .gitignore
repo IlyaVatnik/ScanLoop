@@ -12,3 +12,6 @@ ZeroPosition.txt
 Parameters.txt
 *.png
 Parameters.txt
+/build
+/Scanloop exe
+/dist
