@@ -39,7 +39,7 @@ if str(project_root) not in sys.path:
 from Hardware.PyApex.AP2XXX import AP2XXX
 from Hardware.PyApex.AP2XXX.tls import TunableLaser
 from Hardware.PyApex.AP2XXX.osa import OSA
-from Common.Consts import Consts
+# from Common.Consts import Consts
 
 print('Modules loaded')
 
