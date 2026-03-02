@@ -2,6 +2,10 @@
 Version Oct 18 2019
 @author: Ilya
 """
+"""
+Version March 2 2026
+@author: Sasha
+"""
 __version__='2.2'
 __date__='2025.03.20'
 
@@ -14,15 +18,28 @@ from random import random
 from math import log10
 import time
 
-if __name__=='__main__':
-    from PyApex.AP2XXX import AP2XXX
-    from PyApex.AP2XXX.tls import TunableLaser
-    from PyApex.AP2XXX.osa import OSA
-    # from Common.Consts import Consts
-else:
-    from Hardware.PyApex.AP2XXX import AP2XXX
-    from Hardware.PyApex.AP2XXX.tls import TunableLaser
-    from Hardware.PyApex.AP2XXX.osa import OSA
+import sys
+from pathlib import Path
+
+# 1. Получаем абсолютный путь к папке, в которой лежит этот скрипт
+current_dir = Path(__file__).resolve().parent
+
+# 2. Вычисляем путь к корню проекта. 
+# ВНИМАНИЕ: количество `.parent` зависит от того, насколько глубоко лежит этот скрипт!
+# Если скрипт лежит в папке Hardware (на 1 уровень ниже корня): current_dir.parent
+# Если скрипт лежит в папке Hardware/PyApex (на 2 уровня ниже): current_dir.parent.parent
+project_root = current_dir.parent 
+
+# 3. Добавляем корень проекта в пути поиска Python, если его там еще нет
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# 4. Теперь пути всегда будут работать от корня проекта, 
+# независимо от того, как запущен скрипт (сам по себе или через main.py)
+from Hardware.PyApex.AP2XXX import AP2XXX
+from Hardware.PyApex.AP2XXX.tls import TunableLaser
+from Hardware.PyApex.AP2XXX.osa import OSA
+from Common.Consts import Consts
 
 print('Modules loaded')
 
