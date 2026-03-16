@@ -4,8 +4,8 @@ Created on Mon Mar  2 16:37:13 2026
 
 @author: Александр
 """
-__data__='2026.03.02'
-__version__='2.4'
+__data__='2026.03.16'
+__version__='2.4.2'
 
 # stages_manager.py
 
@@ -14,12 +14,12 @@ from PyQt5.QtCore import QObject, pyqtSignal
 # Импортируем драйвер для Standa
 # Если файл standa_stages.py лежит в другой папке, поправьте импорт (например, from Hardware.Stages.Standa.standa_stages import StandaAxis)
 try:
-    from standa_stages import StandaAxis
-except ImportError:
-    print("Warning: Standa stages module not found or pyximc is missing.")
+    # Импортируем из структуры проекта (Hardware -> Stages -> Standa -> standa_stages.py)
+    from Hardware.Stages.Standa.standa_stages import StandaAxis
+except ImportError as e:
+    print(f"Warning: Standa stages module not found. Details: {e}")
     StandaAxis = None
-
-
+    
 class Stages(QObject):
     """
     Единый класс для управления подвижками. 

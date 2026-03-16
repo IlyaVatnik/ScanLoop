@@ -21,7 +21,7 @@ import importlib
 import Common.Consts
 
 from Hardware.Config import Config
-
+from Hardware.Stages.stages_manager import Stages
 
 '''
 from Hardware.Interrogator import Interrogator
@@ -557,63 +557,71 @@ class MainWindow(ThreadedMainWindow):
 
     def connect_stages(self):
         '''
-        set connection to either Thorlabs or Standa stages 
-
-        Returns
-        -------
-        None.
-
+        set connection to stages using universal Stages manager
         '''
+        # Настройки идентификаторов Standa (Axis 1, 2, 3)
+        standa_ids = {
+            'X': 'Axis 1',
+            'Y': 'Axis 3',
+            'Z': 'Axis 2'
+        }
+        
+        config = {}
+        
+        # Читаем значения из выпадающих списков (которые вы добавили в Designer)
+        selected_x = self.ui.combo_X.currentText()
+        selected_y = self.ui.combo_Y.currentText()
+        selected_z = self.ui.combo_Z.currentText()
+        
+        # Формируем конфиг
+        config['X'] = {'type': 'STANDA', 'id': standa_ids['X']} if selected_x == 'STANDA' else None
+        config['Y'] = {'type': 'STANDA', 'id': standa_ids['Y']} if selected_y == 'STANDA' else None
+        config['Z'] = {'type': 'STANDA', 'id': standa_ids['Z']} if selected_z == 'STANDA' else None
+
+        self.logText(f"Stage configuration: {config}")
+
         try:
-            if self.ui.comboBox_Type_of_Stages.currentText()=='3x Standa':
-                from Hardware.Stages.Standa.StandaStages import StandaStages
-                self.stages=StandaStages()
-            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Standa + LBTEK':
-                from Hardware.Stages.StandaAndLBTekStages import StandaAndLBTekStages
-                self.stages=StandaAndLBTekStages()
-                self.stages.S_print_error[str].connect(self.logWarningText)
-                
-            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (Cube+NRT100)':
-                import Hardware.Stages.MyThorlabsStages
-                self.stages=Hardware.Stages.MyThorlabsStages.ThorlabsStages()
-                self.ui.pushButton_MovePlusY.setEnabled(False)
-                self.ui.pushButton_MoveMinusY.setEnabled(False)
-                
-            elif self.ui.comboBox_Type_of_Stages.currentText()=='2x Thorlabs (2 Cubes)':
-                import Hardware.Stages.MyThorlabsStages_2_Cubes
-                self.stages=Hardware.MyThorlabsStages_2_Cubes.ThorlabsStages_2_Cubes()
-                self.ui.pushButton_MovePlusY.setEnabled(False)
-                self.ui.pushButton_MoveMinusY.setEnabled(False)
-            elif self.ui.comboBox_Type_of_Stages.currentText()=='3x Physik Instrumente':
-                import Hardware.Stages.PIStages
-                self.stages=Hardware.Stages.PIStages.PIStages()
-    
-            if self.stages.isConnected>0:
+            # Инициализируем наш новый универсальный класс
+            self.stages = Stages(config=config)
+            
+            # Проверяем, что хотя бы одна ось была выбрана для подключения
+            if any(v is not None for v in config.values()):
                 self.logText('Connected to stages')
+                
+                # Помещаем класс в отдельный поток, как это было задумано изначально
                 self.add_thread([self.stages])
+                
+                # Загружаем сохраненные нули
                 self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
+                
+                # Подключаем сигналы к интерфейсу
                 self.stages.stopped.connect(self.update_indicated_positions)
-                self.force_stage_move[str,float].connect(lambda S,i:self.stages.shiftOnArbitrary(S,i))
+                self.stages.S_print_error.connect(self.logWarningText)
+                
+                # Привязываем команду GUI к новому методу движения
+                self.force_stage_move[str,float].connect(lambda S,i: self.stages.shiftOnArbitrary(S,i))
+                
+                # Обновляем цифры на экране
                 self.update_indicated_positions()
              
                 self.ui.groupBox_stand.setEnabled(True)
-
-    
                 self.enable_scanning_process()
+            else:
+                self.logWarningText('No stages selected. Configure X, Y or Z.')
+                
         except Exception as e:
             print(e)
-            self.logWarningText('Connection to stages failed')
+            self.logWarningText(f'Connection to stages failed: {str(e)}')
 
     def zeroing_stages(self):
         '''
-        move stages to zero position
-
-        Returns
-        -------
-        None.
-
+        move all connected stages to their home position
         '''
-        self.stages.move_home()
+        if self.stages is not None:
+            # Проходим по всем осям и отправляем домой те, что подключены
+            for key, axis in self.stages.axes.items():
+                if axis is not None:
+                    self.stages.move_home(key)
         
     
     def connect_PiezoStages(self):

@@ -159,46 +159,6 @@
           </widget>
          </widget>
         </item>
-        <item row="0" column="2" colspan="2">
-         <widget class="QGroupBox" name="groupBox_spectrum">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>2</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="sizeIncrement">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="baseSize">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
-          </property>
-          <property name="toolTipDuration">
-           <number>10</number>
-          </property>
-          <property name="title">
-           <string>Graph</string>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="3">
          <widget class="QGroupBox" name="groupBox_11">
           <property name="sizePolicy">
@@ -351,7 +311,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="page_hardware">
            <property name="geometry">
@@ -367,56 +327,231 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QGroupBox" name="groupBox_3">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>50</height>
-               </size>
-              </property>
+             <widget class="QGroupBox" name="groupBox_features_2">
               <property name="title">
-               <string>Equipment connections</string>
+               <string>Stages</string>
               </property>
-              <widget class="QPushButton" name="pushButton_scope_connect">
+              <widget class="QLabel" name="label_PiezoStage_status">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>160</y>
+                 <width>31</width>
+                 <height>18</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+	
+	background-color: rgb(255, 15, 15);
+}</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Box</enum>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_PiezoStageConnect">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>160</y>
+                 <width>91</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <property name="font">
+                <font>
+                 <family>MS Shell Dlg 2</family>
+                 <pointsize>8</pointsize>
+                 <weight>50</weight>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {
+
+}
+</string>
+               </property>
+               <property name="text">
+                <string>Piezo Stage</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_zeroing_stages">
+               <property name="geometry">
+                <rect>
+                 <x>200</x>
+                 <y>20</y>
+                 <width>61</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Zeroing</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_32">
                <property name="geometry">
                 <rect>
                  <x>10</x>
                  <y>50</y>
+                 <width>21</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>X</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_33">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>50</y>
+                 <width>16</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Y</string>
+               </property>
+              </widget>
+              <widget class="QLabel" name="label_34">
+               <property name="geometry">
+                <rect>
+                 <x>200</x>
+                 <y>50</y>
+                 <width>16</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Z</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_StagesConnect">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>20</y>
                  <width>91</width>
                  <height>23</height>
                 </rect>
                </property>
                <property name="text">
-                <string>Oscilloscope</string>
+                <string>Connect stages</string>
                </property>
                <property name="checkable">
                 <bool>false</bool>
                </property>
               </widget>
-              <widget class="QPushButton" name="pushButton_laser_connect">
+              <widget class="QComboBox" name="combo_X">
                <property name="geometry">
                 <rect>
                  <x>10</x>
-                 <y>81</y>
-                 <width>91</width>
-                 <height>23</height>
+                 <y>80</y>
+                 <width>69</width>
+                 <height>22</height>
                 </rect>
                </property>
-               <property name="text">
-                <string>Laser Pure Ph</string>
+               <item>
+                <property name="text">
+                 <string>NULL</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>STANDA</string>
+                </property>
+               </item>
+              </widget>
+              <widget class="QComboBox" name="combo_Y">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>80</y>
+                 <width>69</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>NULL</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>STANDA</string>
+                </property>
+               </item>
+              </widget>
+              <widget class="QComboBox" name="combo_Z">
+               <property name="geometry">
+                <rect>
+                 <x>200</x>
+                 <y>80</y>
+                 <width>69</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <item>
+                <property name="text">
+                 <string>NULL</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>STANDA</string>
+                </property>
+               </item>
+              </widget>
+              <widget class="QComboBox" name="combo_Y_ID">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>120</y>
+                 <width>69</width>
+                 <height>22</height>
+                </rect>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="combo_Z_ID">
+               <property name="geometry">
+                <rect>
+                 <x>200</x>
+                 <y>120</y>
+                 <width>69</width>
+                 <height>22</height>
+                </rect>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="combo_X_ID">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>120</y>
+                 <width>69</width>
+                 <height>22</height>
+                </rect>
                </property>
               </widget>
               <widget class="QComboBox" name="comboBox_Type_of_Stages">
                <property name="geometry">
                 <rect>
-                 <x>110</x>
-                 <y>21</y>
+                 <x>170</x>
+                 <y>160</y>
                  <width>91</width>
                  <height>21</height>
                 </rect>
@@ -450,190 +585,219 @@
                 </property>
                </item>
               </widget>
-              <widget class="QPushButton" name="pushButton_zeroing_stages">
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_features">
+              <property name="title">
+               <string>OSA </string>
+              </property>
+              <widget class="QLabel" name="label_29">
                <property name="geometry">
                 <rect>
-                 <x>210</x>
-                 <y>21</y>
-                 <width>61</width>
+                 <x>10</x>
+                 <y>50</y>
+                 <width>81</width>
                  <height>21</height>
                 </rect>
                </property>
                <property name="text">
-                <string>Zeroing</string>
+                <string>APEX mode</string>
                </property>
               </widget>
-              <widget class="QGroupBox" name="groupBox_features">
+              <widget class="QComboBox" name="comboBox_Luna_mode">
                <property name="geometry">
                 <rect>
-                 <x>0</x>
-                 <y>180</y>
-                 <width>281</width>
-                 <height>121</height>
+                 <x>110</x>
+                 <y>90</y>
+                 <width>91</width>
+                 <height>22</height>
                 </rect>
                </property>
-               <property name="title">
-                <string>OSA </string>
+               <item>
+                <property name="text">
+                 <string>pkl files</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Luna .bin files</string>
+                </property>
+               </item>
+              </widget>
+              <widget class="QLabel" name="label_Luna_mode">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>90</y>
+                 <width>61</width>
+                 <height>20</height>
+                </rect>
                </property>
-               <widget class="QLabel" name="label_29">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>50</y>
-                  <width>81</width>
-                  <height>21</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string>APEX mode</string>
-                </property>
-               </widget>
-               <widget class="QComboBox" name="comboBox_Luna_mode">
-                <property name="geometry">
-                 <rect>
-                  <x>110</x>
-                  <y>90</y>
-                  <width>91</width>
-                  <height>22</height>
-                 </rect>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>pkl files</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Luna .bin files</string>
-                 </property>
-                </item>
-               </widget>
-               <widget class="QLabel" name="label_Luna_mode">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>90</y>
-                  <width>61</width>
-                  <height>20</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string>Luna mode</string>
-                </property>
-               </widget>
-               <widget class="QComboBox" name="comboBox_APEX_mode">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>110</x>
-                  <y>50</y>
-                  <width>91</width>
-                  <height>21</height>
-                 </rect>
-                </property>
-                <item>
-                 <property name="text">
-                  <string>OSA</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Tracking generator</string>
-                 </property>
-                </item>
-               </widget>
-               <widget class="QPushButton" name="pushButton_OSA_connect">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>19</y>
-                  <width>91</width>
-                  <height>23</height>
-                 </rect>
-                </property>
+               <property name="text">
+                <string>Luna mode</string>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="comboBox_APEX_mode">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>50</y>
+                 <width>91</width>
+                 <height>21</height>
+                </rect>
+               </property>
+               <item>
                 <property name="text">
                  <string>OSA</string>
                 </property>
-                <property name="checkable">
-                 <bool>false</bool>
-                </property>
-               </widget>
-               <widget class="QPushButton" name="pushButton_APEX_TLS">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>210</x>
-                  <y>50</y>
-                  <width>61</width>
-                  <height>23</height>
-                 </rect>
-                </property>
+               </item>
+               <item>
                 <property name="text">
-                 <string>TLS</string>
+                 <string>Tracking generator</string>
                 </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <property name="checked">
-                 <bool>false</bool>
-                </property>
-               </widget>
-               <widget class="QPushButton" name="pushButton_APEX_calibration">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="geometry">
-                 <rect>
-                  <x>210</x>
-                  <y>90</y>
-                  <width>61</width>
-                  <height>23</height>
-                 </rect>
-                </property>
+               </item>
+              </widget>
+              <widget class="QPushButton" name="pushButton_OSA_connect">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>19</y>
+                 <width>91</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>OSA</string>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_APEX_TLS">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="geometry">
+                <rect>
+                 <x>210</x>
+                 <y>50</y>
+                 <width>61</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>TLS</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_APEX_calibration">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="geometry">
+                <rect>
+                 <x>210</x>
+                 <y>90</y>
+                 <width>61</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Calibration</string>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+              <widget class="QComboBox" name="comboBox_Type_of_OSA">
+               <property name="geometry">
+                <rect>
+                 <x>110</x>
+                 <y>21</y>
+                 <width>91</width>
+                 <height>20</height>
+                </rect>
+               </property>
+               <item>
                 <property name="text">
-                 <string>Calibration</string>
+                 <string>APEX</string>
                 </property>
-                <property name="checkable">
-                 <bool>false</bool>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Luna</string>
                 </property>
-                <property name="checked">
-                 <bool>false</bool>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Yokogawa</string>
                 </property>
-               </widget>
-               <widget class="QComboBox" name="comboBox_Type_of_OSA">
-                <property name="geometry">
-                 <rect>
-                  <x>110</x>
-                  <y>21</y>
-                  <width>91</width>
-                  <height>20</height>
-                 </rect>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Astro interrogator</string>
                 </property>
-                <item>
-                 <property name="text">
-                  <string>APEX</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Luna</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Yokogawa</string>
-                 </property>
-                </item>
-                <item>
-                 <property name="text">
-                  <string>Astro interrogator</string>
-                 </property>
-                </item>
-               </widget>
+               </item>
+              </widget>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="title">
+               <string>Other equipment connections</string>
+              </property>
+              <widget class="QPushButton" name="pushButton_scope_connect">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>50</y>
+                 <width>91</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Oscilloscope</string>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="pushButton_laser_connect">
+               <property name="geometry">
+                <rect>
+                 <x>10</x>
+                 <y>81</y>
+                 <width>91</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>Laser Pure Ph</string>
+               </property>
               </widget>
               <widget class="QPushButton" name="pushButton_powermeter_connect">
                <property name="geometry">
@@ -713,69 +877,11 @@
                 </property>
                </item>
               </widget>
-              <widget class="QPushButton" name="pushButton_PiezoStageConnect">
-               <property name="geometry">
-                <rect>
-                 <x>10</x>
-                 <y>140</y>
-                 <width>91</width>
-                 <height>20</height>
-                </rect>
-               </property>
-               <property name="font">
-                <font>
-                 <family>MS Shell Dlg 2</family>
-                 <pointsize>8</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">QPushButton {
-
-}
-</string>
-               </property>
-               <property name="text">
-                <string>Piezo Stage</string>
-               </property>
-              </widget>
-              <widget class="QLabel" name="label_PiezoStage_status">
-               <property name="geometry">
-                <rect>
-                 <x>110</x>
-                 <y>140</y>
-                 <width>31</width>
-                 <height>18</height>
-                </rect>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="autoFillBackground">
-                <bool>false</bool>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">QLabel {
-	
-	background-color: rgb(255, 15, 15);
-}</string>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::Box</enum>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
               <widget class="QPushButton" name="pushButton_set_hardware_ports">
                <property name="geometry">
                 <rect>
                  <x>10</x>
-                 <y>320</y>
+                 <y>150</y>
                  <width>261</width>
                  <height>21</height>
                 </rect>
@@ -784,35 +890,6 @@
                 <string>Ports and IP</string>
                </property>
               </widget>
-              <widget class="QPushButton" name="pushButton_StagesConnect">
-               <property name="geometry">
-                <rect>
-                 <x>10</x>
-                 <y>20</y>
-                 <width>91</width>
-                 <height>23</height>
-                </rect>
-               </property>
-               <property name="text">
-                <string>Stages</string>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-              </widget>
-              <zorder>groupBox_features</zorder>
-              <zorder>pushButton_scope_connect</zorder>
-              <zorder>pushButton_laser_connect</zorder>
-              <zorder>comboBox_Type_of_Stages</zorder>
-              <zorder>pushButton_zeroing_stages</zorder>
-              <zorder>pushButton_powermeter_connect</zorder>
-              <zorder>pushButton_powermeter_graph</zorder>
-              <zorder>comboBox_laser_protocol_type</zorder>
-              <zorder>comboBox_type_of_scope</zorder>
-              <zorder>pushButton_PiezoStageConnect</zorder>
-              <zorder>label_PiezoStage_status</zorder>
-              <zorder>pushButton_set_hardware_ports</zorder>
-              <zorder>pushButton_StagesConnect</zorder>
              </widget>
             </item>
            </layout>
@@ -824,7 +901,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-71</y>
+             <y>0</y>
              <width>283</width>
              <height>700</height>
             </rect>
@@ -2520,7 +2597,7 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-21</y>
+             <y>0</y>
              <width>283</width>
              <height>650</height>
             </rect>
@@ -3019,6 +3096,46 @@
             </layout>
            </widget>
           </widget>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QGroupBox" name="groupBox_spectrum">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="sizeIncrement">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="baseSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string comment="Plot results on new figures" extracomment="Plot results on new figures">10</string>
+          </property>
+          <property name="toolTipDuration">
+           <number>10</number>
+          </property>
+          <property name="title">
+           <string>Graph</string>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
          </widget>
         </item>
        </layout>
