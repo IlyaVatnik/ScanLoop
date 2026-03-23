@@ -18,6 +18,7 @@ from scipy.signal import find_peaks
 from scipy.optimize import minimize
 from scipy.fftpack import rfft, irfft, fftfreq
 import pickle
+from matplotlib import cm
 # from numba import jit
 
 
@@ -503,10 +504,18 @@ class Fitter():
         self.th_resonances.plot_all(min(self.signal),max(self.signal),'both')
         axs.set_title('N_exp=%d , N_th=%d,n=%f,R=%f,p_max=%d, cost_function=%f' % (len(self.exp_resonances),self.th_resonances.N_of_resonances['Total'],self.n_best,self.R_best,self.p_best, self.cost_best))
         plt.xlabel('Wavelength,nm')
+        
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        X,Y=np.meshgrid(self.T_array,self.R_array)
+        surf = ax.plot_surface(X, Y, self.cost_function_array,cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+        plt.xlabel('Temperature, C')
+        plt.ylabel('Radius, mkm')
+        plt.title('Cost function')
 
 '''
 Функция для постройки графика функции ошибки, pyplot ругается на thread
-
+'''
 def CostFunctionPlotCreation():
     figure = plt.figure()
     ax = figure.add_subplot(1, 1, 1)
@@ -515,7 +524,7 @@ def CostFunctionPlotCreation():
     ax.set_xlabel('Radius, $\mu m$', fontsize=14)
     ax.set_ylabel('Cost function', fontsize=14)
     return figure, ax
-'''
+
 
 def bruteforce_optimizer(f, args, R_array, T_array,print_results=True):
     p, n = args
