@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.9.1'
-__date__='2025.09.16'
+__version__='20.9.2'
+__date__='2026.03.23'
 
 import os
 if __name__=='__main__':
@@ -559,60 +559,76 @@ class MainWindow(ThreadedMainWindow):
         '''
         set connection to stages using universal Stages manager
         '''
-        # Настройки идентификаторов Standa (Axis 1, 2, 3)
-        standa_ids = {
-            'X': 'Axis 1',
-            'Y': 'Axis 3',
-            'Z': 'Axis 2'
+        
+        # ==========================================
+        # БЛОК ОЧИСТКИ ПРЕДЫДУЩЕЙ ИНИЦИАЛИЗАЦИИ
+        # ==========================================
+        if hasattr(self, 'stages') and self.stages is not None:
+            self.logText('Disconnecting previous stages configuration...')
+            try:
+                self.force_stage_move.disconnect()
+            except TypeError:
+                pass
+            try:
+                self.stages.deleteLater()
+            except:
+                pass
+            del self.stages
+            self.stages = None
+            time.sleep(0.3) 
+        # ==========================================
+
+        # Жесткая привязка оборудования (можно будет вынести в настройки позже)
+        # Для LBTEK можно указать порт (например, 'COM3') или оставить None для автопоиска
+        hardware_ids = {
+            'STANDA': {'X': 'Axis 1', 'Y': 'Axis 3', 'Z': 'Axis 2'},
+            'LBTEK':  {'X': None,     'Y': None,     'Z': None} 
+        }
+        
+        # Читаем значения из выпадающих списков ('-', 'STANDA' или 'LBTEK')
+        choices = {
+            'X': self.ui.combo_X.currentText(),
+            'Y': self.ui.combo_Y.currentText(),
+            'Z': self.ui.combo_Z.currentText()
         }
         
         config = {}
         
-        # Читаем значения из выпадающих списков (которые вы добавили в Designer)
-        selected_x = self.ui.combo_X.currentText()
-        selected_y = self.ui.combo_Y.currentText()
-        selected_z = self.ui.combo_Z.currentText()
-        
-        # Формируем конфиг
-        config['X'] = {'type': 'STANDA', 'id': standa_ids['X']} if selected_x == 'STANDA' else None
-        config['Y'] = {'type': 'STANDA', 'id': standa_ids['Y']} if selected_y == 'STANDA' else None
-        config['Z'] = {'type': 'STANDA', 'id': standa_ids['Z']} if selected_z == 'STANDA' else None
+        # Автоматически собираем конфиг
+        for axis, choice in choices.items():
+            if choice == '-':
+                config[axis] = None
+            else:
+                config[axis] = {
+                    'type': choice, 
+                    'id': hardware_ids[choice][axis]
+                }
 
         self.logText(f"Stage configuration: {config}")
 
         try:
-            # Инициализируем наш новый универсальный класс
             self.stages = Stages(config=config)
             
-            # Проверяем, что хотя бы одна ось была выбрана для подключения
             if any(v is not None for v in config.values()):
                 self.logText('Connected to stages')
-                
-                # Помещаем класс в отдельный поток, как это было задумано изначально
                 self.add_thread([self.stages])
-                
-                # Загружаем сохраненные нули
                 self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
                 
-                # Подключаем сигналы к интерфейсу
                 self.stages.stopped.connect(self.update_indicated_positions)
                 self.stages.S_print_error.connect(self.logWarningText)
                 
-                # Привязываем команду GUI к новому методу движения
                 self.force_stage_move[str,float].connect(lambda S,i: self.stages.shiftOnArbitrary(S,i))
                 
-                # Обновляем цифры на экране
                 self.update_indicated_positions()
-             
                 self.ui.groupBox_stand.setEnabled(True)
                 self.enable_scanning_process()
             else:
                 self.logWarningText('No stages selected. Configure X, Y or Z.')
                 
         except Exception as e:
-            print(e)
+            import traceback
+            traceback.print_exc() # Выведет точную ошибку в консоль
             self.logWarningText(f'Connection to stages failed: {str(e)}')
-
     def zeroing_stages(self):
         '''
         move all connected stages to their home position

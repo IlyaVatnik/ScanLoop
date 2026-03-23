@@ -468,7 +468,12 @@
                </property>
                <item>
                 <property name="text">
-                 <string>NULL</string>
+                 <string>-</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LBTEK</string>
                 </property>
                </item>
                <item>
@@ -488,7 +493,12 @@
                </property>
                <item>
                 <property name="text">
-                 <string>NULL</string>
+                 <string>-</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LBTEK</string>
                 </property>
                </item>
                <item>
@@ -508,7 +518,12 @@
                </property>
                <item>
                 <property name="text">
-                 <string>NULL</string>
+                 <string>-</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LBTEK</string>
                 </property>
                </item>
                <item>

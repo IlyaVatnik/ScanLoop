@@ -1,4 +1,3 @@
-
 from Windows_GUI.MainWindow import MainWindow
 from PyQt5 import QtWidgets
 from packaging import version

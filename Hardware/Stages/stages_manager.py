@@ -4,8 +4,8 @@ Created on Mon Mar  2 16:37:13 2026
 
 @author: Александр
 """
-__data__='2026.03.16'
-__version__='2.4.2'
+__data__='2026.03.23'
+__version__='2.4.3'
 
 # stages_manager.py
 
@@ -19,6 +19,12 @@ try:
 except ImportError as e:
     print(f"Warning: Standa stages module not found. Details: {e}")
     StandaAxis = None
+    
+try:
+    from Hardware.Stages.LBTEK.lbtek_stages import LBTEKAxis
+except ImportError as e:
+    print(f"Warning: LBTEK stages module not found. Details: {e}")
+    LBTEKAxis = None
     
 class Stages(QObject):
     """
@@ -60,6 +66,12 @@ class Stages(QObject):
                     if StandaAxis is None:
                         raise RuntimeError("Standa module is not loaded.")
                     self.axes[axis_key] = StandaAxis(params['id'])
+                
+                # ДОБАВЛЯЕМ ВОТ ЭТОТ БЛОК:
+                elif stage_type == 'LBTEK':
+                    if LBTEKAxis is None:
+                        raise RuntimeError("LBTEK module is not loaded.")
+                    self.axes[axis_key] = LBTEKAxis(params['id'])
                 
                 # Задел на будущее (добавление новых типов подвижек):
                 # elif stage_type == 'THORLABS':

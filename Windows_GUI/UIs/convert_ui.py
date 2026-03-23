@@ -12,7 +12,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Собираем абсолютные пути к файлам
 ui_file = os.path.join(current_dir, "MainWindow.ui")
-py_file = os.path.join(current_dir, "MainWindow.py")
+py_file = os.path.join(current_dir, "MainWindowUI.py")
 
 print(f"Ищем файл: {ui_file}")
 
