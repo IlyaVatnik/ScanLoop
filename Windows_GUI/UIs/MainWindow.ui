@@ -457,7 +457,7 @@
                 <bool>false</bool>
                </property>
               </widget>
-              <widget class="QComboBox" name="combo_X">
+              <widget class="QComboBox" name="comboBox_X">
                <property name="geometry">
                 <rect>
                  <x>10</x>
@@ -482,7 +482,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="combo_Y">
+              <widget class="QComboBox" name="comboBox_Y">
                <property name="geometry">
                 <rect>
                  <x>110</x>
@@ -507,7 +507,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="combo_Z">
+              <widget class="QComboBox" name="comboBox_Z">
                <property name="geometry">
                 <rect>
                  <x>200</x>
@@ -532,7 +532,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="combo_Y_ID">
+              <widget class="QComboBox" name="comboBox_Y_ID">
                <property name="geometry">
                 <rect>
                  <x>110</x>
@@ -552,7 +552,7 @@
                 </rect>
                </property>
               </widget>
-              <widget class="QComboBox" name="combo_X_ID">
+              <widget class="QComboBox" name="comboBox_X_ID">
                <property name="geometry">
                 <rect>
                  <x>10</x>

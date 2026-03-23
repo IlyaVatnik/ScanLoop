@@ -136,12 +136,17 @@ class LBTEK_stage:
 # АДАПТЕР ДЛЯ НАШЕГО МЕНЕДЖЕРА СТАНДАРТНЫХ ОСЕЙ
 # ====================================================================
 class LBTEKAxis:
-    """
-    Обертка, которая делает интерфейс LBTEK точно таким же, как у Standa.
-    """
     def __init__(self, identifier):
-        # Если передан пустой ID (None) - ищем автоматически
+        print(f"Попытка подключения к LBTEK (ID: {identifier})...")
         self.stage = LBTEK_stage(serial_no=identifier)
+        
+        # Проверяем, успешно ли открылся порт
+        if not hasattr(self.stage, 'handle') or self.stage.handle <= 0:
+            raise RuntimeError("Контроллер LBTEK не найден или порт занят (возможно, завис с прошлого раза).")
+            
+        # Проверяем библиотеку
+        if dll is None:
+            raise RuntimeError("Библиотека MoverLibrary.dll не загрузилась. Проверьте пути!")
 
     def get_position(self):
         return self.stage.get_position()
@@ -153,7 +158,6 @@ class LBTEKAxis:
         self.stage.move_home()
 
     def wait_for_stop(self):
-        # jog_by и move_home уже ждут остановки, но метод оставим для совместимости
         self.stage.wait_until_idle()
 
     def close(self):
