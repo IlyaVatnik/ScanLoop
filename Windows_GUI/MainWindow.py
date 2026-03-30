@@ -585,11 +585,12 @@ class MainWindow(ThreadedMainWindow):
             'LBTEK':  {'X': None,     'Y': None,     'Z': None} 
         }
         
-        # Читаем значения из выпадающих списков ('-', 'STANDA' или 'LBTEK')
+        # Читаем значения из выпадающих списков (ТЕПЕРЬ С НОВЫМИ ИМЕНАМИ)
         choices = {
-            'X': self.ui.combo_X.currentText(),
-            'Y': self.ui.combo_Y.currentText(),
-            'Z': self.ui.combo_Z.currentText()
+            'X': self.ui.comboBox_X.currentText(),
+            'Y': self.ui.comboBox_Y.currentText(),
+            'Z': self.ui.comboBox_Z.currentText()
+        }
         }
         
         config = {}
