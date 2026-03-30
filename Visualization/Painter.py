@@ -1,4 +1,4 @@
-__date__='2022.04.12'
+__date__='2026.03.30'
 
 from PyQt5 import QtWidgets
 
@@ -17,29 +17,25 @@ from PyQt5.QtCore import pyqtSignal
 
 
 class Painter(QtWidgets.QWidget):
-
-
     def __init__(self, parent=None):
-        super().__init__(parent)
+        # ВАЖНО: QWidget должен быть без Qt-родителя, иначе будет конфликт с moveToThread
+        super().__init__()
 
-        # a figure instance to plot on
         self.figure = Figure()
-        self.ax=self.figure.add_subplot(111)
-        # this is the Canvas Widget that displays the `figure`
-        # it takes the `figure` instance as a parameter to __init__
+        self.ax = self.figure.add_subplot(111)
+
         self.canvas = FigureCanvas(self.figure)
-        # this is the Navigation widget
-        # it takes the Canvas widget and a parent
-        self.toolbar = NavigationToolbar(canvas=self.canvas, parent=parent)
+        self.toolbar = NavigationToolbar(canvas=self.canvas, parent=None)
 
-
-        # set the layout
-        if parent.layout() is not None:
+        # parent используется ТОЛЬКО как контейнер для layout, а не как QObject parent
+        if parent is not None and parent.layout() is not None:
             parent.layout().addWidget(self.canvas)
+            parent.layout().addWidget(self.toolbar)
         else:
-            layout = QtWidgets.QGridLayout(parent)
+            container = parent if parent is not None else self
+            layout = QtWidgets.QGridLayout(container)
             layout.addWidget(self.canvas)
-        layout.addWidget(self.toolbar)
+            layout.addWidget(self.toolbar)
 
 
 class MyPainter(Painter):
@@ -48,6 +44,7 @@ class MyPainter(Painter):
 
 
     def __init__(self, parent=None):
+        # Передаем parent в базовый класс Painter, чтобы он знал, куда рисовать
         super().__init__(parent)
         self.Ydata =[None]*4
         self.Xdata=None

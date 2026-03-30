@@ -134,7 +134,10 @@ class MainWindow(ThreadedMainWindow):
         # from Visualization.Powermeter_painter import Powermeter_painter
         # self.powermeter_graph=Powermeter_painter()
         # self.add_thread([self.powermeter_graph])
-        self.add_thread([self.painter,self.logger,self.analyzer,self.spectral_processor,self.scanningProcess])
+        # БЫЛО:
+        # self.add_thread([self.painter, self.logger, self.analyzer, self.spectral_processor, self.scanningProcess])
+        # СТАЛО:
+        self.add_thread([self.analyzer, self.spectral_processor, self.scanningProcess])
         
         
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
@@ -559,12 +562,14 @@ class MainWindow(ThreadedMainWindow):
         '''
         set connection to stages using universal Stages manager
         '''
-        
+        import time
+        import serial.tools.list_ports  # Импортируем сканер портов
+
         # ==========================================
-        # БЛОК ОЧИСТКИ ПРЕДЫДУЩЕЙ ИНИЦИАЛИЗАЦИИ
+        # 1. БЛОК ОЧИСТКИ ПРЕДЫДУЩЕЙ ИНИЦИАЛИЗАЦИИ
         # ==========================================
         if hasattr(self, 'stages') and self.stages is not None:
-            self.logText('Disconnecting previous stages configuration...')
+            self.logText('Остановка предыдущей конфигурации подвижек...')
             try:
                 self.force_stage_move.disconnect()
             except TypeError:
@@ -576,45 +581,78 @@ class MainWindow(ThreadedMainWindow):
             del self.stages
             self.stages = None
             time.sleep(0.3) 
-        # ==========================================
 
-        # Жесткая привязка оборудования (можно будет вынести в настройки позже)
-        # Для LBTEK можно указать порт (например, 'COM3') или оставить None для автопоиска
+        # ==========================================
+        # 2. СКАНИРОВАНИЕ ДОСТУПНЫХ COM-ПОРТОВ
+        # ==========================================
+        self.logText("Сканирование активных COM-портов...")
+        ports = serial.tools.list_ports.comports()
+        available_ports = [p.device for p in ports]
+        
+        if available_ports:
+            self.logText(f"Найдено портов: {', '.join(available_ports)}")
+            # Печатаем подробности в консоль разработчика
+            for p in ports:
+                print(f"Обнаружен порт: {p.device} - {p.description}")
+        else:
+            self.logWarningText("КРИТИЧЕСКИ: COM-порты не найдены! Проверьте USB-кабели оборудования.")
+
+        # ==========================================
+        # 3. ПОДГОТОВКА КОНФИГУРАЦИИ
+        # ==========================================
         hardware_ids = {
             'STANDA': {'X': 'Axis 1', 'Y': 'Axis 3', 'Z': 'Axis 2'},
             'LBTEK':  {'X': None,     'Y': None,     'Z': None} 
         }
         
-        # Читаем значения из выпадающих списков (ТЕПЕРЬ С НОВЫМИ ИМЕНАМИ)
         choices = {
             'X': self.ui.comboBox_X.currentText(),
             'Y': self.ui.comboBox_Y.currentText(),
             'Z': self.ui.comboBox_Z.currentText()
         }
-        }
         
         config = {}
-        
-        # Автоматически собираем конфиг
         for axis, choice in choices.items():
             if choice == '-':
                 config[axis] = None
             else:
-                config[axis] = {
-                    'type': choice, 
-                    'id': hardware_ids[choice][axis]
-                }
+                config[axis] = {'type': choice, 'id': hardware_ids[choice][axis]}
 
-        self.logText(f"Stage configuration: {config}")
+        # Если везде стоят минусы - выходим, чтобы не плодить ошибки
+        if all(v is None for v in config.values()):
+            self.logWarningText("Внимание: Ни одна ось не выбрана для подключения.")
+            return
 
+        self.logText(f"Попытка подключения осей: {choices}")
+
+        # ==========================================
+        # 4. ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКА УСПЕХА
+        # ==========================================
         try:
             self.stages = Stages(config=config)
             
-            if any(v is not None for v in config.values()):
-                self.logText('Connected to stages')
+            # --- ИСПРАВЛЕНИЕ: ПРОВЕРЯЕМ РЕАЛЬНЫЙ РЕЗУЛЬТАТ, А НЕ ЗАПРОС ---
+            # Собираем список осей, которые РЕАЛЬНО ответили и инициализировались
+            connected_axes = []
+            for ax_name, ax_obj in self.stages.axes.items():
+                if ax_obj is not None:
+                    connected_axes.append(ax_name)
+                    
+            # Список осей, которые мы ХОТЕЛИ подключить
+            requested_axes = [k for k, v in config.items() if v is not None]
+
+            # Проверка 1: Подключилось ли хоть что-то?
+            if len(connected_axes) > 0:
+                self.logText(f'Успешно подключены оси: {", ".join(connected_axes)}')
+                
+                # Проверка 2: Подключилось ли ВСЁ, что просили?
+                if len(connected_axes) < len(requested_axes):
+                    failed_axes = set(requested_axes) - set(connected_axes)
+                    self.logWarningText(f"ОШИБКА: Не удалось подключить оси: {', '.join(failed_axes)}! Железо не отвечает.")
+
+                # Привязываем рабочие оси к интерфейсу
                 self.add_thread([self.stages])
                 self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
-                
                 self.stages.stopped.connect(self.update_indicated_positions)
                 self.stages.S_print_error.connect(self.logWarningText)
                 
@@ -623,13 +661,17 @@ class MainWindow(ThreadedMainWindow):
                 self.update_indicated_positions()
                 self.ui.groupBox_stand.setEnabled(True)
                 self.enable_scanning_process()
+            
             else:
-                self.logWarningText('No stages selected. Configure X, Y or Z.')
+                # Если ни одна ось не поднялась - ругаемся и удаляем объект
+                self.logWarningText('КРИТИЧЕСКИ: Не удалось подключиться НИ К ОДНОЙ выбранной подвижке! Проверьте питание и порты.')
+                del self.stages
+                self.stages = None
                 
         except Exception as e:
             import traceback
-            traceback.print_exc() # Выведет точную ошибку в консоль
-            self.logWarningText(f'Connection to stages failed: {str(e)}')
+            traceback.print_exc() 
+            self.logWarningText(f'Сбой при настройке подвижек: {str(e)}')            
     def zeroing_stages(self):
         '''
         move all connected stages to their home position

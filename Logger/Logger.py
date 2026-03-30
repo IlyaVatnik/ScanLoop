@@ -6,8 +6,8 @@ import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
 
 
-__version__='3.2'
-__date__='2025.02.24'
+__version__='3.3'
+__date__='2026.03.30'
 
 
 
@@ -24,7 +24,7 @@ class Logger(QObject):
     S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
     
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(None)
 
         self.counter = 0
         self.spectra = None
