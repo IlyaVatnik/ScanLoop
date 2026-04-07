@@ -55,9 +55,17 @@ class Stages(QObject):
             'Z': {'type': 'STANDA', 'id': 'Axis 2'}
         }
         """
+    def setup_stages(self, config):
+        # --- ДОБАВЛЯЕМ СБРОС КЭША STANDA ---
+        if StandaAxis is not None:
+            from Hardware.Stages.Standa.standa_stages import StandaEnvironment
+            StandaEnvironment.initialize(force_rescan=True)
+        # -----------------------------------
+
         for axis_key, params in config.items():
             if params is None:
                 continue
+            # ... дальше ваш код идет без изменений ...
                 
             try:
                 stage_type = params['type'].upper()

@@ -4,8 +4,8 @@ Created on Mon Mar  2 16:48:51 2026
 
 @author: Александр
 """
-__data__='2026.03.02'
-__version__='2.4'
+__data__='2026.04.07'
+__version__='2.5'
 
 # standa_stages.py
 
@@ -28,21 +28,21 @@ else:
         exit()
 
 class StandaEnvironment:
-    """
-    Синглтон-помощник для однократного поиска всех устройств Standa.
-    Это предотвращает долгий поиск (enumerate) при инициализации каждой отдельной оси.
-    """
     _devices_map = {}
     _is_initialized = False
 
     @classmethod
-    def initialize(cls):
-        if cls._is_initialized:
+    def initialize(cls, force_rescan=False):
+        # Если кэш уже есть и мы не просим его обновить - выходим
+        if cls._is_initialized and not force_rescan:
             return
 
+        # Сбрасываем старую память
+        cls._devices_map.clear()
+        
         sbuf = create_string_buffer(64)
         lib.ximc_version(sbuf)
-        print("libximc version: " + sbuf.raw.decode())
+        # print("libximc version: " + sbuf.raw.decode())
 
         devenum = lib.enumerate_devices(EnumerateFlags.ENUMERATE_PROBE, None)
         dev_count = lib.get_device_count(devenum)
@@ -54,35 +54,39 @@ class StandaEnvironment:
             if result == Result.Ok:
                 friendly_name = str(controller_name.ControllerName.decode('utf-8'))
                 port = enum_name.decode('utf-8')
-                # Сохраняем как {'Axis 1': 'xi-com:\\.\COM3'}
                 cls._devices_map[friendly_name] = port
         
         cls._is_initialized = True
 
     @classmethod
     def get_port_by_name(cls, friendly_name):
-        cls.initialize()
+        cls.initialize() # Используем кэш текущего сканирования
         for name, port in cls._devices_map.items():
             if friendly_name in name:
                 return port.encode('utf-8')
-        raise ValueError(f"Device with name containing '{friendly_name}' not found!")
+        raise ValueError(f"Контроллер Standa '{friendly_name}' не найден в USB портах!")
 
 
 class StandaAxis:
-    """
-    Класс-обертка для управления одной осью (одним мотором) Standa.
-    """
     def __init__(self, identifier):
         """identifier - это имя контроллера, например 'Axis 1'"""
         port_name = StandaEnvironment.get_port_by_name(identifier)
         self.device_id = lib.open_device(port_name)
+        
         if self.device_id <= 0:
-            raise RuntimeError(f"Failed to open device {identifier} on port {port_name}")
+            raise RuntimeError(f"Не удалось открыть порт {port_name.decode('utf-8')} для {identifier}")
+
+        # === ЖЕСТКАЯ ПРОВЕРКА СВЯЗИ (ПИНГ) ===
+        # Запрашиваем позицию. Если мотор выключен, библиотека выдаст ошибку
+        x_pos = get_position_t()
+        result = lib.get_position(self.device_id, byref(x_pos))
+        if result != Result.Ok:
+            self.close() # Закрываем мертвый порт
+            raise RuntimeError(f"Контроллер {identifier} найден, но НЕ ОТВЕЧАЕТ (ошибка {result}). Проверьте питание!")
 
     def get_position(self):
         x_pos = get_position_t()
         lib.get_position(self.device_id, byref(x_pos))
-        # Масштабный коэффициент перевода шагов в микрометры
         return round(x_pos.Position * 2.5, 1)
 
     def move_relative(self, distance_mkm):
@@ -93,7 +97,6 @@ class StandaAxis:
         lib.command_home(self.device_id)
 
     def wait_for_stop(self):
-        # 11 - интервал опроса остановки (ms)
         lib.command_wait_for_stop(self.device_id, 11)
 
     def close(self):
