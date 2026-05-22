@@ -1,3 +1,21 @@
+# Hardware/Stages/thorlabs_kinesis/benchtop_stepper_motor.py
+
+from ctypes import cdll
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    lib = cdll.LoadLibrary("Thorlabs.MotionControl.Benchtop.StepperMotor.dll")
+    DLL_AVAILABLE = True
+except Exception:
+    logger.warning("[Thorlabs.BSM] DLL не найдена — модуль будет недоступен")
+    lib = None
+    DLL_AVAILABLE = False
+
+# ... остальной код ...
+# Все функции, которые используют lib, должны проверять DLL_AVAILABLE
+
 "Bindings for Thorlabs Benchtop Stepper Motor DLL"
 # flake8: noqa
 from ctypes import (
@@ -23,9 +41,6 @@ from ._utils import (
     c_dword,
     bind
 )
-
-lib = cdll.LoadLibrary("Thorlabs.MotionControl.Benchtop.StepperMotor.dll")
-
 
 # enum FT_Status
 FT_OK = c_short(0x00)

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__version__='20.9.2'
-__date__='2026.03.23'
+__version__='20.10'
+__date__='2026.04.20'
 
+#MainWindow
 import os
 if __name__=='__main__':
     os.chdir('..')
@@ -15,13 +16,12 @@ import json
 import time 
 
 from PyQt5.QtCore import pyqtSignal, QThread
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox,QShortcut
 
 import importlib
 import Common.Consts
 
 from Hardware.Config import Config
-from Hardware.Stages.stages_manager import Stages
 
 '''
 from Hardware.Interrogator import Interrogator
@@ -152,6 +152,8 @@ class MainWindow(ThreadedMainWindow):
         self.init_scanning_interface()
         self.init_scope_interface()
         self.init_stages_interface()
+        self.populate_port_comboboxes()
+        self.rescan_thorlabs_serials()
         self.init_piezo_stage_interface()
         self.piezo_stage_connected = 0
         self.init_menu_bar()
@@ -174,6 +176,7 @@ class MainWindow(ThreadedMainWindow):
         
     def init_hardware_parameters_toolbox(self):
         self.ui.pushButton_set_hardware_ports.clicked.connect(self.on_pushButton_set_hardware_ports)
+        self.ui.pushButton_Rescan_COM.clicked.connect(self.rescan_com_ports)  # ← НОВАЯ СТРОКА
 # =============================================================================
 #         Stages interface
 # =============================================================================
@@ -559,130 +562,112 @@ class MainWindow(ThreadedMainWindow):
             self.logWarningText('Connection to OSA failed')
 
     def connect_stages(self):
-        '''
-        set connection to stages using universal Stages manager
-        '''
-        import time
-        import serial.tools.list_ports  # Импортируем сканер портов
+        self.logText(">>> Нажата кнопка 'Connect Stages'")
 
-        # ==========================================
-        # 1. БЛОК ОЧИСТКИ ПРЕДЫДУЩЕЙ ИНИЦИАЛИЗАЦИИ
-        # ==========================================
+        # --- НОВАЯ ЛОГИКА ---
+        # 1. Собираем конфигурацию прямо из интерфейса
+        try:
+            config = {
+                'X': {'type': self.ui.comboBox_X.currentText(), 'port': self.ui.comboBox_PortX.currentText()},
+                'Y': {'type': self.ui.comboBox_Y.currentText(), 'port': self.ui.comboBox_PortY.currentText()},
+                'Z': {'type': self.ui.comboBox_Z.currentText(), 'port': self.ui.comboBox_PortZ.currentText()},
+            }
+            
+            # Убираем оси, для которых не выбран порт
+            config = {axis: params for axis, params in config.items() if params['port']}
+            
+            if not config:
+                self.logWarningText("Не выбрана конфигурация ни для одной оси.")
+                return
+
+        except Exception as e:
+            self.logWarningText(f"Ошибка чтения конфигурации из GUI: {e}. Убедитесь, что UI обновлен.")
+            return
+
+        self.logText(f"Применяю конфигурацию: {config}")
+
+        # 2. Блок очистки (как и был)
         if hasattr(self, 'stages') and self.stages is not None:
+            # ... твой код очистки без изменений ...
             self.logText('Остановка предыдущей конфигурации подвижек...')
             try:
                 self.force_stage_move.disconnect()
-            except TypeError:
-                pass
-            try:
-                self.stages.deleteLater()
-            except:
-                pass
-            del self.stages
+            except (TypeError, RuntimeError): pass
+            self.stages.close_all()
+            self.stages.deleteLater()
             self.stages = None
-            time.sleep(0.3) 
+            time.sleep(0.3)
 
-        # ==========================================
-        # 2. СКАНИРОВАНИЕ ДОСТУПНЫХ COM-ПОРТОВ
-        # ==========================================
-        self.logText("Сканирование активных COM-портов...")
-        ports = serial.tools.list_ports.comports()
-        available_ports = [p.device for p in ports]
-        
-        if available_ports:
-            self.logText(f"Найдено портов: {', '.join(available_ports)}")
-            # Печатаем подробности в консоль разработчика
-            for p in ports:
-                print(f"Обнаружен порт: {p.device} - {p.description}")
-        else:
-            self.logWarningText("КРИТИЧЕСКИ: COM-порты не найдены! Проверьте USB-кабели оборудования.")
-
-        # ==========================================
-        # 3. ПОДГОТОВКА КОНФИГУРАЦИИ
-        # ==========================================
-        hardware_ids = {
-            'STANDA': {'X': 'Axis 1', 'Y': 'Axis 3', 'Z': 'Axis 2'},
-            'LBTEK':  {'X': None,     'Y': None,     'Z': None} 
-        }
-        
-        choices = {
-            'X': self.ui.comboBox_X.currentText(),
-            'Y': self.ui.comboBox_Y.currentText(),
-            'Z': self.ui.comboBox_Z.currentText()
-        }
-        
-        config = {}
-        for axis, choice in choices.items():
-            if choice == '-':
-                config[axis] = None
-            else:
-                config[axis] = {'type': choice, 'id': hardware_ids[choice][axis]}
-
-        # Если везде стоят минусы - выходим, чтобы не плодить ошибки
-        if all(v is None for v in config.values()):
-            self.logWarningText("Внимание: Ни одна ось не выбрана для подключения.")
-            return
-
-        self.logText(f"Попытка подключения осей: {choices}")
-
-        # ==========================================
-        # 4. ИНИЦИАЛИЗАЦИЯ И ПРОВЕРКА УСПЕХА
-        # ==========================================
+        # 3. Инициализация (как и была, но с новой 'config')
         try:
+            # Локальный импорт, который мы уже починили
+            from Hardware.Stages.stages_manager import Stages
+            
             self.stages = Stages(config=config)
             
-            # --- ИСПРАВЛЕНИЕ: ПРОВЕРЯЕМ РЕАЛЬНЫЙ РЕЗУЛЬТАТ, А НЕ ЗАПРОС ---
-            # Собираем список осей, которые РЕАЛЬНО ответили и инициализировались
-            connected_axes = []
-            for ax_name, ax_obj in self.stages.axes.items():
-                if ax_obj is not None:
-                    connected_axes.append(ax_name)
-                    
-            # Список осей, которые мы ХОТЕЛИ подключить
-            requested_axes = [k for k, v in config.items() if v is not None]
-
-            # Проверка 1: Подключилось ли хоть что-то?
-            if len(connected_axes) > 0:
-                self.logText(f'Успешно подключены оси: {", ".join(connected_axes)}')
-                
-                # Проверка 2: Подключилось ли ВСЁ, что просили?
-                if len(connected_axes) < len(requested_axes):
-                    failed_axes = set(requested_axes) - set(connected_axes)
-                    self.logWarningText(f"ОШИБКА: Не удалось подключить оси: {', '.join(failed_axes)}! Железо не отвечает.")
-
-                # Привязываем рабочие оси к интерфейсу
-                self.add_thread([self.stages])
-                self.stages.set_zero_positions(self.logger.load_zero_position()[0:3])
-                self.stages.stopped.connect(self.update_indicated_positions)
-                self.stages.S_print_error.connect(self.logWarningText)
-                
-                self.force_stage_move[str,float].connect(lambda S,i: self.stages.shiftOnArbitrary(S,i))
-                
-                self.update_indicated_positions()
-                self.ui.groupBox_stand.setEnabled(True)
-                self.enable_scanning_process()
-            
-            else:
-                # Если ни одна ось не поднялась - ругаемся и удаляем объект
-                self.logWarningText('КРИТИЧЕСКИ: Не удалось подключиться НИ К ОДНОЙ выбранной подвижке! Проверьте питание и порты.')
-                del self.stages
+            # ... вся остальная логика подключения сигналов без изменений ...
+            connected_axes = [k for k, v in self.stages.axes.items() if v is not None]
+            if not connected_axes:
+                self.logWarningText('Не удалось инициализировать ни одну подвижку с выбранной конфигурацией!')
                 self.stages = None
-                
+                return
+
+            self.logText(f'Успешно подключены оси: {", ".join(connected_axes)}')
+            self.add_thread([self.stages])
+            self.stages.stopped.connect(self.update_indicated_positions)
+            self.stages.S_print_error.connect(self.logWarningText)
+            self.force_stage_move.connect(self.stages.shiftOnArbitrary)
+            zero_pos = self.logger.load_zero_position()
+            if len(zero_pos) >= 3: self.stages.set_zero_positions(zero_pos[0:3])
+            self.update_indicated_positions()
+            self.ui.groupBox_stand.setEnabled(True)
+            self.enable_scanning_process()
+
         except Exception as e:
             import traceback
-            traceback.print_exc() 
-            self.logWarningText(f'Сбой при настройке подвижек: {str(e)}')            
+            self.logWarningText(f'КРИТИЧЕСКАЯ ОШИБКА в connect_stages: {e}')
+            traceback.print_exc()    
     def zeroing_stages(self):
         '''
         move all connected stages to their home position
         '''
         if self.stages is not None:
-            # Проходим по всем осям и отправляем домой те, что подключены
             for key, axis in self.stages.axes.items():
                 if axis is not None:
                     self.stages.move_home(key)
-        
-    
+    # Добавь этот метод в класс MainWindow
+    def populate_port_comboboxes(self):
+        try:
+            from Hardware.Scanner import get_available_com_ports
+            ports = get_available_com_ports()
+            
+            # Очищаем старые списки
+            self.ui.comboBox_PortX.clear()
+            self.ui.comboBox_PortY.clear()
+            self.ui.comboBox_PortZ.clear()
+            
+            # Добавляем пустой элемент, чтобы можно было "отключить" ось
+            self.ui.comboBox_PortX.addItem("")
+            self.ui.comboBox_PortY.addItem("")
+            self.ui.comboBox_PortZ.addItem("")
+            
+            # Заполняем портами
+            self.ui.comboBox_PortX.addItems(ports)
+            self.ui.comboBox_PortY.addItems(ports)
+            self.ui.comboBox_PortZ.addItems(ports)
+            
+            self.logText(f"Доступные COM-порты: {', '.join(ports)}")
+        except ImportError:
+            self.logWarningText("Не удалось импортировать сканер портов!")
+        except Exception as e:
+            self.logWarningText(f"Ошибка при заполнении списка портов: {e}")
+
+    # В __init__ твоего MainWindow добавь вызов этого метода
+    # def __init__(self, ...):
+    #     ...
+    #     self.init_stages_interface()
+    #     self.populate_port_comboboxes() # <-- ДОБАВИТЬ ЭТУ СТРОКУ
+    #     ...
     def connect_PiezoStages(self):
         try:
             from Hardware.Stages.PiezoStageE53D_serial import PiezoStage
@@ -1378,43 +1363,140 @@ class MainWindow(ThreadedMainWindow):
         #     plt.close(plt.close('all'))
         #     time.sleep(0.5)
         #     matplotlib.use("TkAgg")
-
+    
     def save_parameters_to_file(self):
-        '''
-        save all parameters and values except paths to file
-
-        Returns
-        -------
-        None.
-
-        '''
-        D={}
-        D['MainWindow']=get_widget_values(self)
-        D['Analyzer']=self.analyzer.get_parameters()
-        D['Spectral_processor']=self.spectral_processor.get_parameters()
-        D['Scanning_position_process']=self.scanningProcess.get_parameters()
-        D['hardware_ports']=self.hardware_ports.get_attributes()
-
-        #remove all parameters that are absolute paths 
+        D = {}
+        D['MainWindow'] = get_widget_values(self)
+        D['Analyzer'] = self.analyzer.get_parameters()
+        D['Spectral_processor'] = self.spectral_processor.get_parameters()
+        D['Scanning_position_process'] = self.scanningProcess.get_parameters()
+        D['hardware_ports'] = self.hardware_ports.get_attributes()
+    
+        # remove all parameters that are absolute paths 
         for k in D:
-            l=[key for key in list(D[k].keys()) if ('path' in key)]
+            l = [key for key in list(D[k].keys()) if ('path' in key)]
             for key in l:
                 del D[k][key]
+        
+        # ✅ ПРОВЕРЯЕМ где будет создан файл
+        import os
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.logText(f"📁 Скрипт лежит в: {script_dir}")
+        self.logText(f"📁 Logger.path = {self.logger.path}")
+        self.logText(f"📁 Файл будет: {self.logger.ParametersFileName}")
+        
         self.logger.save_parameters(D)
-        
-        
+        self.logText("✅ Параметры сохранены успешно")
+      
     def load_parameters_from_file(self):
-        Dicts=self.logger.load_parameters()
+        Dicts = self.logger.load_parameters()
+        # ✅ ПРОВЕРЯЕМ что файл загрузился
         if Dicts is not None:
             try:
-                set_widget_values(self, Dicts['MainWindow'])
-                self.analyzer.set_parameters(Dicts['Analyzer'])
-                self.spectral_processor.set_parameters(Dicts['Spectral_processor'])
-                self.scanningProcess.set_parameters(Dicts['Scanning_position_process'])
-                self.hardware_ports.set_attributes(Dicts['hardware_ports'])
-            except KeyError:
-                pass
+                set_widget_values(self, Dicts.get('MainWindow', {}))
+                self.analyzer.set_parameters(Dicts.get('Analyzer', {}))
+                self.spectral_processor.set_parameters(Dicts.get('Spectral_processor', {}))
+                self.scanningProcess.set_parameters(Dicts.get('Scanning_position_process', {}))
+                self.hardware_ports.set_attributes(Dicts.get('hardware_ports', {}))
+                self.logText("✅ Параметры загружены успешно")
+            except KeyError as e:
+                self.logWarningText(f"⚠️ Частичная загрузка параметров. Ошибка: {e}")
+            except Exception as e:
+                self.logWarningText(f"❌ Ошибка при загрузке параметров: {e}")
+    def rescan_com_ports(self):
+        """
+        Пересканировать COM-порты и обновить comboBox_PortX, comboBox_PortY, comboBox_PortZ
+        Сохраняет текущий выбор пользователя, если порт всё ещё доступен
+        """
+        self.logText(">>> Пересканирование COM-портов...")
+        
+        try:
+            from Hardware.Scanner import get_available_com_ports
+            ports = get_available_com_ports()
+            
+            # Сохраняем текущие выборы пользователя
+            current_port_x = self.ui.comboBox_PortX.currentText()
+            current_port_y = self.ui.comboBox_PortY.currentText()
+            current_port_z = self.ui.comboBox_PortZ.currentText()
+            
+            # Очищаем старые списки
+            self.ui.comboBox_PortX.clear()
+            self.ui.comboBox_PortY.clear()
+            self.ui.comboBox_PortZ.clear()
+            
+            # Добавляем пустой элемент "-" для возможности "отключить" ось
+            self.ui.comboBox_PortX.addItem("-")
+            self.ui.comboBox_PortY.addItem("-")
+            self.ui.comboBox_PortZ.addItem("-")
+            
+            # Заполняем портами
+            self.ui.comboBox_PortX.addItems(ports)
+            self.ui.comboBox_PortY.addItems(ports)
+            self.ui.comboBox_PortZ.addItems(ports)
+            
+            # Восстанавливаем выбор пользователя, если порт всё ещё доступен
+            if current_port_x in ports:
+                self.ui.comboBox_PortX.setCurrentText(current_port_x)
+            if current_port_y in ports:
+                self.ui.comboBox_PortY.setCurrentText(current_port_y)
+            if current_port_z in ports:
+                self.ui.comboBox_PortZ.setCurrentText(current_port_z)
+            
+            self.logText(f"✅ Найдено COM-портов: {len(ports)} | {', '.join(ports)}")
+            self.rescan_thorlabs_serials()  # ← ДОБАВИТЬ ЭТУ СТРОКУ
+        except ImportError:
+            self.logWarningText("❌ Не удалось импортировать сканер портов!")
+        except Exception as e:
+            import traceback
+            self.logWarningText(f"❌ Ошибка при пересканировании портов: {e}")
+            traceback.print_exc()
 
+    def rescan_thorlabs_serials(self):
+        """Сканирует серийные номера Thorlabs и заполняет comboBox_X_ID, comboBox_Y_ID, comboBox_Z_ID"""
+        self.logText(">>> НАЧАЛО СКАНИРОВАНИЯ THORLABS <<<")
+        
+        try:
+            # ← Импорт внутри try/except, чтобы поймать ошибку DLL
+            from Hardware.Stages.Thorlabs.thorlabs_stages import get_thorlabs_serials
+            serials = get_thorlabs_serials()
+            
+            # Сохраняем текущий выбор
+            current_x = self.ui.comboBox_X_ID.currentText()
+            current_y = self.ui.comboBox_Y_ID.currentText()
+            current_z = self.ui.comboBox_Z_ID.currentText()
+            
+            # Очищаем и заполняем comboBox-ы
+            for combo in [self.ui.comboBox_X_ID, self.ui.comboBox_Y_ID, self.ui.comboBox_Z_ID]:
+                combo.clear()
+                combo.addItem("-")
+                combo.addItems(serials)
+            
+            # Восстанавливаем выбор
+            if current_x in serials:
+                self.ui.comboBox_X_ID.setCurrentText(current_x)
+            if current_y in serials:
+                self.ui.comboBox_Y_ID.setCurrentText(current_y)
+            if current_z in serials:
+                self.ui.comboBox_Z_ID.setCurrentText(current_z)
+            
+            # ЛОГ С РЕЗУЛЬТАТАМИ
+            if serials:
+                self.logText(f"✅ Найдено Thorlabs устройств: {len(serials)} | ID: {', '.join(serials)}")
+            else:
+                self.logText("⚠️ Thorlabs устройств не найдено (проверь подключение и драйверы)")
+                
+        except Exception as e:
+            error_msg = str(e).lower()
+            if 'dll' in error_msg or 'dynlib' in error_msg or 'thorlabs' in error_msg:
+                self.logText("⚠️ Thorlabs DLL не найдена — сканирование пропущено")
+                self.logText("   (Если нужен Thorlabs — установи Kinesis Software и добавь DLL в сборку)")
+            else:
+                self.logText(f"❌ Ошибка сканирования Thorlabs: {e}")
+                import traceback
+                self.logText(f"DEBUG: {traceback.format_exc()}")
+            for combo in [self.ui.comboBox_X_ID, self.ui.comboBox_Y_ID, self.ui.comboBox_Z_ID]:
+                combo.clear()
+                combo.addItem("-")
 
     def choose_folder_for_spectral_processor(self):
         self.spectral_processor.source_dir_path = str(
@@ -1605,61 +1687,82 @@ class MainWindow(ThreadedMainWindow):
         super(QMainWindow, self).closeEvent(event)
         
 
-def get_widget_values(window)->dict:
+def get_widget_values(window) -> dict:
     '''
     collect all data from all widgets in a window
     '''
-    D={}
+    D = {}
+    
+    # ✅ QLineEdit
     for w in window.findChildren(QLineEdit):
-        s=w.text()
-        key=w.objectName().split('lineEdit_')[1]
-        try:
-            f=int(s)
-            
-        except ValueError:
-            
+        obj_name = w.objectName()
+        if 'lineEdit_' in obj_name:
+            s = w.text()
+            key = obj_name.split('lineEdit_')[1]
             try:
-                f=float(s)
-                
+                f = int(s)
             except ValueError:
-                f=s
-        D[key]=f
+                try:
+                    f = float(s)
+                except ValueError:
+                    f = s
+            D[key] = f
+    
+    # ✅ QCheckBox
     for w in window.findChildren(QCheckBox):
-        f=w.isChecked()
-        key=w.objectName().split('checkBox_')[1]
-        D[key]=f
-        
+        obj_name = w.objectName()
+        if 'checkBox_' in obj_name:
+            f = w.isChecked()
+            key = obj_name.split('checkBox_')[1]
+            D[key] = f
+    
+    # ✅ QComboBox
     for w in window.findChildren(QComboBox):
-        s=w.currentText()
-        key=w.objectName().split('comboBox_')[1]
-        D[key]=s
+        obj_name = w.objectName()
+        if 'comboBox_' in obj_name:
+            s = w.currentText()
+            key = obj_name.split('comboBox_')[1]
+            D[key] = s
+    
     return D
 
-def set_widget_values(window,d:dict)->None:
-     for w in window.findChildren(QLineEdit):
-         key=w.objectName().split('lineEdit_')[1]
-         try:
-             s=d[key]
-             w.setText(str(s))
-         except KeyError as e:
-             print('Set widget values error: '+ str(e))
-             pass
-     for w in window.findChildren(QCheckBox):
-         key=w.objectName().split('checkBox_')[1]
-         try:
-             s=d[key]
-             w.setChecked(s)
-             w.clicked.emit(s)
-         except KeyError as e:
-             print('Set widget values error: '+ str(e))
-     for w in window.findChildren(QComboBox):
-         key=w.objectName().split('comboBox_')[1]
-         try:
-             s=d[key]
-             w.setCurrentText(s)
-         except KeyError:
-             pass
-         
+def set_widget_values(window, d: dict) -> None:
+    # ✅ QLineEdit
+    for w in window.findChildren(QLineEdit):
+        obj_name = w.objectName()
+        if 'lineEdit_' in obj_name:
+            key = obj_name.split('lineEdit_')[1]
+            try:
+                s = d[key]
+                w.setText(str(s))
+            except KeyError:
+                pass
+    
+    # ✅ QCheckBox
+    for w in window.findChildren(QCheckBox):
+        obj_name = w.objectName()
+        if 'checkBox_' in obj_name:
+            key = obj_name.split('checkBox_')[1]
+            try:
+                s = d[key]
+                w.setChecked(s)
+                w.clicked.emit(s)
+            except KeyError:
+                pass
+    
+    # ✅ QComboBox
+    for w in window.findChildren(QComboBox):
+        obj_name = w.objectName()
+        if 'comboBox_' in obj_name:
+            key = obj_name.split('comboBox_')[1]
+            try:
+                s = d[key]
+                index = w.findText(s)
+                if index >= 0:
+                    w.setCurrentIndex(index)
+            except KeyError:
+                pass
+        
 if __name__=='__main__':
     m=MainWindow()
     m.connect_scope()

@@ -1,3 +1,18 @@
+# Hardware/Stages/thorlabs_kinesis/KCube_DC_Servo.py
+
+from ctypes import cdll
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    lib = cdll.LoadLibrary("Thorlabs.MotionControl.KCube.DCServo.dll")
+    DLL_AVAILABLE = True
+except Exception:
+    logger.warning("[Thorlabs.KDC] DLL не найдена — модуль будет недоступен")
+    lib = None
+    DLL_AVAILABLE = False
+
 "Bindings for Thorlabs Benchtop Brushless Motor DLL"
 # flake8: noqa
 from ctypes import (
@@ -23,9 +38,6 @@ from ._utils import (
     c_dword,
     bind
 )
-
-lib = cdll.LoadLibrary("Thorlabs.MotionControl.KCube.DCServo.dll")
-
 
 # enum FT_Status
 FT_OK = c_short(0x00)

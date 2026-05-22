@@ -24,7 +24,16 @@ from thorlabs_kinesis._utils import (
     bind
 )
 
-lib = cdll.LoadLibrary("Thorlabs.MotionControl.Benchtop.BrushlessMotor.dll")
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    lib = cdll.LoadLibrary("Thorlabs.MotionControl.Benchtop.BrushlessMotor.dll")
+    DLL_AVAILABLE = True
+except Exception:
+    logger.warning("[Thorlabs.Brushless] DLL не найдена — модуль будет недоступен")
+    lib = None
+    DLL_AVAILABLE = False
 
 
 # enum FT_Status

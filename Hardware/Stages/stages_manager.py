@@ -4,40 +4,42 @@ Created on Mon Mar  2 16:37:13 2026
 
 @author: Александр
 """
-__data__='2026.03.23'
-__version__='2.4.3'
+# Hardware/Stages/stages_manager.py
+__date__ = '2026.05.11'
+__version__ = '2.5.0'
 
-# stages_manager.py
-
+import logging
+import traceback
 from PyQt5.QtCore import QObject, pyqtSignal
 
-# Импортируем драйвер для Standa
-# Если файл standa_stages.py лежит в другой папке, поправьте импорт (например, from Hardware.Stages.Standa.standa_stages import StandaAxis)
+logger = logging.getLogger(__name__)
+
 try:
-    # Импортируем из структуры проекта (Hardware -> Stages -> Standa -> standa_stages.py)
     from Hardware.Stages.Standa.standa_stages import StandaAxis
 except ImportError as e:
-    print(f"Warning: Standa stages module not found. Details: {e}")
+    logger.warning(f"Не удалось загрузить модуль Standa: {e}")
     StandaAxis = None
-    
+
 try:
     from Hardware.Stages.LBTEK.lbtek_stages import LBTEKAxis
 except ImportError as e:
-    print(f"Warning: LBTEK stages module not found. Details: {e}")
+    logger.warning(f"Не удалось загрузить модуль LBTEK: {e}")
     LBTEKAxis = None
-    
+
+try:
+    from Hardware.Stages.Thorlabs.thorlabs_stages import ThorlabsAxis
+except (ImportError, FileNotFoundError) as e:
+    logger.warning(f"Не удалось загрузить модуль Thorlabs: {e}")
+    ThorlabsAxis = None
+
+
 class Stages(QObject):
-    """
-    Единый класс для управления подвижками. 
-    Импортирует нужные классы осей на основе переданной конфигурации.
-    """
     connected = pyqtSignal()
     stopped = pyqtSignal()
-    S_print_error = pyqtSignal(str) # Сигнал для вывода ошибок в лог/GUI
-    
+    S_print_error = pyqtSignal(str)
+
     def __init__(self, config=None):
         super().__init__()
-        
         self.axes = {'X': None, 'Y': None, 'Z': None}
         self.abs_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
         self.relative_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
@@ -47,149 +49,103 @@ class Stages(QObject):
             self.setup_stages(config)
 
     def setup_stages(self, config):
-        """
-        Инициализация осей по словарю конфигурации. Пример:
-        config = {
-            'X': {'type': 'STANDA', 'id': 'Axis 1'},
-            'Y': None, # Ось не используется
-            'Z': {'type': 'STANDA', 'id': 'Axis 2'}
+        driver_map = {
+            'STANDA': StandaAxis,
+            'LBTEK': LBTEKAxis,
+            'THORLABS': ThorlabsAxis,  # ← ДОБАВЛЕНО
         }
-        """
-    def setup_stages(self, config):
-        # --- ДОБАВЛЯЕМ СБРОС КЭША STANDA ---
-        if StandaAxis is not None:
-            from Hardware.Stages.Standa.standa_stages import StandaEnvironment
-            StandaEnvironment.initialize(force_rescan=True)
-        # -----------------------------------
 
         for axis_key, params in config.items():
             if params is None:
                 continue
-            # ... дальше ваш код идет без изменений ...
-                
             try:
                 stage_type = params['type'].upper()
-                
-                if stage_type == 'STANDA':
-                    if StandaAxis is None:
-                        raise RuntimeError("Standa module is not loaded.")
-                    self.axes[axis_key] = StandaAxis(params['id'])
-                
-                # ДОБАВЛЯЕМ ВОТ ЭТОТ БЛОК:
-                elif stage_type == 'LBTEK':
-                    if LBTEKAxis is None:
-                        raise RuntimeError("LBTEK module is not loaded.")
-                    self.axes[axis_key] = LBTEKAxis(params['id'])
-                
-                # Задел на будущее (добавление новых типов подвижек):
-                # elif stage_type == 'THORLABS':
-                #     self.axes[axis_key] = ThorlabsAxis(params['id'])
-                # elif stage_type == 'PI':
-                #     self.axes[axis_key] = PiAxis(params['id'])
-                
+                port = params.get('port', '')  # ← Для Thorlabs это серийник
+                serial = params.get('serial', port)  # ← Поддержка обоих полей
+                driver_class = driver_map.get(stage_type)
+
+                if driver_class is None:
+                    self.S_print_error.emit(f"Неизвестный тип подвижки: {stage_type}")
+                    continue
+
+                # Для Thorlabs передаём серийник, для остальных — порт
+                if stage_type == 'THORLABS':
+                    self.axes[axis_key] = driver_class(serial, params.get('thorlabs_type', 'KDC'))
                 else:
-                    self.S_print_error.emit(f"Unknown stage type: {stage_type}")
+                    self.axes[axis_key] = driver_class(port)
+                    
+                logger.info(f"Ось {axis_key} ({stage_type} на {serial}) успешно инициализирована.")
+
             except Exception as e:
-                self.S_print_error.emit(f"Error initializing axis {axis_key}: {str(e)}")
+                logger.error(f"Ошибка инициализации оси {axis_key}:\n{traceback.format_exc()}")
+                self.S_print_error.emit(f"Ошибка инициализации оси {axis_key}: {e}")
 
         self.update_all_absolute_positions()
-        self.connected.emit()
 
-    def set_zero_positions(self, zeros_list):
-        """Установка нулей (относительной системы координат). l = [x_0, y_0, z_0]"""
-        self.zero_position['X'] = zeros_list[0]
-        self.zero_position['Y'] = zeros_list[1]
-        self.zero_position['Z'] = zeros_list[2]
-        self.update_relative_positions()
-    
-    def update_relative_positions(self):
-        """Перерасчет относительных координат для всех осей"""
-        for key in ['X', 'Y', 'Z']:
-            if self.abs_position[key] is not None and self.zero_position[key] is not None:
-                self.relative_position[key] = self.abs_position[key] - self.zero_position[key]
+        if any(ax is not None for ax in self.axes.values()):
+            self.connected.emit()
 
-    def update_all_absolute_positions(self):
-        """Опрос реального железа для получения актуальных координат"""
-        for key, axis_obj in self.axes.items():
-            if axis_obj is not None:
-                self.abs_position[key] = axis_obj.get_position()
-        self.update_relative_positions()
+    # ... остальные методы без изменений ...
 
     def shiftOnArbitrary(self, key: str, distance: float):
-        """Сдвиг указанной оси на заданное расстояние (в мкм)"""
+        logger.info(f"[Stages.shiftOnArbitrary] key={key}, distance={distance}")
         axis_obj = self.axes.get(key)
+
         if axis_obj is None:
-            self.S_print_error.emit(f"Axis {key} is not connected or configured.")
+            self.S_print_error.emit(f"Ось {key} не подключена.")
             return
 
         try:
             axis_obj.move_relative(distance)
-            axis_obj.wait_for_stop()
-            
-            # Обновляем координаты после остановки
+            logger.info(f"[Stages.shiftOnArbitrary] move_relative завершён")
             self.abs_position[key] = axis_obj.get_position()
             self.update_relative_positions()
             self.stopped.emit()
+            logger.info(f"[Stages.shiftOnArbitrary] stopped.emit() отправлен")
+
         except Exception as e:
-            self.S_print_error.emit(f"Error moving axis {key}: {str(e)}")
+            logger.error(f"[Stages.shiftOnArbitrary] ИСКЛЮЧЕНИЕ:\n{traceback.format_exc()}")
+            self.S_print_error.emit(f"Ошибка при движении оси {key}: {e}")
 
     def move_home(self, key: str):
-        """Отправка указанной оси в домашнюю позицию"""
         axis_obj = self.axes.get(key)
         if axis_obj is None:
-            self.S_print_error.emit(f"Axis {key} is not connected.")
             return
-
         try:
             axis_obj.move_home()
-            axis_obj.wait_for_stop()
-            
-            self.abs_position[key] = axis_obj.get_position()
-            self.update_relative_positions()
+            self.update_all_absolute_positions()
             self.stopped.emit()
         except Exception as e:
-            self.S_print_error.emit(f"Error homing axis {key}: {str(e)}")
+            logger.error(f"[Stages.move_home] ИСКЛЮЧЕНИЕ:\n{traceback.format_exc()}")
+            self.S_print_error.emit(f"Ошибка move_home оси {key}: {e}")
 
-    def __del__(self):
-        """Корректное закрытие всех открытых соединений при удалении объекта"""
-        for axis_obj in self.axes.values():
+    def set_zero_positions(self, zeros_list):
+        self.zero_position['X'] = zeros_list[0]
+        self.zero_position['Y'] = zeros_list[1]
+        self.zero_position['Z'] = zeros_list[2]
+        self.update_relative_positions()
+
+    def update_relative_positions(self):
+        for key in ['X', 'Y', 'Z']:
+            self.relative_position[key] = self.abs_position[key] - self.zero_position[key]
+
+    def update_all_absolute_positions(self):
+        for key, axis_obj in self.axes.items():
+            if axis_obj is not None:
+                try:
+                    self.abs_position[key] = axis_obj.get_position()
+                except Exception as e:
+                    logger.error(f"Не удалось прочитать позицию оси {key}: {traceback.format_exc()}")
+                    self.abs_position[key] = 0.0
+        self.update_relative_positions()
+
+    def close_all(self):
+        for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
                     axis_obj.close()
-                except:
-                    pass
+                except Exception as e:
+                    logger.error(f"Ошибка закрытия оси {key}: {e}")
 
-
-# =====================================================================
-# Пример использования
-# =====================================================================
-if __name__ == "__main__":
-    # Настраиваем, какая железка отвечает за какую ось
-    stage_config = {
-        'X': {'type': 'STANDA', 'id': 'Axis 1'},
-        'Y': {'type': 'STANDA', 'id': 'Axis 3'},
-        'Z': {'type': 'STANDA', 'id': 'Axis 2'}
-    }
-
-    # Инициализируем менеджер с нашей конфигурацией
-    stages = Stages(config=stage_config)
-
-    # Задаем нули программных координат
-    stages.set_zero_positions([10.0, 0.0, -5.0])
-
-    print("Initial X relative position:", stages.relative_position['X'])
-
-    # Сдвиг по оси X
-    d = 5.0
-    print(f"Moving X by {d} mkm...")
-    # stages.shiftOnArbitrary('X', d)
-
-    # Удаляем объект, порты закроются автоматически
-    del stages
-'''  
-Как теперь добавлять другие подвижки (например, Thorlabs)?
-Создаете файл thorlabs_stages.py.
-Внутри пишете класс ThorlabsAxis, у которого обязательно должны быть методы: __init__(id), get_position(), move_relative(dist), move_home(), wait_for_stop(), close().
-В stages_manager.py импортируете его и в метод setup_stages добавляете elif stage_type == 'THORLABS': self.axes[axis_key] = ThorlabsAxis(params['id']).
-Остальная логика расчета координат, ожидания и выдачи Qt-сигналов сработает автоматически без изменений!
-'''  
+    def __del__(self):
+        self.close_all()
