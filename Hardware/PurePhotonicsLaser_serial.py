@@ -17,6 +17,7 @@ else:
 import numpy as np
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from Utils.Loggable import Loggable
 
 def nmToDGHz(nm : float):
     return int(299792458 / nm * 10)
@@ -29,7 +30,7 @@ def nmToDGHz(nm : float):
 # class MultiMetaclass(Metaclass_Serial, Metaclass_QObject):
 #     pass
 
-class Laser(QObject):
+class Laser(QObject, Loggable):
     
  
     S_print=pyqtSignal(str) # signal used to print into main 1text browser
@@ -51,24 +52,25 @@ class Laser(QObject):
         self.main_wavelength=0 # in nm
         # print('Connected to laser using Serial module')
         self.S_print.emit('Connected to laser using Serial module')
+        self.log.info("Connected to laser on %s", COMPort)
 
 
     def setOn(self):
         res=ITLA.ITLA(self.port, ITLA.REG_Resena, 8, ITLA.WRITE)
-        # print('Laser is on')
         self.S_print.emit('Laser is on')
+        self.log.info("Laser ON")
         return res
 
     def setOff(self):
         res=ITLA.ITLA(self.port, ITLA.REG_Resena, 0, ITLA.WRITE)
-        # print('Laser is off')
         self.S_print.emit('Laser is off')
+        self.log.info("Laser OFF")
         return res
     
     def setPower(self,Power): # in 0.01 dB
         res=ITLA.ITLA(self.port, ITLA.REG_Power, Power, ITLA.WRITE)
-        # print('Laser power is changed')
         self.S_print.emit('Laser power is changed')
+        self.log.info("Laser power set to %s", Power)
         return res
     
     def setMode(self, ModeKey):
@@ -80,6 +82,7 @@ class Laser(QObject):
         
         res=ITLA.ITLA(self.port, ITLA.REG_Mode, Command, ITLA.WRITE)
         self.S_print.emit('Laser mode is changed')
+        self.log.info("Laser mode set to %s", ModeKey)
         return res
 
     def setWavelength(self, nm: float): # in nm, accuracy: 0.001 nm
@@ -90,6 +93,7 @@ class Laser(QObject):
         ITLA.ITLA(self.port, ITLA.REG_Fcf2, dGHz, ITLA.WRITE)
         self.main_wavelength=nm
         self.S_print.emit('Laser wavelength is changed')
+        self.log.info("Laser wavelength set to %s nm", nm)
         return
 
     def fineTuning(self, pm: int): # in pm, accuracy : 0.01 pm
@@ -103,10 +107,11 @@ class Laser(QObject):
             self.tuning=pm
             res= ITLA.ITLA(self.port, ITLA.REG_Ftf, np.uint16(dfe), ITLA.WRITE)
             self.S_print.emit('Laser is fine tuned')
+            self.log.info("Laser fine tuned by %s pm", pm)
             return res
         else:
-            # print('Tuning larger than max possible')
             self.S_print_error.emit('Laser is off')
+            self.log.error("fineTuning failed: pm=%s > max_tuning=%s", pm, self.maximum_tuning)
 
 
 

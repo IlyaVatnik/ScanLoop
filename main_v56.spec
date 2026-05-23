@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = ['Scripts.ScanningProcessOSA', 'Scripts.ScanningProcessLaser', 'Scripts.ScanningProcessScope', 'Scripts.Analyzer', 'Scripts.Spectral_processor', 'Scripts.SNAP_experiment', 'Scripts.OVA_signals', 'Scripts.TD_processor', 'Scripts.analyze_oscillogram', 'Hardware.Stages.stages_manager', 'Hardware.Stages.PIStages', 'Hardware.Stages.PiezoStageE53D_serial', 'Hardware.Scanner', 'Hardware.Config', 'serial.tools.list_ports', 'matplotlib.backends.backend_qt5agg', 'matplotlib.backends.backend_qt5', 'pyvisa', 'pyvisa-py']
+hiddenimports = ['Scripts.ScanningProcessOSA', 'Scripts.ScanningProcessLaser', 'Scripts.ScanningProcessScope', 'Scripts.Analyzer', 'Scripts.Spectral_processor', 'Scripts.SNAP_experiment', 'Scripts.OVA_signals', 'Scripts.TD_processor', 'Scripts.analyze_oscillogram', 'Hardware.Stages.stages_manager', 'Hardware.Stages.PIStages', 'Hardware.Stages.PiezoStageE53D_serial', 'Hardware.Scanner', 'Hardware.Config', 'serial.tools.list_ports', 'pipython', 'matplotlib.backends.backend_qt5agg', 'matplotlib.backends.backend_qt5', 'pyvisa', 'pyvisa_py', 'pyusb', 'typing_extensions']
 hiddenimports += collect_submodules('Common')
 hiddenimports += collect_submodules('Windows_GUI')
 hiddenimports += collect_submodules('Hardware')
@@ -20,7 +20,7 @@ hiddenimports += collect_submodules('Windows_GUI.UIs')
 
 a = Analysis(
     ['main.py'],
-    pathex=['.', 'Hardware\\Stages'],
+    pathex=['.', 'Hardware\\Stages', 'vendor_pkgs'],
     binaries=[('C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.KCube.DCServo.dll', '.'), ('C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.Benchtop.StepperMotor.dll', '.'), ('C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.DeviceManager.dll', '.'), ('C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.PrivateInternal.dll', '.'), ('C:\\Program Files\\Thorlabs\\Kinesis\\ftd2xx.dll', '.'), ('C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.FTD2xx_Net.dll', '.')],
     datas=[('Hardware\\Stages\\Standa', 'Hardware/Stages/Standa'), ('Hardware\\Stages\\LBTEK\\LBTEKx64', 'Hardware/Stages/LBTEK/LBTEKx64'), ('config_interrogator.json', '.'), ('plotting_parameters.txt', '.'), ('ZeroPosition.txt', '.'), ('PiezoStageStartPosition.json', '.')],
     hiddenimports=hiddenimports,
@@ -38,7 +38,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main_v42',
+    name='main_v56',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -57,5 +57,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main_v42',
+    name='main_v56',
 )

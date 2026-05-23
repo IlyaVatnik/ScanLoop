@@ -21,6 +21,7 @@ __date__='2025.03.28'
 import numpy as np
 from scipy import special
 import matplotlib.pyplot as plt 
+import logging; logger = logging.getLogger(__name__)
 from Field_distributions import get_V_jj,get_Veff,get_cross_section
 
 delta_0=4e6 # 2*pi*Hz
@@ -152,10 +153,10 @@ if __name__=='__main__':
     # heat_effect,temperature_shift=get_heat_effect(delta_c,delta_0,length,R_0)
     # min_threshold, position=get_min_threshold(R_0,omega,a,w,C_2,Im_D,Gamma)
     
-    print('Threshold for Kerr nonlinearity={} W'.format(threshold))
-    print('Cross section={:.3e} mkm^2, volume={:.3e} mkm^3, v_jj={:.3e} mkm^3'.format(get_cross_section(R,m,p,pol)*1e12,get_Veff(R, length, m,p,pol)*1e18,get_V_jj(R, length, m,p,pol)*1e18))
+    logger.info('Threshold for Kerr nonlinearity={} W'.format(threshold))
+    logger.info('Cross section={:.3e} mkm^2, volume={:.3e} mkm^3, v_jj={:.3e} mkm^3'.format(get_cross_section(R,m,p,pol)*1e12,get_Veff(R, length, m,p,pol)*1e18,get_V_jj(R, length, m,p,pol)*1e18))
     # print('Minimal Threshold at optimized point={} W'.format(min_threshold))
-    print('Q_factor={:.2e}'.format(omega/delta))
+    logger.info('Q_factor={:.2e}'.format(omega/delta))
     # print('Mode amplitude squared={:.3e} (V/m)**2'.format(get_field_intensity(delta_c,length,R_0)))
     # print('Thermal shift {} K '.format(temperature_shift))
     # print('Averaged temperature response is {} degrees per Watt of pump'.format(heat_effect))

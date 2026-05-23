@@ -14,6 +14,9 @@ from scipy.constants import pi
 from scipy.constants import c
 from scipy.signal import find_peaks
 from scipy.signal import savgol_filter
+import logging
+
+logger = logging.getLogger(__name__)
 
 __version__ = '0.6'
 __date__ = '2026.02.18'
@@ -89,7 +92,7 @@ if __name__=='__main__':
     import matplotlib.pyplot as plt
     plt.plot(times, signal)
     nonresonant_transmission,X0,delta_c,delta_0,phi,index_of_peak=analyze_oscillogram(times,signal,noise_level,dith_frequency,tuninge_range)
-    print(nonresonant_transmission,X0,delta_c,delta_0,phi)
+    logger.info('%s %s %s %s %s', nonresonant_transmission, X0, delta_c, delta_0, phi)
     time0=times[index_of_peak]
     signal_fitted = lorenz_fit(times, nonresonant_transmission, phi, time0, delta_0, delta_c)
     plt.plot(times,signal_fitted,color='green')

@@ -3,6 +3,9 @@ try:
 except:
     from Hardware.PyApex.Common import Send, Receive
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TunableLaser():
@@ -188,7 +191,7 @@ class TunableLaser():
             Send(self.__Connexion, Command)
         
         self.__Status = "ON"
-        print('Turn OSA.tls ON')
+        logger.info("Turn OSA.tls ON")
 
     def Off(self):
         '''
@@ -200,7 +203,7 @@ class TunableLaser():
             Send(self.__Connexion, Command)
         
         self.__Status = "OFF"
-        print('Turn OSA.tls OFF')
+        logger.info("Turn OSA.tls OFF")
 
     def GetStatus(self):
         '''

@@ -11,9 +11,11 @@ Run as main() to see example process
 import pyvisa
 import numpy as np
 import time
-from sys import stdout 
+import logging
+logger = logging.getLogger(__name__)
 
-from PyQt5.QtCore import QObject, pyqtSignal     
+from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
 
 __version__='2.2'
 __date__='2025.02.18'
@@ -24,7 +26,7 @@ __date__='2025.02.18'
 #         self.xinc = xinC
         
 
-class Scope(QObject):
+class Scope(QObject, Loggable):
     received_data = pyqtSignal(np.ndarray,list,list)
     def __init__(self, host, protocol = 'inst0', backend = None, timeout = 5000):
         super().__init__(parent=None)
@@ -34,7 +36,7 @@ class Scope(QObject):
             self.resource = pyvisa.ResourceManager().open_resource('TCPIP0::'+host+'::'+protocol+'::INSTR')
         self.resource.timeout = timeout
         
-        stdout.write(str(self.query_string('*IDN?')+b'\n'))
+        logger.info('Scope IDN: %s', self.query_string('*IDN?'))
         
         self.set_wfm_mode('RAW') #for all data in memory
         self.set_wfm_format('BYTE')
@@ -223,7 +225,7 @@ class Scope(QObject):
         t0 = time.time()
         while time.time() - t0 < timeout:
             if int(self.query_string('*OPC?')):
-                stdout.write('Acquisition complete\n')
+                logger.info('Acquisition complete')
                 break
             else:
                 i+=1
@@ -231,7 +233,7 @@ class Scope(QObject):
                     #if int(self.query_string(':ACQuire:AVERage?')):
                     #    stdout.write('Averaging... \n')
                     #else:
-                        stdout.write('Are you sure your trigger setup is correct?\n')
+                        logger.warning('Are you sure your trigger setup is correct?')
                 time.sleep(sleep_step)
         else:
             raise RuntimeError('Acquisition timeout')
@@ -241,7 +243,14 @@ class Scope(QObject):
             if channel:
 #                Test=self.get_y_data(enum+1)
                 self.set_wfm_source(enum+1)
-                data,x_inc,x_0=self.query_wave_fast()
+                data=[0]
+                t_data = time.time()
+                timeout_data = 4
+                while len(data) < 2 and time.time() - t_data < timeout_data:
+                    data, x_inc, x_0 = self.query_wave_fast()
+                if len(data) < 2:
+                    logger.error('Channel %d: no data after %ds timeout, skipping', enum+1, timeout_data)
+                    continue
                 Y.append(data)
                 channel_numbers.append(enum+1)
                 # print(enum,len(data),x_inc,x_0)

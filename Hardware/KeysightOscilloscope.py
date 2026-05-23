@@ -11,8 +11,11 @@ import numpy as np
 
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
+import logging
+logger = logging.getLogger(__name__)
 
-class Scope(QObject):
+class Scope(QObject, Loggable):
     
     received_data = pyqtSignal(np.ndarray,list,list)
     waiting_time=0.1
@@ -122,10 +125,10 @@ class Scope(QObject):
             self.device.query('*OPC?')    
             self.device.timeout=current_time_out
         except Exception:
-            print("The acquisition timed out, most likely due to no " \
+            self.log.exception("The acquisition timed out, most likely due to no " \
                   "trigger or improper setup causing no trigger. " \
                   "Properly closing the oscilloscope connection and " \
-                  "exiting script.\n")
+                  "exiting script.")
 
 #        self.device.query('*OPC?')
 #        self.wait_for_armed_1()
@@ -203,7 +206,7 @@ class Scope(QObject):
             try:
                 wfm=self.device.query_binary_values(":WAV:DATA?", 'h',container = np.array, is_big_endian = True)
             except pyvisa.errors.VisaIOError:
-                print('VisaIOError. Trying to get data from scope again')
+                self.log.exception('VisaIOError. Trying to get data from scope again')
         return wfm*y_inc + y_or
         
     
@@ -240,9 +243,9 @@ if __name__ == "__main__":
 
     HOST = '10.2.60.176'
     scope=Scope(HOST)
-    print('Channels that are ON:',scope.channels_states)
+    logger.info('Channels that are ON: %s', scope.channels_states)
     # scope.set_time_range(50e-9)
-    print(scope.get_number_of_points())
+    logger.info(scope.get_number_of_points())
     # scope.set_averaging_state(False)
     # scope.set_averaging_number(256)
     X,Y,ch=scope.acquire()

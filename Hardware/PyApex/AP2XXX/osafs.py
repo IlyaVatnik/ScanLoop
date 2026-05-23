@@ -1,5 +1,8 @@
 from PyApex.Common import Send, Receive
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OsaFs():
@@ -331,9 +334,9 @@ class OsaFs():
                 Command = "OSAFSDATAD" + str(int(TraceNumber)) + "\n"
             Send(self.__Connexion, Command)
             YStr = Receive(self.__Connexion, 20 * NPoints)[:-1]
-            print(YStr)
+            logger.debug("YStr raw: %s", YStr)
             YStr = YStr.split(" ")
-            print(YStr)
+            logger.debug("YStr split: %s", YStr)
             for s in YStr:
                 try:
                     YData.append(float(s))
@@ -343,9 +346,9 @@ class OsaFs():
             Command = "OSAFSDATAWL" + str(int(TraceNumber)) + "\n"
             Send(self.__Connexion, Command)
             XStr = Receive(self.__Connexion, 20 * NPoints)[:-1]
-            print(XStr)
+            logger.debug("XStr raw: %s", XStr)
             XStr = XStr.split(" ")
-            print(XStr)
+            logger.debug("XStr split: %s", XStr)
             for s in XStr:
                 try:
                     XData.append(float(s))

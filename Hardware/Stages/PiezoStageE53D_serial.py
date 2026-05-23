@@ -3,7 +3,11 @@ import json
 import numpy as np
 from datetime import datetime
 from time import perf_counter, sleep
-from PyQt5.QtCore import QObject, pyqtSignal    
+import logging
+from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
+
+logger = logging.getLogger(__name__)
 
 __version__ = '2'
 __date__ = '2025.02.24'
@@ -71,23 +75,23 @@ def ReadPackage(serial, length):
 
 
 def Logging(time='1.1.1 11:11', event='Nothing', counter=1):
-    print(f'{counter}) {time} - {event}')
+    logger.info('[Piezo] %s', event)
     
     
 def PrintingDataFromStage(data, whole_info=True, volts=False, move=False, *args):
     if whole_info:
-        print(f'Total bytes = {len(data)}')
+        logger.debug('Total bytes = %s', len(data))
         for i in range(0, len(data)):
-            print(f'{i+1} byte: {hex(data[i])}')
+            logger.debug('%s byte: %s', i+1, hex(data[i]))
     if volts:
-        print(f'Volts on stage: {args}')
+        logger.debug('Volts on stage: %s', args)
     if move:
-        print(f'Moves on stage: {args}')
+        logger.debug('Moves on stage: %s', args)
 #%%
 '''
 Создание класса PiezoStage, методы - основные команды для управления подвижкой
 '''
-class PiezoStage(QObject):
+class PiezoStage(QObject, Loggable):
     stopped = pyqtSignal()
     is_connected = 0
     def __init__(self, COMPort, baudrate):
@@ -99,10 +103,10 @@ class PiezoStage(QObject):
                 tmp = json.load(file)
                 self.zero_position = tmp["X"]
         except Exception as e:
-            print(e)
+            self.log.exception("Failed to load PiezoStageStartPosition.json, using 0")
             self.zero_position = 0
         self.update_position()
-        Logging(datetime.now().strftime('%d.%m.%Y %H:%M:%S'), 'Piezo stage is connected to COM5', self.event_counter)
+        self.log.info("Piezo stage connected on %s", COMPort)
     
     
     def update_position(self):
@@ -110,10 +114,10 @@ class PiezoStage(QObject):
         self.relative_position = self.abs_position-self.zero_position
         
     def __del__(self):
-        print(f'Destructor')
+        self.log.info("Piezo stage destructor")
         self.serial.close()
         self.event_counter += 1
-        Logging(datetime.now().strftime('%d.%m.%Y %H:%M:%S'), 'Piezo stage is disconnected', self.event_counter)
+        self.log.info("Piezo stage disconnected")
     
     
     def A00_SendVolt(self, volt_to_set):

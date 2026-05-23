@@ -3,9 +3,11 @@ import time
 import struct
 import os
 import os.path
-import time
 import sys
 import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 ITLA_NOERROR=0x00
 ITLA_EXERROR=0x01
@@ -119,6 +121,7 @@ def Receive_response(sercon):
     while sercon.inWaiting()<4:
         if  time.perf_counter()>reftime+0.25:
             _error=ITLA_NRERROR
+            logger.warning("Receive_response timeout")
             return(0xFF,0xFF,0xFF,0xFF)
         time.sleep(0.0001)
     try:
@@ -127,7 +130,7 @@ def Receive_response(sercon):
         byte2=ord(sercon.read(1))
         byte3=ord(sercon.read(1))
     except:
-        print ('problem with serial communication. queue[0] =',queue)
+        logger.error("Problem with serial communication. queue[0]=%s", queue)
         byte0=0xFF
         byte1=0xFF
         byte2=0xFF
@@ -145,6 +148,7 @@ def Receive_simple_response(sercon):
     while sercon.inWaiting()<4:
         if  time.perf_counter()>reftime+0.25:
             _error=ITLA_NRERROR
+            logger.warning("Receive_simple_response timeout")
             return(0xFF,0xFF,0xFF,0xFF)
         time.sleep(0.0001)
     byte0=ord(sercon.read(1))
@@ -258,10 +262,10 @@ def ITLAFWUpgradeStart(sercon,raydata,salvage=0):
     #set the baudrate to maximum and reconfigure the serial connection
     if salvage==0:
         ref=stripString(ITLA(sercon,REG_Serial,0,0))
-        if len(ref)<5:
-            print ('problems with communication before start FW upgrade')
-            return(sercon,'problems with communication before start FW upgrade')
-        ITLA(sercon,REG_Resena,0,1)
+    if len(ref)<5:
+        logger.error("Problems with communication before start FW upgrade")
+        return(sercon,'problems with communication before start FW upgrade')
+    ITLA(sercon,REG_Resena,0,1)
     ITLA(sercon,REG_Iocap,64,1) #bits 4-7 are 0x04 for 115200 baudrate
     #validate communication with the laser
     tempport=sercon.portstr

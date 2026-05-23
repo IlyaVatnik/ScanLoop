@@ -1,5 +1,6 @@
 import traceback
 import types
+import logging
 from functools import wraps
 
 from PyQt5.QtCore import pyqtSlot
@@ -16,8 +17,7 @@ def pyqtSlotWExceptions(*args):
             try:
                 func(*args)
             except Exception as e:
-                print(e)
-                traceback.print_exc()
+                logging.exception("Exception in slot %s: %s", func.__name__, e)
         return wrapper
 
     return slotdecorator

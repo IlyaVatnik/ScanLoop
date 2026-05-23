@@ -8,8 +8,11 @@ import socket
 import numpy as np
 
 from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
+import logging
+logger = logging.getLogger(__name__)
 
-class OSA_AQ6370(QObject):
+class OSA_AQ6370(QObject, Loggable):
     received_wavelengths = pyqtSignal(object)
     received_spectra = pyqtSignal(object,object)
     received_spectrum = pyqtSignal(np.ndarray,list,list)
@@ -53,7 +56,7 @@ class OSA_AQ6370(QObject):
         self.device.set_span(start_wavelength,stop_wavelength)
 
     def SetWavelengthResolution(self,Res:str):
-        print('Yokogawa has no High resolution')
+        self.log.info('Yokogawa has no High resolution')
 
     def close(self):
         self.device.close()
@@ -92,7 +95,7 @@ class Yokogawa_AQ6370_socket(socket.socket):
         except socket.timeout:
             raise self.Error(b"device responce timeout")
         tr=self.recv(1024)
-        print('Connected to ', tr)
+        logger.info('Connected to %s', tr)
 
     def wait_long(self):
         self.settimeout(self.timeout_long)
@@ -136,11 +139,11 @@ class Yokogawa_AQ6370_socket(socket.socket):
         strData=self.recieve_whole_message()
         strData=strData.split(',')
         if not strData:
-            print('Did non get any data from the device')
+            logger.info('Did non get any data from the device')
         try:
             X_values=np.array(strData,dtype='f')*1e9
         except:
-            print('Error while getting X data')
+            logger.info('Error while getting X data')
             X_values=0
         return X_values
 
@@ -152,11 +155,11 @@ class Yokogawa_AQ6370_socket(socket.socket):
         strData = self.recieve_whole_message()
         strData = strData.split(',')
         if not strData:
-                    print('Did non get any data from the device')
+                    logger.info('Did non get any data from the device')
         try:
             Y_values=np.array(strData,dtype='f')
         except:
-            print('Error while getting Y data')
+            logger.info('Error while getting Y data')
             Y_values=0
         return Y_values
 
@@ -198,4 +201,4 @@ if __name__ == "__main__":
         osa.change_range(1550.1,1550.2)
         osa.close()
     except:
-        print('Error')
+        logger.info('Error')

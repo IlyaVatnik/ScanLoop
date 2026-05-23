@@ -14,13 +14,14 @@ __date__='2023.01.19'
 import pyvisa
 import numpy as np
 import time
-from sys import stdout 
+import logging
+logger = logging.getLogger(__name__)
 
 
+from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable        
 
-from PyQt5.QtCore import QObject, pyqtSignal        
-
-class Scope(QObject):
+class Scope(QObject, Loggable):
     received_data = pyqtSignal(np.ndarray,list,list)
     
     def __init__(self, host = 'WINDOWS-E76DLEM', protocol = 'hislip0', backend = None, timeout = 100):
@@ -32,7 +33,7 @@ class Scope(QObject):
             self.resource = pyvisa.ResourceManager().open_resource('TCPIP0::'+host+'::'+protocol+'::INSTR')
         self.resource.timeout = timeout
         
-        stdout.write(str(self.query_string('*IDN?')+b'\n'))
+        logger.info('Scope IDN: %s', self.query_string('*IDN?'))
         self.clear()
         self.resource.write_raw(b':SYSTem:HEADer 0')
         
@@ -184,14 +185,14 @@ class Scope(QObject):
         for number in channels_displayed:
             remaining -= set((number,))
             self.resource.write_raw(bytes(':CHANnel{}:DISPlay 1'.format(number), encoding = 'utf8'))
-            stdout.write(str(self.query_string(':CHANnel{}:DISPlay?'.format(number))+b'\n'))
+            logger.debug('CHANnel%d DISPlay: %s', number, self.query_string(':CHANnel{}:DISPlay?'.format(number)))
         for number in remaining:
              self.resource.write_raw(bytes(':CHANnel{}:DISPlay 0'.format(number), encoding = 'utf8'))
-             stdout.write(str(self.query_string(':CHANnel{}:DISPlay?'.format(number))+b'\n'))
+             logger.debug('CHANnel%d DISPlay: %s', number, self.query_string(':CHANnel{}:DISPlay?'.format(number)))
             
         for key in channels_coupling.keys():
             self.resource.write_raw(bytes(':CHANnel{}:INPUT '.format(key)+ channels_coupling[key], encoding = 'utf8'))
-            stdout.write(str(self.query_string(':CHANnel{}:INPUT?'.format(key))+b'\n'))
+            logger.debug('CHANnel%d INPUT: %s', key, self.query_string(':CHANnel{}:INPUT?'.format(key)))
             
         if 64000 > average_count > 0:
             self.resource.write_raw(bytes(':ACQuire:AVERage:COUNt {}'.format(average_count), encoding = 'utf8'))
@@ -200,8 +201,8 @@ class Scope(QObject):
             self.resource.write_raw(bytes(':ACQuire:AVERage 0', encoding = 'utf8'))
         else:
             raise RuntimeError('bad average count')
-        stdout.write(str(self.query_string(':ACQuire:AVERage:COUNt?')+b'\n'))
-        stdout.write(str(self.query_string(':ACQuire:AVERage?')+b'\n'))
+        logger.debug('AVERage:COUNt: %s', self.query_string(':ACQuire:AVERage:COUNt?'))
+        logger.debug('AVERage: %s', self.query_string(':ACQuire:AVERage?'))
         
         if trace_points < self.point_lims[0]:
             self.resource.write_raw(bytes(':ACQuire:POINts:ANALog {}'.format(self.point_lims[0]), encoding = 'utf8'))
@@ -209,7 +210,7 @@ class Scope(QObject):
             self.resource.write_raw(bytes(':ACQuire:POINts:ANALog {}'.format(self.point_lims[1]), encoding = 'utf8'))
         else:
             self.resource.write_raw(bytes(':ACQuire:POINts:ANALog {}'.format(trace_points), encoding = 'utf8'))
-        stdout.write(str(self.query_string(':ACQuire:POINts:ANALog?')+b'\n'))
+        logger.debug('POINts:ANALog: %s', self.query_string(':ACQuire:POINts:ANALog?'))
         
         if sampling_rate < self.srate_lims[0]:
             self.resource.write_raw(bytes(':ACQuire:SRATe:ANALog {}'.format(self.srate_lims[0]), encoding = 'utf8'))
@@ -217,28 +218,28 @@ class Scope(QObject):
             self.resource.write_raw(bytes(':ACQuire:SRATe:ANALog {}'.format(self.srate_lims[1]), encoding = 'utf8'))
         else:
             self.resource.write_raw(bytes(':ACQuire:SRATe:ANALog {}'.format(sampling_rate), encoding = 'utf8'))
-        stdout.write(str(self.query_string(':ACQuire:SRATe:ANALog?')+b'\n'))
+        logger.debug('SRATe:ANALog: %s', self.query_string(':ACQuire:SRATe:ANALog?'))
         
         self.resource.write_raw(bytes(':ACQuire:MODE '+mode, encoding = 'utf8'))
-        stdout.write(str(self.query_string(':ACQuire:MODE?')+b'\n'))
+        logger.debug('ACQuire:MODE: %s', self.query_string(':ACQuire:MODE?'))
         
         self.resource.write_raw(bytes('TRIGger:SWEep '+trigger, encoding = 'utf8'))
-        stdout.write(str(self.query_string('TRIGger:SWEep?')+b'\n'))
+        logger.debug('TRIGger:SWEep: %s', self.query_string('TRIGger:SWEep?'))
         
         self.resource.write_raw(bytes(':WAVeform:FORMat ' + wave_format, encoding = 'utf8'))
-        stdout.write(str(self.query_string(':WAVeform:FORMat?')+b'\n'))
+        logger.debug('WAVeform:FORMat: %s', self.query_string(':WAVeform:FORMat?'))
         
         self.resource.write_raw(bytes(':WAVeform:BYTeorder ' + wave_byteorder, encoding = 'utf8'))
-        stdout.write(str(self.query_string(':WAVeform:BYTeorder?')+b'\n'))
+        logger.debug('WAVeform:BYTeorder: %s', self.query_string(':WAVeform:BYTeorder?'))
           
         self.resource.write_raw(bytes(':WAVeform:VIEW {}'.format(wave_view), encoding = 'utf8'))
-        stdout.write(str(self.query_string(':WAVeform:VIEW?')+b'\n'))
+        logger.debug('WAVeform:VIEW: %s', self.query_string(':WAVeform:VIEW?'))
         
         self.resource.write_raw(bytes(':WAVeform:STReaming ' + streaming, encoding = 'utf8'))
-        stdout.write(str(self.query_string(':WAVeform:STReaming?')+b'\n'))
+        logger.debug('WAVeform:STReaming: %s', self.query_string(':WAVeform:STReaming?'))
         
         self.resource.write_raw(bytes(':SYSTem:HEADer ' + header, encoding = 'utf8'))
-        stdout.write(str(self.query_string(':SYSTem:HEADer?')+b'\n'))
+        logger.debug('SYSTem:HEADer: %s', self.query_string(':SYSTem:HEADer?'))
         
         for ii in [1,2,3,4]:
             self.channels_states[ii-1]=self.get_channel_state(ii)
@@ -260,15 +261,15 @@ class Scope(QObject):
         self.query_string(':ADER?')
         while time.time() - t0 < timeout:
             if int(self.query_string(':ADER?')):
-                stdout.write('Scope: Acquisition complete\n')
+                logger.info('Scope: Acquisition complete')
                 break
             else:
                 i+=1
                 if i % 500 == 0:
                     if int(self.query_string(':ACQuire:AVERage?')):
-                        stdout.write('Averaging... \n')
+                        logger.info('Averaging...')
                     else:
-                        stdout.write('Are you sure your trigger setup is correct?\n')
+                        logger.warning('Are you sure your trigger setup is correct?')
                 time.sleep(sleep_step)
         else:
             raise RuntimeError('Acquisition timeout')
@@ -287,9 +288,9 @@ class Scope(QObject):
       
     def SRQEnable(self):
         self.command(b'OPEE 1')
-        stdout.write(str(self.query_string(':OPEE?')+b'\n'))
+        logger.debug('OPEE: %s', self.query_string(':OPEE?'))
         self.command(b'*SRE 128')
-        stdout.write(str(self.query_string('*SRE?')+b'\n'))
+        logger.debug('SRE: %s', self.query_string('*SRE?'))
         
         self.event_type = pyvisa.constants.EventType.service_request
         self.event_mech = pyvisa.constants.EventMechanism.queue
@@ -305,7 +306,7 @@ class Scope(QObject):
         self.resource.wait_on_event(self.event_type, timeout)
         
         if int(self.query_string(':ADER?')):
-            stdout.write('Acquisition complete\n')
+            logger.info('Acquisition complete')
         else:
             raise RuntimeError(':ADER not asserted')
             
@@ -332,9 +333,9 @@ if __name__ == '__main__':
     # print('Channels that are ON:',scope.channels_states)
     time1=time.time()
     wave = scope.query_wave_fast()
-    print(time.time()-time1)
-    print(len(wave[0]))
-    print(len(wave[0])*wave[2])
+    logger.info(time.time()-time1)
+    logger.info(len(wave[0]))
+    logger.info(len(wave[0])*wave[2])
     
     plt.plot(wave[2]*np.arange(len(wave[0])),wave[0])
     from matplotlib.ticker import EngFormatter

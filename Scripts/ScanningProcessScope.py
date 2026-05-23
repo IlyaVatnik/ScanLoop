@@ -6,6 +6,7 @@ Version Nov 13 2019
 @author: Ilya
 """
 
+from Utils.Loggable import Loggable
 from PyQt5.QtCore import pyqtSignal,  QObject
 import numpy as np
 import winsound
@@ -13,7 +14,7 @@ import time
 
 
 
-class ScanningProcess(QObject):
+class ScanningProcess(QObject, Loggable):
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.  
     ### Another pushing on "scanning" button during the scanning proccess set is_running to "False" and interrupt the scanning process
     
@@ -83,19 +84,19 @@ class ScanningProcess(QObject):
         self.IsInContact=self.checkIfContact(signals[0]) #check if there is contact already
         while not self.IsInContact:
             self.stages.shiftOnArbitrary(self.AxisToGetContact,self.SeekContactStep)
-            print('Moved to Sample')
+            self.log.info('Moved to Sample')
             Times,signals,channel_numbers=self.scope.acquire()
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(signals[0])
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
                 return 0
-        print('\nContact found\n')
+        self.log.info('\nContact found\n')
         winsound.Beep(1000, 500)
             
     def losing_contact(self): ##move taper away from sample until contact is lost
       while self.IsInContact:
             self.stages.shiftOnArbitrary(self.AxisToGetContact,self.BackStep)
-            print('Moved Back from Sample')
+            self.log.info('Moved Back from Sample')
             time.sleep(0.05)
             Times,signals,channel_numbers=self.scope.acquire()
             self.IsInContact=self.checkIfContact(signals[0])
@@ -130,7 +131,7 @@ class ScanningProcess(QObject):
             
             ## Acquring and saving data 
             for jj in range(0,self.NumberOfScans):
-                print('saving sweep # ', jj+1)
+                self.log.info('saving sweep # %s', jj+1)
                 Times,signals,channel_number=self.scope.acquire() # signal consists of all active traces data
                 time.sleep(0.05)
 #                Data=np.stack((Times, signals),axis=1)
@@ -154,20 +155,20 @@ class ScanningProcess(QObject):
             self.stages.shiftOnArbitrary(self.AxisToScan,self.ScanStep)
             self.CurrentFileIndex+=1
             self.S_updateCurrentFileName.emit(str(self.CurrentFileIndex))
-            print('\n Shifted along the scanning axis\n')
+            self.log.info('\n Shifted along the scanning axis\n')
 
-            print('Time elapsed is ', time.time()-time0,'\n')
+            self.log.info('Time elapsed is %s', time.time()-time0)
             
         # if scanning finishes because all points along scanning axis are measured  
         if self.is_running and self.CurrentFileIndex>self.StopFileIndex:
             self.is_running=False
-            print('\nScanning finished\n')
+            self.log.info('\nScanning finished\n')
             self.S_finished.emit()
 
 
 
     def __del__(self):
-        print('Closing scanning object...')
+        self.log.info('Closing scanning object...')
 
 if __name__ == "__main__":
 

@@ -12,9 +12,10 @@ import json
 import sys, os
 import pickle
 from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
 
 
-class Logger(QObject):
+class Logger(Loggable, QObject):
     # ✅ СИГНАЛЫ — СТРОГО НА УРОВНЕ КЛАССА (до __init__, без self!)
     updated = pyqtSignal()
     S_print = pyqtSignal(str)

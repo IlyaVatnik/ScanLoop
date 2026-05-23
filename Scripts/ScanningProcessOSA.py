@@ -9,6 +9,7 @@ Created on Tue Nov 20 19:09:12 2018
 __date__='2025.02.24'
 __version__='3.4'
 
+from Utils.Loggable import Loggable
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
 import winsound
@@ -16,7 +17,7 @@ import time
 
 
 
-class ScanningProcess(QObject):
+class ScanningProcess(QObject, Loggable):
   
 
     S_update_status=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
@@ -98,6 +99,19 @@ class ScanningProcess(QObject):
         except:
             self.IsHighRes=False
 
+    def _acquire_with_retry(self):
+        while self.is_running:
+            try:
+                wl, sp = self.OSA.acquire_spectrum()
+                if sp is None:
+                    raise RuntimeError("No spectrum data from OSA")
+                return wl, sp
+            except Exception as e:
+                self.S_print_error.emit(f'OSA error: {e}, retrying in 2s...')
+                self.log.warning('OSA acquire_spectrum failed: %s, retrying...', e)
+                time.sleep(2)
+        return None, None
+
     # def set_axes(self): # set axis depending on choice in MainWindow
     #     s=self.scanning_type
     #     # try:
@@ -127,7 +141,7 @@ class ScanningProcess(QObject):
         if self.IsHighRes and self.is_low_res_for_seeking_contact:
             self.OSA.SetWavelengthResolution('Low')
         time.sleep(0.05)
-        print("OSA set to seeking contact state")
+        self.log.info("OSA set to seeking contact state")
 
     def set_OSA_to_Measuring_State(self): #set back  resolution and preset span
         if self.is_squeeze_span_for_seeking_contact:
@@ -137,11 +151,13 @@ class ScanningProcess(QObject):
             self.OSA.SetWavelengthResolution('High')
 
         time.sleep(0.05)
-        print("OSA set to mearing state")
+        self.log.info("OSA set to mearing state")
 
     def search_contact(self): ## move taper towards sample until contact has been obtained
         total_seeking_shift=0    
-        wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+        wavelengthdata, spectrum=self._acquire_with_retry()
+        if spectrum is None:
+            return False
         time.sleep(0.05)
            
         self.set_OSA_to_Searching_Contact_State()
@@ -151,7 +167,9 @@ class ScanningProcess(QObject):
             self.move_along_contact_axis(self.seeking_step)
             total_seeking_shift+=self.seeking_step
             self.S_print.emit('Moved to Sample')
-            wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+            wavelengthdata, spectrum=self._acquire_with_retry()
+            if spectrum is None:
+                return False
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
             if total_seeking_shift>self.max_allowed_shift:
@@ -174,7 +192,9 @@ class ScanningProcess(QObject):
         while self.IsInContact:
             self.move_along_contact_axis(-self.backstep)
             self.S_print.emit('Moved Back from Sample')
-            wavelengthdata,spectrum=self.OSA.acquire_spectrum()
+            wavelengthdata,spectrum=self._acquire_with_retry()
+            if spectrum is None:
+                return False
             time.sleep(0.05)
             self.IsInContact=self.checkIfContact(spectrum)
             if not self.is_running : ##if scanning process is interrupted,stop searching contact
@@ -225,8 +245,11 @@ class ScanningProcess(QObject):
         while self.is_running and self.current_file_index<self.stop_file_index+1:
             self.S_update_status.emit('Step {} of {}'.format(self.current_file_index,self.stop_file_index))
             if self.save_out_of_contact:
-                wavelengths_background,background_signal=self.OSA.acquire_spectrum()
-                self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.current_file_index)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
+                wavelengths_background,background_signal=self._acquire_with_retry()
+                if background_signal is None:
+                    self.S_print_error.emit('Failed to acquire background spectrum, skipping')
+                else:
+                    self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.current_file_index)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
    
             time0=time.time()
        
@@ -245,7 +268,10 @@ class ScanningProcess(QObject):
             ## Acquring and saving data
             for jj in range(0,self.number_of_scans_at_point):
                 self.S_print.emit('saving sweep # ' + str(jj+1))
-                wavelengthdata, spectrum=self.OSA.acquire_spectrum()
+                wavelengthdata, spectrum=self._acquire_with_retry()
+                if spectrum is None:
+                    self.S_print_error.emit('Failed to acquire spectrum, skipping point')
+                    break
                 time.sleep(0.05)
                 
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
@@ -283,12 +309,12 @@ class ScanningProcess(QObject):
             self.S_print_error.emit('\nScanning interrupted\n')
         if self.current_file_index>self.stop_file_index:
             self.is_running=False
-            print('\nScanning finished\n')
+            self.log.info('\nScanning finished\n')
         
         self.S_finished.emit()
 
     def __del__(self):
-        print('Closing scanning object...')
+        self.log.info('Closing scanning object...')
 
 if __name__ == "__main__":
 

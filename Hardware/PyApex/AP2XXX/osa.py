@@ -1,5 +1,6 @@
 from Hardware.PyApex.Common import Send, Receive, ReceiveUntilChar
 import sys
+import logging
 from Hardware.PyApex.Constantes import *
 from Hardware.PyApex.Errors import ApexError
 from random import random
@@ -8,6 +9,8 @@ from Hardware.PyApex.Constantes import SimuAP2XXX_StartWavelength, SimuAP2XXX_St
 from Hardware.PyApex.Constantes import APXXXX_ERROR_ARGUMENT_TYPE
 from Hardware.PyApex.Errors import ApexError
 from Hardware.PyApex.AP2XXX import AP2XXX
+
+logger = logging.getLogger(__name__)
 
 class OSA(AP2XXX):
     def __init__(self,host, Simulation=False):
@@ -325,7 +328,7 @@ class OSA(AP2XXX):
             trace = 1
         else:
             TimeOut = self.__Connexion.gettimeout()
-            self.__Connexion.settimeout(None)
+            self.__Connexion.settimeout(60)
 
             if isinstance(Type, str):
                 if Type.lower() == "auto":
@@ -347,6 +350,7 @@ class OSA(AP2XXX):
             try:
                 trace = int(Receive(self.__Connexion))
             except:
+                logger.error('OSA Run: timeout or error waiting for sweep response (60s timeout)')
                 trace = 0
 
             self.__Connexion.settimeout(TimeOut)
@@ -1013,7 +1017,7 @@ class OSA(AP2XXX):
             else:
                 Command = "SPSAVEA" + str(TraceNumber) + "_" + str(FileName) + "\n"
             Send(self.__Connexion, Command)
-        print('Data saved to APEX hard drive')
+        logger.info("Data saved to APEX hard drive (Trace %s)", TraceNumber)
 
 
     def LockTrace(self, TraceNumber, Lock):

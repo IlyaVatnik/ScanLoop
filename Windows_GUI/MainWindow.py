@@ -16,7 +16,7 @@ import json
 import time 
 
 from PyQt5.QtCore import pyqtSignal, QThread
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog,QLineEdit,QComboBox,QCheckBox,QMessageBox,QShortcut
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog, QLineEdit, QComboBox, QCheckBox, QMessageBox, QShortcut, QTabWidget
 
 import importlib
 import Common.Consts
@@ -32,10 +32,11 @@ from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 '''
 
 from Logger.Logger import Logger
-from Visualization.Painter import MyPainter
+from Visualization.Painter import MyPainter, SpectrogramViewer
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows_GUI.UIs.MainWindowUI import Ui_MainWindow
 from Common.Hardware_ports import Hardware_ports
+from Utils.Loggable import Loggable
 
 
 from Scripts import Analyzer
@@ -94,7 +95,7 @@ class ThreadedMainWindow(QMainWindow):
 
 
 
-class MainWindow(ThreadedMainWindow):
+class MainWindow(ThreadedMainWindow, Loggable):
     force_OSA_acquireAll = pyqtSignal()
     force_OSA_acquire = pyqtSignal()
     force_stage_move = pyqtSignal(str,float)
@@ -125,6 +126,13 @@ class MainWindow(ThreadedMainWindow):
         self.piezo_stage=None
         
         self.painter = MyPainter(self.ui.groupBox_spectrum)
+
+        self.spectrum_tabs = QTabWidget(self.ui.groupBox_spectrum.parent())
+        self.ui.gridLayout_4.replaceWidget(self.ui.groupBox_spectrum, self.spectrum_tabs)
+        self.spectrum_tabs.addTab(self.ui.groupBox_spectrum, "Spectrum")
+        self.spectrogram_viewer = SpectrogramViewer()
+        self.spectrum_tabs.addTab(self.spectrogram_viewer, "Spectrogram")
+
         self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
@@ -339,7 +347,7 @@ class MainWindow(ThreadedMainWindow):
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(self.plot_ERV_from_file)
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(lambda: self.analyzer.plot_sample_shape())
-        self.ui.pushButton_analyzer_plot2D.clicked.connect(lambda: self.analyzer.plot_spectrogram())
+        self.ui.pushButton_analyzer_plot2D.clicked.connect(self.plot_spectrogram_to_viewer)
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
         self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
@@ -347,7 +355,7 @@ class MainWindow(ThreadedMainWindow):
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
 
         
-        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: self.analyzer.apply_FFT_to_spectrogram())
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: [self.analyzer.apply_FFT_to_spectrogram(), self.plot_spectrogram_to_viewer()])
         
         self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
             self.choose_single_spectrum_file_for_analyzer)
@@ -453,7 +461,7 @@ class MainWindow(ThreadedMainWindow):
             self.logText('Connected to scope')
         
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Connection to scope failed')
 
     def update_scope_channel_state(self):
@@ -480,6 +488,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.label_29.setVisible(not flag)
             self.ui.comboBox_APEX_mode.setVisible(not flag)
         except:
+            self.log.exception("Error in features_visibility")
             self.logWarningText(sys.exc_info())
     
     
@@ -558,7 +567,7 @@ class MainWindow(ThreadedMainWindow):
             self.painter.TypeOfData='FromOSA'
             self.OSA.S_print_error[str].connect(self.logWarningText)
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Connection to OSA failed')
 
     def connect_stages(self):
@@ -626,7 +635,7 @@ class MainWindow(ThreadedMainWindow):
         except Exception as e:
             import traceback
             self.logWarningText(f'КРИТИЧЕСКАЯ ОШИБКА в connect_stages: {e}')
-            traceback.print_exc()    
+            self.log.exception(e)
     def zeroing_stages(self):
         '''
         move all connected stages to their home position
@@ -689,7 +698,7 @@ class MainWindow(ThreadedMainWindow):
             self.ui.groupBox_piezo.setEnabled(True)
             self.enable_scanning_process()
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Connection to Piezo stages failed')
             self.ui.label_PiezoStage_status.setStyleSheet("QLabel {\n"
             "    \n"
@@ -737,7 +746,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.pushButton_powermeter_graph.setEnabled(True)
                 self.logText('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Connection to power meter failed')
 
     def connect_laser(self):
@@ -788,7 +797,7 @@ class MainWindow(ThreadedMainWindow):
             self.laser_scanning_process.S_print_error[str].connect(self.logWarningText)
             self.logText('Connected to Pure Photonics Laser')
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Connection to laser failed. Check the COM port number')
             
     
@@ -870,7 +879,7 @@ class MainWindow(ThreadedMainWindow):
         try:
             self.laser.setMode(self.ui.comboBox_laser_mode.currentText())
         except Exception as e:
-            print(e)
+            self.log.exception(e)
             self.logWarningText('Laser mode change failed')
 
     def laser_fine_tuning(self):
@@ -1239,7 +1248,7 @@ class MainWindow(ThreadedMainWindow):
                 self.ui.groupBox_stand.setEnabled(True)
                 self.ui.pushButton_set_scanning_parameters.setEnabled(True)
         except:
-            print(sys.exc_info())
+            self.log.exception('Error when making scanning')
             self.logWarningText('Some error when making scanning')
 
 
@@ -1274,7 +1283,7 @@ class MainWindow(ThreadedMainWindow):
             else:
                 self.logger.save_data(Data,FilePrefix,X,Y,Z,piezo_Z,self.painter.TypeOfData)
         except:
-                print(sys.exc_info())
+                self.log.exception('Error saving data')
                 self.logWarningText('Error')
                 
 
@@ -1333,7 +1342,7 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
         self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
         self.analyzer.load_data()
-        self.analyzer.plot_spectrogram()
+        self.plot_spectrogram_to_viewer()
 
 
     def on_pushButton_ProcessTD(self):
@@ -1447,9 +1456,8 @@ class MainWindow(ThreadedMainWindow):
         except ImportError:
             self.logWarningText("❌ Не удалось импортировать сканер портов!")
         except Exception as e:
-            import traceback
+            self.log.exception(e)
             self.logWarningText(f"❌ Ошибка при пересканировании портов: {e}")
-            traceback.print_exc()
 
     def rescan_thorlabs_serials(self):
         """Сканирует серийные номера Thorlabs и заполняет comboBox_X_ID, comboBox_Y_ID, comboBox_Z_ID"""
@@ -1517,7 +1525,7 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
         self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
         self.analyzer.load_data()
-        self.analyzer.plot_spectrogram()
+        self.plot_spectrogram_to_viewer()
             
 
     def process_arb_TD_data_clicked(self):
@@ -1537,6 +1545,19 @@ class MainWindow(ThreadedMainWindow):
         self.analyzer.plot_ERV_from_file(DataFilePath)
         
     
+
+    def plot_spectrogram_to_viewer(self):
+        try:
+            if self.analyzer.SNAP is None:
+                self.analyzer.load_data()
+            if self.analyzer.SNAP is None:
+                self.choose_file_for_analyzer()
+            if self.analyzer.SNAP is not None:
+                self.spectrogram_viewer.plot_spectrogram(self.analyzer)
+                self.spectrum_tabs.setCurrentIndex(1)
+        except Exception as e:
+            self.log.exception(e)
+            self.logWarningText('Spectrogram error: ' + str(e))
 
     def choose_file_for_analyzer(self):
         DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
@@ -1652,38 +1673,38 @@ class MainWindow(ThreadedMainWindow):
 #         here you can terminate your threads and do other stuff
 #        try:
         del self.stages
-        print('Stages object is deleted')
+        self.log.info('Stages object is deleted')
         del self.OSA
-        print('OSA object is deleted')
+        self.log.info('OSA object is deleted')
         del self.painter
-        print('Painter object is deleted')
+        self.log.info('Painter object is deleted')
         del self.logger
-        print('Logger is deleted')
+        self.log.info('Logger is deleted')
         del self.analyzer
-        print('Analyzer is deleted')
+        self.log.info('Analyzer is deleted')
         try:
             del self.powermeter
-            print('powermeter is deleted')
+            self.log.info('powermeter is deleted')
         except:
             pass    
         try:
             self.laser.setOff()
             del self.laser
-            print('laser is deleted')
+            self.log.info('laser is deleted')
         except:
             pass
         try:
             del self.scanningProcess
-            print('Scanning object is deleted')
+            self.log.info('Scanning object is deleted')
         except:
             pass
         del self.spectral_processor
         try:
             del self.piezo_stage
-            print('Piezo stage is deleted')
+            self.log.info('Piezo stage is deleted')
         except:
             pass
-        print('Processing is deleted')
+        self.log.info('Processing is deleted')
         super(QMainWindow, self).closeEvent(event)
         
 

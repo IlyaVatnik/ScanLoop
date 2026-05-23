@@ -15,6 +15,7 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from  scipy.optimize import curve_fit
+import logging; logger = logging.getLogger(__name__)
 
 delete_unreliable_data=True
 use_ReD_joint_approximation=False
@@ -70,7 +71,7 @@ def get_taper_resonator_qualities(x_array,delta_c,delta_0,shift):
             perr = np.sqrt(np.diag(pcov))
             return popt,perr
         except Exception as e:
-            print(e)
+            logger.exception(e)
             return init_guess,np.array(init_guess)*0.1
         
     else:
@@ -83,7 +84,7 @@ def get_taper_resonator_qualities(x_array,delta_c,delta_0,shift):
             perr = np.sqrt(np.diag(pcov))
             return popt,perr
         except Exception as e:
-            print(e)
+            logger.exception(e)
             return init_guess,np.array(init_guess)*0.1
 
 

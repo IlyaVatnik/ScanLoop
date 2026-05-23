@@ -3,6 +3,9 @@ import socket
 import time
 from PyQt5.QtCore import QObject,pyqtSignal
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
+from Utils.Loggable import Loggable
 
 __version__='2.1'
 __date__='2023.12.01'
@@ -13,7 +16,7 @@ BUFSIZE = 4096 # bytes
 
 
 
-class Luna(QObject):
+class Luna(QObject, Loggable):
     '''The class for controlling the OVA5000'''
     class ResponseError(Exception):
         '''Exception that is thrown when where are response from a command or no
@@ -76,7 +79,7 @@ class Luna(QObject):
         try:
             self.send_command(cmd)
         except Exception as e:
-            print(e)
+            self.log.exception(str(e))
         return None
 
     ########## Methods for integrate into scanloop ##########

@@ -12,17 +12,18 @@ import time
 from scipy import interpolate
 from PyQt5.QtCore import QObject,pyqtSignal
 import pickle
+import logging
+from Utils.Loggable import Loggable
+logger = logging.getLogger(__name__)
 try:
     import Scripts.SNAP_experiment as SNAP_experiment
     import Scripts.OVA_signals as OVA_signals
 except ModuleNotFoundError as E:
-    print(E)
+    logger.exception(E)
     os.chdir('..')
-    # import Scripts.SNAP_experiment as SNAP_experiment
-    # import Scripts.OVA_signals as OVA_signals
 sys.modules['SNAP_experiment'] = SNAP_experiment
 
-class Spectral_processor(QObject):
+class Spectral_processor(QObject, Loggable):
     S_print=pyqtSignal(str) # signal used to print into main text browser
     S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
 
@@ -305,7 +306,7 @@ class Spectral_processor(QObject):
                         jones_matrixes_out_of_contact=np.array(OVA_signal_out_of_contact.jones_matrixes)  
                 except:
                     OutOfContactSignal=np.zeros((1,NumberOfWavelengthPoints))
-                    print('out of contact file {} is not found'.format(OutOfContactFileName))
+                    self.log.warning('out of contact file %s is not found', OutOfContactFileName)
 
        
        
@@ -331,7 +332,7 @@ class Spectral_processor(QObject):
                                 
                                 
                 except UnicodeDecodeError:
-                    print('Error while getting data from file {}'.format(FileName))
+                    self.log.error('Error while getting data from file %s', FileName)
                 if self.isInterpolation:
                     SmallSignalArray[:,jj]=self.InterpolateInDesiredPoint(signal,wavelengths,MainWavelengths)
                 else:
@@ -411,7 +412,7 @@ class Spectral_processor(QObject):
             f=open(self.processedData_dir_path+self.f_name,'wb')
             pickle.dump(SNAP,f)
             f.close()
-            print('Spectrogram saved as SNAP object to {}'.format(self.processedData_dir_path+self.f_name))                 
+            self.log.info('Spectrogram saved as SNAP object to %s', self.processedData_dir_path+self.f_name)                 
 
         elif  self.type_of_output_data=='pkl3d':
             f=open(self.processedData_dir_path+self.f_name,'wb')
@@ -429,7 +430,7 @@ class Spectral_processor(QObject):
         
             pickle.dump(D,f)
             f.close()
-            print('Spectrogram saved as pkl3d file to {}'.format(self.processedData_dir_path+self.f_name))
+            self.log.info('Spectrogram saved as pkl3d file to %s', self.processedData_dir_path+self.f_name)
 
         if self.file_naming_style=='old': # legacy code, to save in txt format
             

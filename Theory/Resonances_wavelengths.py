@@ -18,6 +18,7 @@ from scipy.signal import find_peaks
 from scipy.optimize import minimize
 from scipy.fftpack import rfft, irfft, fftfreq
 import pickle
+import logging; logger = logging.getLogger(__name__)
 # from numba import jit
 
 
@@ -302,11 +303,11 @@ class Resonances():
         # plt.gca().set_color_cycle([colormap(i) for i in np.linspace(0, 0.9, num_plots)])
         resonances,labels=self.create_unstructured_list(Polarizations_to_account)
         for i,wave in enumerate(resonances):
-            print(wave,labels[i])       
+            logger.info(f"{wave} {labels[i]}")       
             
     def get_FSR(self, polarization='TE',p=0):
         if p>self.pmax:
-            print('error:radial quantum number p > p_max ')
+            logger.error('radial quantum number p > p_max in get_FSR')
         else:
             wavelengths=self.structure[polarization][p-1][:,0]
             N=np.shape(wavelengths)[0]
@@ -323,7 +324,7 @@ class Resonances():
         D_1=averaged FSR
         '''
         if p>self.pmax:
-            print('error:radial quantum number p > p_max ')
+            logger.error('radial quantum number p > p_max in get_int_dispersion')
         else:
             wavelengths=self.structure[polarization][p-1][:,0]
             N=np.shape(wavelengths)[0]
@@ -540,7 +541,7 @@ def bruteforce_optimizer(f, args, R_array, T_array,print_results=True):
                 
             # ax.scatter(current_R, cost, color=colors[ind], s=8)
             if print_results:
-                print(f'R = {current_R}, T = {current_T}, Cost = {cost}')
+                logger.info(f'R = {current_R}, T = {current_T}, Cost = {cost}')
         ind = ind + 1
 
     return {'x':(n, R_best, T_best),'fun':cost_best,'cost_function_array':cost_function_array}
@@ -590,4 +591,4 @@ if __name__=='__main__':
     s2=SellmeierCoefficientsCalculating('SiO2',delta_T)
     n1=RefInd(1500,s1)
     n2=RefInd(1500,s2)
-    print(n1,n2,n1*(1+8e-6*delta_T))
+    logger.info(f"{n1} {n2} {n1*(1+8e-6*delta_T)}")

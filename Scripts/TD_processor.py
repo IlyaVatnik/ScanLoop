@@ -2,6 +2,7 @@
 Version Nov 13 2019
 """
 
+from Utils.Loggable import Loggable
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ from scipy import interpolate
 from PyQt5.QtCore import QObject
 
 
-class ProcessAndPlotTD(QObject):
+class ProcessAndPlotTD(QObject, Loggable):
     ProcessedDataFolder='ProcessedData\\'
     skip_Header=0
     axis_to_plot_along='X'
@@ -82,7 +83,7 @@ class ProcessAndPlotTD(QObject):
         StructuredFileList,Positions=self.Create2DListOfFiles(FileList,axis=axis_to_plot_along)
         NumberOfPointsScanAxis=len(StructuredFileList)
         #Data = np.loadtxt(DirName+ '\\Signal' + '\\' +FileList[0])
-        print(DirName+ '\\' +FileList[0])
+        self.log.info('%s%s', DirName, FileList[0])
         """
         Create data array
         """
@@ -99,7 +100,7 @@ class ProcessAndPlotTD(QObject):
         for ii,FileNameListAtPoint in enumerate(StructuredFileList):
             NumberOfArraysToAverage=len(FileNameListAtPoint)
             SmallSignalArray=np.zeros((NumberOfTimePoints,NumberOfArraysToAverage))
-            print(FileNameListAtPoint[0])
+            self.log.info(FileNameListAtPoint[0])
            
             if Averaging:
                 """
@@ -142,7 +143,7 @@ class ProcessAndPlotTD(QObject):
         time2=time.time()
         cbar=plt.colorbar(Img,ax=ax1)
         plt.savefig(self.ProcessedDataFolder+'Scanned TD')
-        print('Time used =', time2-time1 ,' s')
+        self.log.info('Time used = %s s', time2-time1)
 
 if __name__ == "__main__":
     os.chdir('..')

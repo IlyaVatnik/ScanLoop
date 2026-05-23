@@ -17,10 +17,16 @@ def main():
     version = get_and_update_version()
     app_name = f"main_v{version}"
     print(f"Текущая версия сборки: {app_name}")
-
-    for folder in ['build', 'dist']:
-        if os.path.exists(folder): shutil.rmtree(folder, ignore_errors=True)
-    for spec_file in glob.glob("*.spec"): os.remove(spec_file)
+    
+    # Очистка dist перед сборкой
+    dist_dir = os.path.join(current_dir, 'dist')
+    if os.path.exists(dist_dir):
+        shutil.rmtree(dist_dir)
+        print(" -> dist очищен")
+    if os.path.exists('build'):
+        shutil.rmtree('build', ignore_errors=True)
+    for spec_file in glob.glob("*.spec"):
+        os.remove(spec_file)
 
     print(f"\nЗапуск PyInstaller для {app_name}...\n" + "-"*50)
 
@@ -32,6 +38,7 @@ def main():
         sys.executable, "-m", "PyInstaller", "--name", app_name, "--onedir", "--windowed",
         "--paths", ".",
         "--paths", os.path.join("Hardware", "Stages"),  # для thorlabs_kinesis импорта
+        "--paths", "vendor_pkgs",  # pyvisa, pipython и др. (установлены локально)
 
         # Все пакеты проекта
         "--collect-submodules", "Common",
@@ -67,6 +74,7 @@ def main():
         "--hidden-import", "Hardware.Scanner",
         "--hidden-import", "Hardware.Config",
         "--hidden-import", "serial.tools.list_ports",
+        "--hidden-import", "pipython",
 
         # Matplotlib бэкенд (иначе нет графиков!)
         "--hidden-import", "matplotlib.backends.backend_qt5agg",
@@ -74,7 +82,9 @@ def main():
 
         # PyVISA бэкенды
         "--hidden-import", "pyvisa",
-        "--hidden-import", "pyvisa-py",
+        "--hidden-import", "pyvisa_py",
+        "--hidden-import", "pyusb",
+        "--hidden-import", "typing_extensions",
 
         # DLL столиков
         f"--add-data={standa_path};Hardware/Stages/Standa",
@@ -164,6 +174,58 @@ def main():
         if os.path.exists(src) and not os.path.exists(dst):
             shutil.copy2(src, dst)
             print(f" -> Скопирован {fname}")
+
+    # Копируем vendor-пакеты (pyvisa, pipython и т.д.) в _internal
+    # (PyInstaller 6.20 на Python 3.14 не пакует их в PYZ из-за бага)
+    vendor_src = os.path.join(current_dir, 'vendor_pkgs')
+    vendor_dst = os.path.join(dist_main_dir, '_internal')
+    if os.path.exists(vendor_src):
+        for item in os.listdir(vendor_src):
+            s = os.path.join(vendor_src, item)
+            d = os.path.join(vendor_dst, item)
+            if os.path.isdir(s) and not os.path.exists(d) and item != '__pycache__':
+                shutil.copytree(s, d, ignore=shutil.ignore_patterns('__pycache__'))
+                print(f" -> Vendor-пакет скопирован: {item}")
+            elif os.path.isfile(s) and not os.path.exists(d) and item.endswith('.py'):
+                shutil.copy2(s, d)
+                print(f" -> Vendor-файл скопирован: {item}")
+
+    # === ВАЛИДАЦИЯ ===
+    exe_path = os.path.join(dist_main_dir, f"{app_name}.exe")
+    if os.path.exists(exe_path):
+        print(f"\n✅ EXE файл найден: {os.path.getsize(exe_path) / 1024 / 1024:.2f} МБ")
+    else:
+        print("\n❌ ОШИБКА: EXE файл не создан!")
+        sys.exit(1)
+
+    # Копируем .pkl3d файлы из ProcessedData/ в сборку
+    processed_src = os.path.join(current_dir, 'ProcessedData')
+    processed_dst = os.path.join(dist_main_dir, 'ProcessedData')
+    if os.path.exists(processed_src):
+        for item in os.listdir(processed_src):
+            s = os.path.join(processed_src, item)
+            d = os.path.join(processed_dst, item)
+            if os.path.isfile(s) and not os.path.exists(d) and item.endswith(('.pkl3d', '.pkl')):
+                shutil.copy2(s, d)
+                print(f" -> Данные скопированы: {item}")
+
+    # === СОЗДАНИЕ АРХИВА ===
+    print("\n=== СОЗДАНИЕ АРХИВА ===")
+    import zipfile
+    zip_name = os.path.join(current_dir, 'dist', f"{app_name}.zip")
+    with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(dist_main_dir):
+            # Сохраняем все папки (включая пустые)
+            for dir_name in dirs:
+                dir_path = os.path.join(root, dir_name)
+                arcname = os.path.relpath(dir_path, os.path.join(dist_main_dir, '..'))
+                zipf.write(dir_path, arcname)
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, os.path.join(dist_main_dir, '..'))
+                zipf.write(file_path, arcname)
+    print(f"✅ Архив создан: {zip_name}")
+    print(f"📦 Размер: {os.path.getsize(zip_name) / 1024 / 1024:.2f} МБ")
 
     print(f"\n=== СБОРКА УСПЕШНО ЗАВЕРШЕНА! ===\nГотовая программа: {dist_main_dir}")
 

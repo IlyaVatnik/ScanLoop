@@ -40,10 +40,13 @@ from Hardware.PyApex.AP2XXX import AP2XXX
 from Hardware.PyApex.AP2XXX.tls import TunableLaser
 from Hardware.PyApex.AP2XXX.osa import OSA
 import Common.Consts as Consts
+import logging
+from Utils.Loggable import Loggable
+logger = logging.getLogger(__name__)
 
-print('Modules loaded')
+logger.info('Modules loaded')
 
-class APEX_OSA_with_additional_features(OSA,QObject):
+class APEX_OSA_with_additional_features(OSA, QObject, Loggable):
     received_wavelengths = pyqtSignal(object)
     received_spectra = pyqtSignal(object,object)
     received_spectrum = pyqtSignal(np.ndarray,list,list)
@@ -81,8 +84,13 @@ class APEX_OSA_with_additional_features(OSA,QObject):
 
     def acquire_spectrum(self):
         a=time.time()
-        self.Run(Type='single')
-        print('Time elapsed for a single scan is ', time.time()-a)
+        try:
+            self.Run(Type='single')
+        except Exception as e:
+            self.S_print_error.emit(f'OSA Run failed: {e}')
+            self.log.error('OSA Run failed: %s', e)
+            return None, None
+        self.log.info('Time elapsed for a single scan is %s', time.time()-a)
         if self.IsHighRes:
             try:
                 self.SaveToFile("D:temp", Type="txt")
@@ -92,13 +100,20 @@ class APEX_OSA_with_additional_features(OSA,QObject):
                 self.wavelengtharray=temp[:,0]
             except Exception as e:
                 self.S_print_error.emit(str(e))
+                self.log.error('High-res spectrum read failed: %s', e)
                 return None,None
         else:
-            temp= (np.array(self.GetData()))
-            self.spectrum=temp[0,::-1]
-            self.wavelengtharray=temp[1,::-1]
+            try:
+                temp = np.array(self.GetData())
+                self.spectrum=temp[0,::-1]
+                self.wavelengtharray=temp[1,::-1]
+            except Exception as e:
+                self.S_print_error.emit(str(e))
+                self.log.error('Low-res spectrum read failed: %s', e)
+                return None, None
             time.sleep(0.1)
-        self.received_spectrum.emit(self.wavelengtharray,list([self.spectrum]),[0])
+        if self.wavelengtharray is not None and self.spectrum is not None:
+            self.received_spectrum.emit(self.wavelengtharray,list([self.spectrum]),[0])
         time.sleep(0.1)
         return self.wavelengtharray, self.spectrum
 
@@ -129,11 +144,11 @@ class APEX_OSA_with_additional_features(OSA,QObject):
 
 
 if __name__=='__main__':
-    print(1)
+    logger.info(1)
     OSA = APEX_OSA_with_additional_features('10.2.60.25')
     a=OSA.GetMode()
     OSA.ListModes()
-    print(a)
+    logger.info(a)
     b=OSA.acquire_spectrum()
-    print(b)
+    logger.info(b)
     

@@ -16,13 +16,14 @@ Version Nov 22 2019
 __date__='2023.03.29'
 __version__='1.3'
 
+from Utils.Loggable import Loggable
 from PyQt5.QtCore import pyqtSignal, QObject
 import numpy as np
 import time
 
 
 
-class LaserScanningProcess(QObject):
+class LaserScanningProcess(QObject, Loggable):
     
     
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
@@ -134,7 +135,7 @@ class LaserScanningProcess(QObject):
         
         
         
-class LaserSweepingProcess(QObject):
+class LaserSweepingProcess(QObject, Loggable):
     is_running=False  ## Variable is "True" during scanning process. Pushing on "scanning" button in main window sets is_running True and start scanning process.
 
     S_updateCurrentWavelength=pyqtSignal(str) #signal to initiate update the index of the current file in lineEdit_CurrentFile of main window
@@ -185,7 +186,7 @@ class LaserSweepingProcess(QObject):
         
 
     def __del__(self):
-        print('Closing scanning object...')
+        self.log.info('Closing scanning object...')
 
 if __name__ == "__main__":
 

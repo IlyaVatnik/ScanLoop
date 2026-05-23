@@ -7,9 +7,12 @@ Created on Fri May 28 13:02:47 2021
 import pyvisa as visa
 from PyQt5.QtCore import QObject, pyqtSignal
 import time
+import logging
+logger = logging.getLogger(__name__)
+from Utils.Loggable import Loggable
 
 
-class PowerMeter(QObject):
+class PowerMeter(QObject, Loggable):
     """
     Thorlabs PM100D power meter
     NOTE: You may need to switch drivers through  Thorlabs Optical Power Monitor program
@@ -29,10 +32,10 @@ class PowerMeter(QObject):
                     h=rm.open_resource(b)
                     h.write("*IDN?")
                     if ((h.read()).split(',')[2]==SerialNumber): 
-                        print('connected to powermeter')
+                        self.log.info('connected to powermeter')
                         return h
                     else: continue	
-            print('No desirable device found')
+            self.log.info('No desirable device found')
             return None
         
         super().__init__()
@@ -49,7 +52,7 @@ class PowerMeter(QObject):
     
 if __name__=='__main__':
     PM=PowerMeter('P0015055')
-    print(PM.get_power())
+    logger.info(PM.get_power())
     
     
         

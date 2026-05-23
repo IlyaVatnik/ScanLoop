@@ -4,6 +4,7 @@
 
 
 """
+from Utils.Loggable import Loggable
 import json
 from scipy.signal import find_peaks
 import pickle
@@ -16,6 +17,9 @@ import numpy as np
 import sys
 import os
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 __version__ = '2.7.12'
 __date__ = '2026.02.18'
@@ -24,8 +28,7 @@ try:
     import Scripts.SNAP_experiment as SNAP_experiment
     import Theory.Resonances_wavelengths as QuantumNumbersStructure
 except ModuleNotFoundError as E:
-    print(E)
-
+    logger.exception(E)
     import SNAP_experiment
     import Theory.Resonances_wavelengths as QuantumNumbersStructure
 
@@ -33,7 +36,7 @@ except ModuleNotFoundError as E:
 c = 299792458  # m/s
 
 
-class Analyzer(QObject):
+class Analyzer(QObject, Loggable):
 
     S_print = pyqtSignal(str)  # signal used to print into main text browser
     # signal used to print errors into main text browser
@@ -45,6 +48,7 @@ class Analyzer(QObject):
         '''
         super().__init__(None)
         self.single_spectrum_path = None
+        self.single_oscillogram_path = None
         self.spectrogram_file_path = spectrogram_file_path
         self.plotting_parameters_file_path = os.path.dirname(
             sys.argv[0])+'\\plotting_parameters.txt'
@@ -152,6 +156,11 @@ class Analyzer(QObject):
         if file_path is not None:
             self.spectrogram_file_path = file_path
         if self.spectrogram_file_path is not None:
+            if not os.path.exists(self.spectrogram_file_path):
+                self.S_print_error.emit('File not found: ' + self.spectrogram_file_path)
+                self.log.error('Spectrogram file not found: %s', self.spectrogram_file_path)
+                self.SNAP = None
+                return
             with open(self.spectrogram_file_path, 'rb') as f:
                 loaded_object = (pickle.load(f))
 
@@ -411,7 +420,7 @@ class Analyzer(QObject):
             plt.tight_layout()
         return self.single_spectrum_figure
 
-    def plot_spectrogram(self):
+    def plot_spectrogram(self, target_ax=None):
         if self.SNAP is None:
             self.load_data()
 
@@ -426,7 +435,7 @@ class Analyzer(QObject):
                         self.type_of_spectrogram, self.SNAP.type_of_signal))
                     return
         except AttributeError as E:
-            print(E)
+            self.log.exception(E)
 
         if self.lambda_0_for_ERV == 0:
             lambda_0 = self.SNAP.lambda_0
@@ -444,7 +453,7 @@ class Analyzer(QObject):
             Update second axis according with first axis.
             """
             y1, y2 = ax_Wavelengths.get_ylim()
-            print(y1, y2)
+            self.log.info('%s %s', y1, y2)
 
             nY1 = (y1-lambda_0)/lambda_0*self.SNAP.R_0 * \
                 self.SNAP.refractive_index*1e3
@@ -458,18 +467,22 @@ class Analyzer(QObject):
         def _backward(x):
             return lambda_0 + lambda_0*x/self.SNAP.R_0/self.SNAP.refractive_index/1e3
 
-        if (p['new_figure']) or (p['figsize'] != None):
-            fig = plt.figure(figsize=p['figsize'])
+        if target_ax is None:
+            if (p['new_figure']) or (p['figsize'] != None):
+                fig = plt.figure(figsize=p['figsize'])
+            else:
+                fig = plt.gcf()
+            plt.clf()
+            ax_Wavelengths = fig.subplots()
         else:
-            fig = plt.gcf()
+            fig = target_ax.figure
+            fig.clear()
+            ax_Wavelengths = fig.add_subplot(111)
 
-        plt.clf()
         rcParams.update({'font.size': p['font_size']})
 
         if not p['enable_offset']:
             plt.rcParams['axes.formatter.useoffset'] = False
-
-        ax_Wavelengths = fig.subplots()
         if p['use_contourf_or_pcolorfast_or_pcolormesh'] == 'contourf':
             levels = p['contourf_levels']
             im = ax_Wavelengths.contourf(x, self.SNAP.wavelengths, self.SNAP.signal,
@@ -534,7 +547,7 @@ class Analyzer(QObject):
                 except:
                     pass
             except Exception as E:
-                print(E)
+                self.log.exception(E)
 
         elif p['language'] == 'ru':
             if self.SNAP.axis_key == 'W':
@@ -562,7 +575,7 @@ class Analyzer(QObject):
                 except:
                     pass
             except Exception as E:
-                print(E)
+                self.log.exception(E)
         fig.tight_layout()
         self.figure_spectrogram = fig
 
@@ -929,14 +942,14 @@ class Analyzer(QObject):
             Data_to_save['coordinates'] = x
             with open(NewFileName, 'wb') as f:
                 pickle.dump(Data_to_save, f)
-            print('mode parameters saved to ', NewFileName)
+            self.log.info('mode parameters saved to %s', NewFileName)
 
         if self.derive_taper_cavity_params:
             max_allowed_error = 0.2
             from Theory.estimate_cavity_and_taper_params import estimate_params
             from Theory.estimate_nonlinear_and_thermal_properties import get_min_threshold, Kerr_threshold
             a, w, C2, ReD, ImD, Gamma = estimate_params(NewFileName)
-            print(C2, ReD, ImD, Gamma)
+            self.log.info('%s %s %s %s', C2, ReD, ImD, Gamma)
             min_threshold, position_for_min_threshold = get_min_threshold(
                 self.SNAP.R_0, self.SNAP.wavelengths[0], a, w, C2, ImD, Gamma)
             self.S_print.emit('Min_threshold={} W'.format(min_threshold))
@@ -1076,7 +1089,6 @@ class Analyzer(QObject):
         self.S_print.emit('Applying FFT filter...')
         self.SNAP.apply_FFT_filter(
             float(self.FFTFilter_low_freq_edge), float(self.FFTFilter_high_freq_edge))
-        self.plot_spectrogram()
         self.S_print.emit('Filter applied. New spectrogram plotted')
 
    
@@ -1114,8 +1126,8 @@ class Analyzer(QObject):
         resonances, labels = fitter.th_resonances.create_unstructured_list(
             self.quantum_numbers_fitter_polarizations)
 
-        print('N_exp=%d , N_th=%d,R=%f,p_max=%d, cost_function=%f' % (len(fitter.exp_resonances),
-              fitter.th_resonances.N_of_resonances['Total'], fitter.R_best, fitter.p_best, fitter.cost_best))
+        self.log.info('N_exp=%d , N_th=%d,R=%f,p_max=%d, cost_function=%f', len(fitter.exp_resonances),
+              fitter.th_resonances.N_of_resonances['Total'], fitter.R_best, fitter.p_best, fitter.cost_best)
         if self.quantum_numbers_fitter_type_of_optimizer!='None':
             plt.figure()
             if fitter.vary_temperature:

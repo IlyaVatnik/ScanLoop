@@ -9,6 +9,9 @@ import pyvisa
 import struct
 from sys import stdout
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -73,8 +76,10 @@ class ITLA:
         
         self.ftfr = self.ask_value(0x4f) # MHz
         self.ftf = self.ask_value(0x62,'!h') #MHz
-       
-       
+
+        logger.info("ITLA initialized on port %s, power_range=%s..%s, freq_range=%s..%s",
+                     port, self.opsl, self.opsh, self.lfl1, self.lfh1)
+
     def state(self):
         self.channel = self.ask_value(0x30) # GHz * 10
         self.pwr_SetP = self.ask_value(0x31, '!h') # dBm * 100 
@@ -97,14 +102,18 @@ class ITLA:
         self.resource.write_raw(msg)
         rsp = self.resource.read_bytes(4)
         if itla_message(*rsp) != rsp:
+            logger.error("ITLA response checksum error, reg=0x%02x", register)
             raise ITLA_Error('response checksum error')
-            
+
         if rsp[0] & 8 == 8 :
+            logger.error("ITLA message checksum error, reg=0x%02x", register)
             raise ITLA_Error('message checksum error')
         
         if rsp[0] & 3 == 1:
-            err_code = self.talk()[3] & 0x0f    
-            raise ITLA_Error(nop_err_list[err_code-1])
+            err_code = self.talk()[3] & 0x0f
+            err_msg = nop_err_list[err_code-1] if 1 <= err_code <= len(nop_err_list) else f"unknown error code {err_code}"
+            logger.error("ITLA register error, reg=0x%02x: %s", register, err_msg)
+            raise ITLA_Error(err_msg)
         return rsp
          
     def ask_value(self, register, fmt = '!H'):
@@ -112,18 +121,17 @@ class ITLA:
      
     def on(self,sleep_inc=1):
         rsp = self.talk(1, 0x32, 0, 8)
-        #self.enable = rsp[-1] | 8
+        logger.info("ITLA laser ON")
         return rsp
     
     def off(self):
         rsp = self.talk(1, 0x32, 0, 0)
-        #self.enable = rsp[-1] | 8
+        logger.info("ITLA laser OFF")
         return rsp
     
     def set_power(self, pwr):
-        # pwr in dBm*100
         rsp = self.talk(1, 0x31, *struct.pack('!h',pwr))
-        #self.pwr_setP = pwr
+        logger.info("ITLA set power: %s dBm*100", pwr)
         return rsp
     
     def set_frequency(self, frequency):
@@ -135,13 +143,14 @@ class ITLA:
         self.fcf1 = THz
         dghzResp = self.talk(1, 0x36, *struct.pack('!H',dGHz))
         self.fcf2 = dGHz
+        logger.info("ITLA set frequency: %s Hz (THz=%s, dGHz=%s)", frequency, THz, dGHz)
         return thzResp, dghzResp
-                  
+                 
     def set_FTFrequency(self, frequency):
         freq = int(frequency) #Hz 
         MHz = freq // (10**6)
         rsp = self.talk(1, 0x62, *struct.pack('!h', MHz))
-        #self.ftf = MHz
+        logger.info("ITLA set FT frequency: %s Hz", frequency)
         return rsp
         
 

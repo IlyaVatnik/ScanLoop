@@ -1,7 +1,10 @@
 import socket
-import os, sys, re
+import os, sys, re, time
+import logging
 
 from Hardware.PyApex.Common import Send, Receive
+
+logger = logging.getLogger(__name__)
 
 class AP2XXX():
     '''
@@ -53,18 +56,27 @@ class AP2XXX():
         This method is called by the constructor of AP2XXX class
         '''
         self.Connexion = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
-        self.Connexion.settimeout(10.0)
+        self.Connexion.settimeout(4.0)
 
         if self.__Simulation:
             self.__Connected = True
-            print("Connected successfully to the equipment")
+            logger.info("Connected successfully to the equipment (simulation)")
         else:
-            try:
-                self.Connexion.connect((self.__IPAddress, self.__PortNumber))
-                self.__Connected = True
-                print("Connected successfully to the equipment")
-            except:
-                print("Cannot connect to the equipment")
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    if attempt > 1:
+                        self.Connexion = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
+                        self.Connexion.settimeout(4.0)
+                    self.Connexion.connect((self.__IPAddress, self.__PortNumber))
+                    self.__Connected = True
+                    logger.info("Connected successfully to %s:%s", self.__IPAddress, self.__PortNumber)
+                    return
+                except:
+                    logger.warning("Connection attempt %d/%d to %s:%s failed", attempt, max_attempts, self.__IPAddress, self.__PortNumber)
+                    if attempt < max_attempts:
+                        time.sleep(2)
+            logger.error("Cannot connect to %s:%s after %d attempts", self.__IPAddress, self.__PortNumber, max_attempts)
 
 
     def Close(self):

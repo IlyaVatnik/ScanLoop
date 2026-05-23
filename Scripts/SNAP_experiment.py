@@ -16,13 +16,15 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 import pickle
+import logging
 from scipy import interpolate
 from scipy.signal import find_peaks
 from  scipy.ndimage import center_of_mass
 from scipy.fftpack import rfft, irfft, fftfreq
 from scipy.optimize import curve_fit
 from scipy.linalg import eigvals, inv
-# import scipy.linalg as la
+
+logger = logging.getLogger(__name__)
 
 
 # from numba import njit
@@ -177,7 +179,7 @@ class SNAP():
             temp=np.angle(vector[1:,0,0]*vector[:-1,0,0].conj()+vector[1:,1,0]*vector[:-1,1,0].conj()+
                           vector[1:,0,1]*vector[:-1,0,1].conj()+vector[1:,1,1]*vector[:-1,1,1].conj())
             temp[np.where(temp<0)]+=np.pi*2
-            print(delta_lambda,delta_nu)
+            logger.info('%s %s', delta_lambda, delta_nu)
             temp2=np.concatenate(([np.nanmean(temp)],temp))/(2*np.pi*delta_nu)*1e3     
             signal[:,ii]=temp2
         return signal
@@ -198,7 +200,7 @@ class SNAP():
         signal1=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
         signal2=np.zeros((len(self.wavelengths),np.shape(self.positions)[0]))
         for ii in range(self.jones_matrixes_array.shape[1]): 
-            print(ii)
+            logger.info(ii)
             vector=self.jones_matrixes_array[:,ii,:,:]  
             diag_1=np.zeros(len(self.wavelengths))
             diag_2=np.zeros(len(self.wavelengths))
@@ -252,7 +254,7 @@ class SNAP():
         
             
         for Zind, Z in enumerate(range(0,Number_of_positions)):
-            print('index={},Z={}'.format(Zind,Z))
+            logger.info('index=%s,Z=%s', Zind, Z)
             peakind,_=find_peaks(abs(self.signal[:,Zind]-np.nanmean(self.signal[:,Zind])),prominence=min_peak_level,distance=int(min_peak_distance/dw)+1)
             NewPeakind=np.extract((WavelengthArray[peakind]>min_wave) & (WavelengthArray[peakind]<max_wave),peakind)
             NewPeakind=NewPeakind[np.argsort(-WavelengthArray[NewPeakind])] ##sort in wavelength decreasing
@@ -260,7 +262,7 @@ class SNAP():
                 if len(NewPeakind)>=number_of_peaks_to_search:
                     shortWavArray=WavelengthArray[NewPeakind[:number_of_peaks_to_search]]
                 elif len(NewPeakind)<number_of_peaks_to_search:
-                    print(number_of_peaks_to_search-len(NewPeakind))
+                    logger.info(number_of_peaks_to_search-len(NewPeakind))
                     shortWavArray=np.concatenate(WavelengthArray[NewPeakind],np.nan*np.zeros(number_of_peaks_to_search-len(NewPeakind)))
                 PeakWavelengthArray[Zind]=shortWavArray
                 if find_widths:
@@ -273,7 +275,7 @@ class SNAP():
                             resonance_parameters_array[Zind,ii]=([non_res_transmission,Fano_phase,
                                                                   delta_c,delta_0,bandwidth_for_fitting])
         ERV = (PeakWavelengthArray-lambda_0_for_ERV)/lambda_0_for_ERV*self.R_0*self.refractive_index*1e3
-        print('Analyzing finished')
+        logger.info('Analyzing finished')
 
         # resonance_parameters_array=np.array(resonance_parameters_array)
         return x, np.array(PeakWavelengthArray), np.array(ERV), resonance_parameters_array
@@ -285,7 +287,7 @@ class SNAP():
                 iterate_different_bandwidths:bool, max_bandwidth_for_fitting:int, iterating_cost_function_type:str,scale_for_fitting='log'):
         
         mode_wavelengths=self.find_modes(min_peak_level,min_peak_distance)
-        print('rough mode estimations:',mode_wavelengths)
+        logger.info('rough mode estimations: %s', mode_wavelengths)
         
         if bandwidth_for_fitting!=0:
             window=bandwidth_for_fitting
@@ -301,10 +303,10 @@ class SNAP():
         x_array=self.positions[:,self.axes_dict[self.axis_key]]
         dw=(self.wavelengths[-1]-self.wavelengths[0])/len(self.wavelengths)
         if len(mode_wavelengths)==0:
-            print('no modes found')
+            logger.info('no modes found')
             return {}
         for central_wavelength in mode_wavelengths:
-            print("process mode at {} nm".format(central_wavelength))
+            logger.info("process mode at %s nm", central_wavelength)
             ind_max=np.argmin(abs(self.wavelengths-central_wavelength))+int(window/2/dw)
             ind_min=np.argmin(abs(self.wavelengths-central_wavelength))-int(window/2/dw)
             if ind_min<0: ind_min=0
@@ -331,10 +333,10 @@ class SNAP():
                                                                       res_wavelength,delta_c,delta_0,best_bandwidth_for_fitting]
                     resonance_parameters_errors_array[jj,:]=perr
                 except Exception as e: # if find_width returns None
-                    print(e)
-                    print('for x={} no width found'.format(x_array[jj]))
+                    logger.exception(e)
+                    logger.warning('for x=%s no width found', x_array[jj])
                     resonance_parameters_array[jj,:]=np.nan
-            print('Minimal resonance wavelength is ',undisturbed_mode_wavelength)
+            logger.info('Minimal resonance wavelength is %s', undisturbed_mode_wavelength)
             D={'mode wavelength':undisturbed_mode_wavelength}
             D['non_res_transmission']=resonance_parameters_array[:,0]
             D['non_res_transmission_error']=resonance_parameters_errors_array[:,0]
@@ -433,9 +435,9 @@ def find_width(waves,signal,peak_wavelength,bandwidth_for_fitting=0,iterate_diff
                      minimal_linewidth=linewidth
                      ind_bandwidth_for_fitting=N_points
              else:
-                 print('wrong cost function')
-                 return
-             if (N_points%50==0): print('N_points={},linewidth={},error={}'.format(N_points,linewidth,error))
+                logger.error('wrong cost function')
+                return
+             if (N_points%50==0): logger.info('N_points=%s,linewidth=%s,error=%s', N_points, linewidth, error)
              
 
                  
@@ -507,8 +509,8 @@ def get_Fano_fit(waves,signal,peak_wavelength=None,scale_for_fitting='log'):
         perr = np.sqrt(np.diag(pcov))
         return popt,perr, waves, Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
-        print(E)
-        return initial_guess,None,None,None
+        logger.exception(E)
+        return initial_guess, None, None, None
     
 # @njit
 def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
@@ -548,7 +550,7 @@ def get_complex_Fano_fit(waves,signal,peak_wavelength=None,height=None):
         return popt,perr, waves, complex_Fano_lorenzian(waves,*popt)
     except RuntimeError as E:
         pass
-        print(E)
+        logger.exception(E)
         return initial_guess,0,waves,Fano_lorenzian(waves,*initial_guess)
 
        

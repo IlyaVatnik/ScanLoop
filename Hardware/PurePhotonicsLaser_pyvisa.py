@@ -18,7 +18,8 @@ else:
     from Hardware.LaserLibs import itla_pyvisa
     
 import numpy as np
-from PyQt5.QtCore import QObject, pyqtSignal    
+from PyQt5.QtCore import QObject, pyqtSignal
+from Utils.Loggable import Loggable
 
 def nmToHz(nm : float):
     return int(299792458 / nm * 1e9)
@@ -26,7 +27,7 @@ def nmToHz(nm : float):
 def dnm_to_dHz(nm:float,d_nm:float):
     return -int(299792458/nm**2*d_nm*1e9)
 
-class Laser(QObject):
+class Laser(QObject, Loggable):
     S_print=pyqtSignal(str) # signal used to print into main 1text browser
     S_print_error=pyqtSignal(str) # signal used to print errors into main text browser
     def __init__(self,COMPort):
@@ -35,26 +36,26 @@ class Laser(QObject):
             COMPort=int(COMPort.split('COM')[1])
         try:
             self.itla=itla_pyvisa.PPCL550(COMPort)
+            self.log.info("Connected to PPCL550 laser via pyvisa on port %s", COMPort)
         except Exception as e:
-            print(e)
+            self.log.exception("Failed to connect to PPCL550 laser on port %s", COMPort)
             self.S_print.emit('Error! Not connected')
             pass
-        print('connected to laser')        
         self.maximum_tuning=200.1 # in pm
         self.tuning=0
         self.main_wavelength=1550 # in nm
     
     def setOn(self):
         self.itla.on()
-        print('PPCL550 laser is on')
+        self.log.info("PPCL550 laser ON")
  
     def setOff(self):
         self.itla.off()
-        print('PPCL550 laser is off')
+        self.log.info("PPCL550 laser OFF")
     
     def setPower(self,Power): # in 0.01 dB
         self.itla.set_power(int(Power))
-        print('PPCL550 laser is  with power {} dBm'.format(Power*0.01))
+        self.log.info("PPCL550 laser power set to %s dBm", Power*0.01)
     
     def setMode(self, ModeKey):
         modes = {
@@ -66,8 +67,8 @@ class Laser(QObject):
         while error:
             try: 
                 self.itla.mode(ModeKey) 
-                error=False          
-                print('PPCL550 laser mode {} is set'.format(ModeKey))
+                error=False
+                self.log.info("PPCL550 laser mode set to %s", ModeKey)
             except:
                 pass
         
@@ -76,6 +77,7 @@ class Laser(QObject):
         freq = nmToHz(nm)
         self.itla.set_frequency(freq)
         self.main_wavelength=nm
+        self.log.info("PPCL550 wavelength set to %s nm", nm)
         return
 
     def fineTuning(self, pm: float): # in pm, accuracy : 0.01 pm
@@ -83,8 +85,9 @@ class Laser(QObject):
             dfreq=dnm_to_dHz(self.main_wavelength, pm*1e-3)
             self.itla.set_FTFrequency(dfreq)
             self.tuning=pm
+            self.log.info("PPCL550 fine tuned by %s pm", pm)
         else:
-            print('Tuning larger than max possible')
+            self.log.error("PPCL550 fineTuning failed: pm=%s > max=%s", pm, self.maximum_tuning)
 
 
     

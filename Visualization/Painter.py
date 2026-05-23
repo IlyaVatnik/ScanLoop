@@ -12,6 +12,7 @@ import collections
 from scipy.fftpack import rfft, irfft, fftfreq
 
 from Utils.PyQtUtils import pyqtSlotWExceptions
+from Utils.Loggable import Loggable
 from PyQt5.QtCore import pyqtSignal
 
 
@@ -38,7 +39,7 @@ class Painter(QtWidgets.QWidget):
             layout.addWidget(self.toolbar)
 
 
-class MyPainter(Painter):
+class MyPainter(Painter, Loggable):
     ReplotEnded=pyqtSignal()
     powermeter_canvas_updated=pyqtSignal()
 
@@ -150,11 +151,24 @@ class MyPainter(Painter):
         
     def delete_powermeter_plot(self):
         plt.close(self.powermeter_fig)
-        
-        
+
+
+class SpectrogramViewer(Painter):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.toolbar.hide()
+
+    def plot_spectrogram(self, analyzer):
+        self.figure.clear()
+        self.ax = self.figure.add_subplot(111)
+        analyzer.plot_spectrogram(target_ax=self.ax)
+        self.canvas.draw()
+        self.toolbar.show()
 
 
 if __name__=='__main__':
-    print(0)
+    import logging; logging.basicConfig(level=logging.DEBUG)
+    m = MyPainter()
+    m.log.debug(0)
 
 
