@@ -193,9 +193,10 @@ def main():
     # === ВАЛИДАЦИЯ ===
     exe_path = os.path.join(dist_main_dir, f"{app_name}.exe")
     if os.path.exists(exe_path):
-        print(f"\n✅ EXE файл найден: {os.path.getsize(exe_path) / 1024 / 1024:.2f} МБ")
+        exe_size_mb = os.path.getsize(exe_path) / 1024 / 1024
+        print(f"\n[OK] EXE файл найден: {exe_size_mb:.2f} MB")
     else:
-        print("\n❌ ОШИБКА: EXE файл не создан!")
+        print("\n[FAIL] EXE файл не создан!")
         sys.exit(1)
 
     # Копируем .pkl3d файлы из ProcessedData/ в сборку
@@ -224,8 +225,9 @@ def main():
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, os.path.join(dist_main_dir, '..'))
                 zipf.write(file_path, arcname)
-    print(f"✅ Архив создан: {zip_name}")
-    print(f"📦 Размер: {os.path.getsize(zip_name) / 1024 / 1024:.2f} МБ")
+    print(f"[OK] Архив создан: {zip_name}")
+    zip_size_mb = os.path.getsize(zip_name) / 1024 / 1024
+    print(f"     Размер: {zip_size_mb:.2f} MB")
 
     print(f"\n=== СБОРКА УСПЕШНО ЗАВЕРШЕНА! ===\nГотовая программа: {dist_main_dir}")
 

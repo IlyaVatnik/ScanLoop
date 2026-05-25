@@ -1005,7 +1005,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>700</height>
             </rect>
            </property>
@@ -2000,8 +2000,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>500</height>
+             <width>300</width>
+             <height>629</height>
             </rect>
            </property>
            <property name="minimumSize">
@@ -2530,8 +2530,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>300</width>
+             <height>629</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2701,7 +2701,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
+             <width>283</width>
              <height>650</height>
             </rect>
            </property>
@@ -2718,9 +2718,9 @@
             <property name="geometry">
              <rect>
               <x>2</x>
-              <y>-9</y>
+              <y>-1</y>
               <width>302</width>
-              <height>649</height>
+              <height>641</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -2796,20 +2796,33 @@
                <property name="title">
                 <string>Spectrogram</string>
                </property>
-               <widget class="QPushButton" name="pushButton_analyzer_plot2D">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>20</y>
-                  <width>111</width>
-                  <height>23</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string>Plot 2D</string>
-                </property>
-               </widget>
-               <widget class="QPushButton" name="pushButton_analyzer_plotSampleShape">
+                <widget class="QPushButton" name="pushButton_analyzer_plot2D">
+                 <property name="geometry">
+                  <rect>
+                   <x>10</x>
+                   <y>20</y>
+                   <width>111</width>
+                   <height>23</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>Plot 2D</string>
+                 </property>
+                </widget>
+                <widget class="QPushButton" name="pushButton_analyzer_plot2D_window">
+                 <property name="geometry">
+                  <rect>
+                   <x>130</x>
+                   <y>20</y>
+                   <width>111</width>
+                   <height>23</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>2D Window</string>
+                 </property>
+                </widget>
+                <widget class="QPushButton" name="pushButton_analyzer_plotSampleShape">
                 <property name="geometry">
                  <rect>
                   <x>10</x>

@@ -1,0 +1,14 @@
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:46): === Application Started ===
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:47): Python: 3.14.4 (tags/v3.14.4:23116f9, Apr  7 2026, 14:10:54) [MSC v.1944 64 bit (AMD64)]
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:48): Platform: win32
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:49): Executable: C:\Users\Александр\Documents\GitHub\ScanLoop\dist\main_v60\main_v60.exe
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:50): Log directory: C:\Users\Александр\Documents\GitHub\ScanLoop\Logs\2026-05-25_13-25-10
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): numpy: 2.4.4
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): scipy: 1.17.1
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): matplotlib: 3.10.9
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): PyQt5: unknown
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): pyvisa: 1.16.2
+2026-05-25 13:25:10 [INFO   ] root(logging_setup.py:71): pyserial: 3.5
+2026-05-25 13:25:10 [DEBUG  ] matplotlib(__init__.py:342): CACHEDIR=C:\Users\Александр\AppData\Local\Temp\tmp3y024zll
+2026-05-25 13:25:10 [DEBUG  ] matplotlib.font_manager(font_manager.py:1085): font search path [WindowsPath('C:/Users/Александр/Documents/GitHub/ScanLoop/dist/main_v60/_internal/matplotlib/mpl-data/fonts/ttf'), WindowsPath('C:/Users/Александр/Documents/GitHub/ScanLoop/dist/main_v60/_internal/matplotlib/mpl-data/fonts/afm'), WindowsPath('C:/Users/Александр/Documents/GitHub/ScanLoop/dist/main_v60/_internal/matplotlib/mpl-data/fonts/pdfcorefonts')]
+2026-05-25 13:25:13 [INFO   ] matplotlib.font_manager(font_manager.py:1639): generated new fontManager

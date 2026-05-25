@@ -1,6 +1,7 @@
 __date__='2026.03.30'
 
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QDialog, QVBoxLayout
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -164,6 +165,21 @@ class SpectrogramViewer(Painter):
         analyzer.plot_spectrogram(target_ax=self.ax)
         self.canvas.draw()
         self.toolbar.show()
+
+
+class PlotWindow(QDialog):
+    def __init__(self, title="Plot", parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.figure = Figure()
+        self.ax = self.figure.add_subplot(111)
+        self.canvas = FigureCanvas(self.figure)
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        layout = QVBoxLayout()
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+        self.setLayout(layout)
+        self.resize(800, 500)
 
 
 if __name__=='__main__':

@@ -1,0 +1,13 @@
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:46): === Application Started ===
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:47): Python: 3.14.4 (tags/v3.14.4:23116f9, Apr  7 2026, 14:10:54) [MSC v.1944 64 bit (AMD64)]
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:48): Platform: win32
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:49): Executable: C:\Python314\python.exe
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:50): Log directory: C:\Users\Александр\Documents\GitHub\ScanLoop\Logs\2026-05-25_13-26-08
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:71): numpy: 2.4.4
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:71): scipy: 1.17.1
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:71): matplotlib: 3.10.9
+2026-05-25 13:26:08 [INFO   ] root(logging_setup.py:71): PyQt5: unknown
+2026-05-25 13:26:09 [INFO   ] root(logging_setup.py:71): pyvisa: 1.16.2
+2026-05-25 13:26:09 [INFO   ] root(logging_setup.py:71): pyserial: 3.5
+2026-05-25 13:26:09 [DEBUG  ] matplotlib(__init__.py:342): CACHEDIR=C:\Users\Александр\.matplotlib
+2026-05-25 13:26:09 [DEBUG  ] matplotlib.font_manager(font_manager.py:1635): Using fontManager instance from C:\Users\Александр\.matplotlib\fontlist-v390.json

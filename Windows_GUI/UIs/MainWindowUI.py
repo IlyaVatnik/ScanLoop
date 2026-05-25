@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\users\александр\documents\github\scanloop\windows_gui\uis\MainWindow.ui'
+# Form implementation generated from reading ui file 'C:\Users\Александр\Documents\GitHub\ScanLoop\Windows_GUI\UIs\MainWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -300,7 +300,7 @@ class Ui_MainWindow(object):
         self.Toolbox.addItem(self.page_hardware, "")
         self.page_experiment_flow = QtWidgets.QWidget()
         self.page_experiment_flow.setEnabled(True)
-        self.page_experiment_flow.setGeometry(QtCore.QRect(0, 0, 98, 700))
+        self.page_experiment_flow.setGeometry(QtCore.QRect(0, 0, 283, 700))
         self.page_experiment_flow.setMinimumSize(QtCore.QSize(0, 700))
         self.page_experiment_flow.setObjectName("page_experiment_flow")
         self.tabWidget_instruments = QtWidgets.QTabWidget(self.page_experiment_flow)
@@ -586,7 +586,7 @@ class Ui_MainWindow(object):
         self.label_15.setObjectName("label_15")
         self.Toolbox.addItem(self.page_experiment_flow, "")
         self.page_laser_control = QtWidgets.QWidget()
-        self.page_laser_control.setGeometry(QtCore.QRect(0, 0, 98, 500))
+        self.page_laser_control.setGeometry(QtCore.QRect(0, 0, 300, 629))
         self.page_laser_control.setMinimumSize(QtCore.QSize(0, 500))
         self.page_laser_control.setObjectName("page_laser_control")
         self.groupBox_laser_scanning = QtWidgets.QGroupBox(self.page_laser_control)
@@ -719,7 +719,7 @@ class Ui_MainWindow(object):
         self.label_30.setObjectName("label_30")
         self.Toolbox.addItem(self.page_laser_control, "")
         self.page_processing = QtWidgets.QWidget()
-        self.page_processing.setGeometry(QtCore.QRect(0, 0, 98, 28))
+        self.page_processing.setGeometry(QtCore.QRect(0, 0, 300, 629))
         self.page_processing.setObjectName("page_processing")
         self.groupBox_processArbData = QtWidgets.QGroupBox(self.page_processing)
         self.groupBox_processArbData.setGeometry(QtCore.QRect(0, 40, 291, 91))
@@ -773,11 +773,11 @@ class Ui_MainWindow(object):
         self.label_folder_to_process_files.setObjectName("label_folder_to_process_files")
         self.Toolbox.addItem(self.page_processing, "")
         self.page_analyzer = QtWidgets.QWidget()
-        self.page_analyzer.setGeometry(QtCore.QRect(0, 0, 98, 650))
+        self.page_analyzer.setGeometry(QtCore.QRect(0, 0, 283, 650))
         self.page_analyzer.setMinimumSize(QtCore.QSize(0, 650))
         self.page_analyzer.setObjectName("page_analyzer")
         self.layoutWidget1 = QtWidgets.QWidget(self.page_analyzer)
-        self.layoutWidget1.setGeometry(QtCore.QRect(2, -9, 302, 649))
+        self.layoutWidget1.setGeometry(QtCore.QRect(2, -1, 302, 641))
         self.layoutWidget1.setObjectName("layoutWidget1")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.layoutWidget1)
         self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -803,6 +803,9 @@ class Ui_MainWindow(object):
         self.pushButton_analyzer_plot2D = QtWidgets.QPushButton(self.spectrogram)
         self.pushButton_analyzer_plot2D.setGeometry(QtCore.QRect(10, 20, 111, 23))
         self.pushButton_analyzer_plot2D.setObjectName("pushButton_analyzer_plot2D")
+        self.pushButton_analyzer_plot2D_window = QtWidgets.QPushButton(self.spectrogram)
+        self.pushButton_analyzer_plot2D_window.setGeometry(QtCore.QRect(130, 20, 111, 23))
+        self.pushButton_analyzer_plot2D_window.setObjectName("pushButton_analyzer_plot2D_window")
         self.pushButton_analyzer_plotSampleShape = QtWidgets.QPushButton(self.spectrogram)
         self.pushButton_analyzer_plotSampleShape.setGeometry(QtCore.QRect(10, 80, 111, 23))
         self.pushButton_analyzer_plotSampleShape.setObjectName("pushButton_analyzer_plotSampleShape")
@@ -1151,6 +1154,7 @@ class Ui_MainWindow(object):
         self.pushButton_analyzer_choose_file_spectrogram.setText(_translate("MainWindow", "Spectrogram file"))
         self.spectrogram.setTitle(_translate("MainWindow", "Spectrogram"))
         self.pushButton_analyzer_plot2D.setText(_translate("MainWindow", "Plot 2D"))
+        self.pushButton_analyzer_plot2D_window.setText(_translate("MainWindow", "2D Window"))
         self.pushButton_analyzer_plotSampleShape.setText(_translate("MainWindow", "Plot sample shape"))
         self.plot_slice.setTitle(_translate("MainWindow", "Plot slice"))
         self.pushButton_analyzer_plotSlice.setText(_translate("MainWindow", "Plot slice at"))

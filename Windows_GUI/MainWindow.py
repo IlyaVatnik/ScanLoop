@@ -32,7 +32,7 @@ from Hardware.APEX_OSA import APEX_OSA_with_additional_features
 '''
 
 from Logger.Logger import Logger
-from Visualization.Painter import MyPainter, SpectrogramViewer
+from Visualization.Painter import MyPainter, PlotWindow
 from Utils.PyQtUtils import pyqtSlotWExceptions
 from Windows_GUI.UIs.MainWindowUI import Ui_MainWindow
 from Common.Hardware_ports import Hardware_ports
@@ -127,12 +127,6 @@ class MainWindow(ThreadedMainWindow, Loggable):
         
         self.painter = MyPainter(self.ui.groupBox_spectrum)
 
-        self.spectrum_tabs = QTabWidget(self.ui.groupBox_spectrum.parent())
-        self.ui.gridLayout_4.replaceWidget(self.ui.groupBox_spectrum, self.spectrum_tabs)
-        self.spectrum_tabs.addTab(self.ui.groupBox_spectrum, "Spectrum")
-        self.spectrogram_viewer = SpectrogramViewer()
-        self.spectrum_tabs.addTab(self.spectrogram_viewer, "Spectrogram")
-
         self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
@@ -146,7 +140,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         # self.add_thread([self.painter, self.logger, self.analyzer, self.spectral_processor, self.scanningProcess])
         # СТАЛО:
         self.add_thread([self.analyzer, self.spectral_processor, self.scanningProcess])
-        
+        self._plot_windows = []
         
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
         self.init_hardware_parameters_toolbox()
@@ -347,15 +341,16 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.choose_file_for_analyzer)
         self.ui.pushButton_analyzer_plot_ERV_from_file.clicked.connect(self.plot_ERV_from_file)
         self.ui.pushButton_analyzer_plotSampleShape.clicked.connect(lambda: self.analyzer.plot_sample_shape())
-        self.ui.pushButton_analyzer_plot2D.clicked.connect(self.plot_spectrogram_to_viewer)
+        self.ui.pushButton_analyzer_plot2D.clicked.connect(self.plot_spectrogram_in_window)
+        self.ui.pushButton_analyzer_plot2D_window.clicked.connect(self.plot_spectrogram_in_window)
         self.ui.pushButton_analyzer_plotSlice.clicked.connect(lambda: self.analyzer.plot_slice(float(self.ui.lineEdit_slice_position.text())))
-        self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(lambda: self.analyzer.plot_single_spectrum())
+        self.ui.pushButton_analyzer_plot_single_spectrum.clicked.connect(self.plot_single_spectrum_in_window)
         self.ui.pushButton_analyzer_extract_ERV.clicked.connect(lambda: self.analyzer.extract_ERV())
         self.ui.pushButton_analyzer_get_modes_params.clicked.connect(lambda: self.analyzer.get_modes_parameters())
         self.ui.pushButton_analyzer_quantum_numbers_fitter.clicked.connect(lambda: self.analyzer.run_quantum_numbers_fitter())
 
         
-        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: [self.analyzer.apply_FFT_to_spectrogram(), self.plot_spectrogram_to_viewer()])
+        self.ui.pushButton_analyzer_apply_FFT_filter.clicked.connect(lambda: [self.analyzer.apply_FFT_to_spectrogram(), self.plot_spectrogram_in_window()])
         
         self.ui.pushButton_analyzer_choose_single_spectrum.clicked.connect(
             self.choose_single_spectrum_file_for_analyzer)
@@ -374,7 +369,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         '''
         osc logic
         '''
-        self.ui.pushButton_analyzer_plot_single_oscillogram.clicked.connect(lambda: self.analyzer.plot_single_oscillogram())
+        self.ui.pushButton_analyzer_plot_single_oscillogram.clicked.connect(self.plot_single_oscillogram_in_window)
         self.ui.pushButton_analyzer_choose_single_oscillogram.clicked.connect(
             self.choose_single_oscillogram_for_analyzer)
         self.ui.pushButton_analyzer_fit_oscillogram.clicked.connect(lambda: self.analyzer.analyze_oscillogram(self.analyzer.single_oscillogram_figure) 
@@ -1342,7 +1337,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
         self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
         self.analyzer.load_data()
-        self.plot_spectrogram_to_viewer()
+        self.plot_spectrogram_in_window()
 
 
     def on_pushButton_ProcessTD(self):
@@ -1525,7 +1520,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
         self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
         self.analyzer.load_data()
-        self.plot_spectrogram_to_viewer()
+        self.plot_spectrogram_in_window()
             
 
     def process_arb_TD_data_clicked(self):
@@ -1546,21 +1541,52 @@ class MainWindow(ThreadedMainWindow, Loggable):
         
     
 
-    def plot_spectrogram_to_viewer(self):
+    
+
+    def plot_single_spectrum_in_window(self):
+        try:
+            if self.analyzer.single_spectrum_path is None:
+                self.choose_single_spectrum_file_for_analyzer()
+            if self.analyzer.single_spectrum_path is not None:
+                w = PlotWindow("Single Spectrum")
+                self.analyzer.plot_single_spectrum(target_ax=w.ax)
+                w.show()
+                self._plot_windows.append(w)
+        except Exception as e:
+            self.log.exception(e)
+            self.logWarningText('Single spectrum error: ' + str(e))
+
+    def plot_single_oscillogram_in_window(self):
+        try:
+            if self.analyzer.single_oscillogram_path is None:
+                self.choose_single_oscillogram_for_analyzer()
+            if self.analyzer.single_oscillogram_path is not None:
+                w = PlotWindow("Oscillogram")
+                self.analyzer.plot_single_oscillogram(target_ax=w.ax)
+                w.show()
+                self._plot_windows.append(w)
+        except Exception as e:
+            self.log.exception(e)
+            self.logWarningText('Oscillogram error: ' + str(e))
+
+    def plot_spectrogram_in_window(self):
         try:
             if self.analyzer.SNAP is None:
                 self.analyzer.load_data()
             if self.analyzer.SNAP is None:
                 self.choose_file_for_analyzer()
             if self.analyzer.SNAP is not None:
-                self.spectrogram_viewer.plot_spectrogram(self.analyzer)
-                self.spectrum_tabs.setCurrentIndex(1)
+                w = PlotWindow("Spectrogram")
+                w.resize(900, 600)
+                self.analyzer.plot_spectrogram(target_ax=w.ax)
+                w.show()
+                self._plot_windows.append(w)
         except Exception as e:
             self.log.exception(e)
-            self.logWarningText('Spectrogram error: ' + str(e))
+            self.logWarningText('Spectrogram window error: ' + str(e))
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File",'','*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File", self.path_to_main + '\\ProcessedData\\', '*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             self.logWarningText('file is not chosen or previous choice is preserved')
         self.analyzer.spectrogram_file_path=DataFilePath

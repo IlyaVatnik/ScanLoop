@@ -165,7 +165,6 @@ class Analyzer(QObject, Loggable):
                 loaded_object = (pickle.load(f))
 
             if isinstance(loaded_object, SNAP_experiment.SNAP):
-
                 self.S_print.emit(
                     'loading SNAP data for analyzer from ' + self.spectrogram_file_path)
                 self.SNAP = loaded_object
@@ -173,16 +172,27 @@ class Analyzer(QObject, Loggable):
                     self.SNAP.type_of_signal = 'insertion losses'
                     self.SNAP.jones_matrix_used = False
                     self.SNAP.signal = self.SNAP.transmission
-                    
                 self.S_print.emit('File has been loaded to SNAP object')
-            else:
+
+            elif isinstance(loaded_object, dict):
                 self.S_print.emit(
                     'loading old style SNAP data for analyzer from ' + self.spectrogram_file_path)
                 SNAP_object = SNAP_experiment.SNAP()
                 SNAP_object.axis_key = loaded_object['axis']
                 Positions = np.array(loaded_object['Positions'])
-                wavelengths, exp_data = loaded_object['Wavelengths'], loaded_object['Signal']
-                
+                wavelengths = np.array(loaded_object['Wavelengths'])
+                exp_data = np.array(loaded_object['Signal'])
+
+                if exp_data.ndim == 1:
+                    self.S_print.emit('Signal is 1D, reshaping to 2D')
+                    exp_data = exp_data.reshape(1, -1)
+                if Positions.ndim == 1:
+                    self.S_print.emit('Positions is 1D, reshaping to 2D')
+                    Positions = Positions.reshape(-1, 1)
+                if wavelengths.ndim == 0:
+                    wavelengths = np.array([wavelengths])
+
+                self.S_print.emit(f'Data shapes: signal={exp_data.shape}, positions={Positions.shape}, wavelengths={wavelengths.shape}')
 
                 try:
                     scale = loaded_object['spatial_scale']
@@ -221,6 +231,47 @@ class Analyzer(QObject, Loggable):
                     SNAP_object.refractive_index = 1.45
                 self.SNAP = SNAP_object
                 self.S_print.emit('File has been loaded to SNAP object')
+
+            elif hasattr(loaded_object, 'axis_key'):
+                self.S_print.emit(
+                    'loading SNAP-like data for analyzer from ' + self.spectrogram_file_path)
+                self.SNAP = loaded_object
+                self.S_print.emit('File has been loaded to SNAP object (legacy format)')
+
+            elif isinstance(loaded_object, np.ndarray) and loaded_object.ndim == 2 and loaded_object.shape[1] == 2:
+                self.S_print.emit(
+                    'loading raw spectral data (N,2) as single-position spectrogram from ' + self.spectrogram_file_path)
+                SNAP_object = SNAP_experiment.SNAP()
+                wavelengths = loaded_object[:, 0]
+                signal = loaded_object[:, 1].reshape(1, -1)
+                SNAP_object.wavelengths = wavelengths
+                SNAP_object.signal = signal
+                SNAP_object.lambda_0 = np.min(wavelengths)
+                SNAP_object.positions = np.array([[0.0, 0.0, 0.0, 0.0, 0.0]])
+                SNAP_object.axis_key = 'Z'
+                SNAP_object.type_of_signal = 'insertion losses'
+                SNAP_object.R_0 = 62.5
+                SNAP_object.refractive_index = 1.45
+                SNAP_object.date = '_'
+                SNAP_object.jones_matrix_used = False
+                self.SNAP = SNAP_object
+                self.S_print.emit('Raw spectrum loaded as spectrogram with 1 position')
+
+            else:
+                type_name = type(loaded_object).__name__
+                shape_info = ''
+                if isinstance(loaded_object, np.ndarray):
+                    shape_info = f', shape: {loaded_object.shape}'
+                self.S_print_error.emit(
+                    f'Unknown data format: {type_name}{shape_info} in file: '
+                    + self.spectrogram_file_path
+                    + '. Expected SNAP object or dict with spectrogram data. '
+                    + 'Use ProcessedData/ folder (contains .pkl spectrograms) '
+                    + 'or load raw spectra from SpectralData/ first.')
+                self.log.error('Unknown data format in file: %s, type: %s',
+                               self.spectrogram_file_path, type(loaded_object))
+                self.SNAP = None
+                return
             
         else:
             self.S_print.emit('SNAP file not chosen')
@@ -355,10 +406,9 @@ class Analyzer(QObject, Loggable):
         f.close()
         self.S_print.emit('spectrum has been saved to ' + NewFileName+'.pkl')
 
-    def plot_single_spectrum(self):
+    def plot_single_spectrum(self, target_ax=None):
         self.slice_position = None
         if self.single_spectrum_path.split('.')[-1] == 'laserdata':
-
             self.S_print.emit(
                 'loading data for analyzer from ' + self.single_spectrum_path)
             data = np.genfromtxt(self.single_spectrum_path)
@@ -367,13 +417,11 @@ class Analyzer(QObject, Loggable):
             indexes_of_attempt_start = np.where(np.diff(data[:, 0]) < 0)[0]
             ind_start = 0
             if len(indexes_of_attempt_start) > 0:
-
                 for ind_stop in indexes_of_attempt_start:
                     d = {}
                     d['times'] = data[ind_start:ind_stop, 0]
                     d['wavelengths'] = data[ind_start:ind_stop, 1]
                     d['powers'] = data[ind_start:ind_stop, 2]*1e3
-
                     attempts.append(d)
                     ind_start = ind_stop+1
             d = {}
@@ -382,42 +430,55 @@ class Analyzer(QObject, Loggable):
             d['powers'] = data[ind_start:, 2]*1e3
             attempts.append(d)
 
-            fig1, (ax1, ax2) = plt.subplots(2, 1)
-            self.single_spectrum_figure = plt.figure()
-            ax3 = plt.gca()
-            for i, attempt in enumerate(attempts):
-                ax1.plot(attempt['times'], attempt['powers'])
-                ax2.plot(attempt['times'], attempt['wavelengths'])
-                if attempt['wavelengths'][1]-attempt['wavelengths'][0] > 0:
-                    label = 'increasing $\lambda$'
-                else:
-                    label = 'decreasing $\lambda$'
-                ax3.plot(attempt['wavelengths'],
-                         attempt['powers'], label=label)
-
-            ax2.set_xlabel('Time, s')
-            ax1.set_ylabel('Power, mW')
-            ax2.set_ylabel('Wavelength, nm')
-            ax3.legend()
-            ax3.set_xlabel('Wavelength, nm')
-            ax3.set_ylabel('Power, mW')
-            fig1.tight_layout()
-            self.single_spectrum_figure.tight_layout()
-
-            # plt.plot(wavelengths,powers,color='green')
-            # plt.xlabel('Wavelength, nm')
-            # plt.ylabel('Power, mW',color='green')
+            if target_ax is None:
+                fig1, (ax1, ax2) = plt.subplots(2, 1)
+                self.single_spectrum_figure = plt.figure()
+                ax3 = plt.gca()
+                for i, attempt in enumerate(attempts):
+                    ax1.plot(attempt['times'], attempt['powers'])
+                    ax2.plot(attempt['times'], attempt['wavelengths'])
+                    if attempt['wavelengths'][1]-attempt['wavelengths'][0] > 0:
+                        label = 'increasing $\lambda$'
+                    else:
+                        label = 'decreasing $\lambda$'
+                    ax3.plot(attempt['wavelengths'],
+                             attempt['powers'], label=label)
+                ax2.set_xlabel('Time, s')
+                ax1.set_ylabel('Power, mW')
+                ax2.set_ylabel('Wavelength, nm')
+                ax3.legend()
+                ax3.set_xlabel('Wavelength, nm')
+                ax3.set_ylabel('Power, mW')
+                fig1.tight_layout()
+                self.single_spectrum_figure.tight_layout()
+            else:
+                self.single_spectrum_figure = target_ax.figure
+                target_ax.clear()
+                for i, attempt in enumerate(attempts):
+                    label = 'increasing $\lambda$' if attempt['wavelengths'][1]-attempt['wavelengths'][0] > 0 else 'decreasing $\lambda$'
+                    target_ax.plot(attempt['wavelengths'],
+                                   attempt['powers'], label=label)
+                target_ax.legend()
+                target_ax.set_xlabel('Wavelength, nm')
+                target_ax.set_ylabel('Power, mW')
 
         elif self.single_spectrum_path.split('.')[-1] == 'pkl':
             with open(self.single_spectrum_path, 'rb') as f:
                 self.S_print.emit(
                     'loading data for analyzer from ' + self.single_spectrum_path)
                 Data = (pickle.load(f))
-            self.single_spectrum_figure = plt.figure()
-            plt.plot(Data[:, 0], Data[:, 1])
-            plt.xlabel('Wavelength, nm')
-            plt.ylabel('Spectral power density, dBm')
-            plt.tight_layout()
+            if target_ax is None:
+                self.single_spectrum_figure = plt.figure()
+                plt.plot(Data[:, 0], Data[:, 1])
+                plt.xlabel('Wavelength, nm')
+                plt.ylabel('Spectral power density, dBm')
+                plt.tight_layout()
+            else:
+                self.single_spectrum_figure = target_ax.figure
+                target_ax.clear()
+                target_ax.plot(Data[:, 0], Data[:, 1])
+                target_ax.set_xlabel('Wavelength, nm')
+                target_ax.set_ylabel('Spectral power density, dBm')
         return self.single_spectrum_figure
 
     def plot_spectrogram(self, target_ax=None):
@@ -483,16 +544,42 @@ class Analyzer(QObject, Loggable):
 
         if not p['enable_offset']:
             plt.rcParams['axes.formatter.useoffset'] = False
-        if p['use_contourf_or_pcolorfast_or_pcolormesh'] == 'contourf':
+        signal = self.SNAP.signal
+        self.log.info('plot_spectrogram: signal=%s, x=%s, wavelengths=%s',
+                      signal.shape, x.shape, self.SNAP.wavelengths.shape)
+        if signal.ndim == 1:
+            self.S_print_error.emit('Signal is 1D, cannot plot spectrogram')
+            return
+
+        if signal.shape[0] == len(self.SNAP.wavelengths) and signal.shape[1] == len(x):
+            pass
+        elif signal.shape[1] == len(self.SNAP.wavelengths) and signal.shape[0] == len(x):
+            self.S_print.emit('Transposing signal for pcolorfast (expected y,x order)')
+            signal = signal.T
+        else:
+            self.S_print_error.emit(
+                f'Signal shape {signal.shape} does not match positions ({len(x)}) x wavelengths ({len(self.SNAP.wavelengths)})')
+
+        if len(x) == 1:
+            im = ax_Wavelengths.imshow(
+                signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'],
+                extent=[x[0]-0.5, x[0]+0.5,
+                        self.SNAP.wavelengths[0], self.SNAP.wavelengths[-1]],
+                aspect='auto', origin='lower')
+        elif p['use_contourf_or_pcolorfast_or_pcolormesh'] == 'contourf':
             levels = p['contourf_levels']
-            im = ax_Wavelengths.contourf(x, self.SNAP.wavelengths, self.SNAP.signal,
+            im = ax_Wavelengths.contourf(x, self.SNAP.wavelengths, signal,
                                          cmap=p['cmap'], levels=levels, vmin=p['vmin'], vmax=p['vmax'])
         elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolorfast':
-            im = ax_Wavelengths.pcolorfast(
-                x, self.SNAP.wavelengths, self.SNAP.signal[:-1,:-1], cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
+            if signal.shape[1] > 1 and signal.shape[0] > 1:
+                im = ax_Wavelengths.pcolorfast(
+                    x, self.SNAP.wavelengths, signal[:-1,:-1], cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
+            else:
+                im = ax_Wavelengths.pcolorfast(
+                    x, self.SNAP.wavelengths, signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
         elif p['use_contourf_or_pcolorfast_or_pcolormesh']=='pcolormesh':
             im = ax_Wavelengths.pcolormesh(
-                x, self.SNAP.wavelengths, self.SNAP.signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
+                x, self.SNAP.wavelengths, signal, cmap=p['cmap'], vmin=p['vmin'], vmax=p['vmax'])
             # im = ax_Wavelengths.imshow(x,self.SNAP.wavelengths,self.SNAP.signal,cmap=p['cmap'],vmin=p['vmin'],vmax=p['vmax'])
         if p['ERV_axis']:
             ax_Radius = ax_Wavelengths.secondary_yaxis(
@@ -632,16 +719,23 @@ class Analyzer(QObject, Loggable):
         plt.tight_layout()
         return fig
 
-    def plot_single_oscillogram(self):
+    def plot_single_oscillogram(self, target_ax=None):
         with open(self.single_oscillogram_path, 'rb') as f:
             self.S_print.emit(
                 'loading scope data for analyzer from ' + self.single_oscillogram_path)
             Data = (pickle.load(f))
-        self.single_oscillogram_figure = plt.figure()
-        plt.plot(Data[:, 0], Data[:, 1])
-        plt.xlabel('Time, s')
-        plt.ylabel('Signal, V')
-        plt.tight_layout()
+        if target_ax is None:
+            self.single_oscillogram_figure = plt.figure()
+            plt.plot(Data[:, 0], Data[:, 1])
+            plt.xlabel('Time, s')
+            plt.ylabel('Signal, V')
+            plt.tight_layout()
+        else:
+            self.single_oscillogram_figure = target_ax.figure
+            target_ax.clear()
+            target_ax.plot(Data[:, 0], Data[:, 1])
+            target_ax.set_xlabel('Time, s')
+            target_ax.set_ylabel('Signal, V')
         
         return self.single_oscillogram_figure
     
