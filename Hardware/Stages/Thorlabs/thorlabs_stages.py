@@ -3,58 +3,107 @@
 __version__ = '1.0'
 __date__ = '2026.05.11'
 
+import os
+import sys
 import time
 import logging
+from ctypes import c_int, c_short, c_char_p, c_uint
 
 logger = logging.getLogger(__name__)
+
+def _kinesis_paths():
+    """Возвращает список возможных путей к Kinesis DLL."""
+    paths = [
+        r"C:\Program Files\Thorlabs\Kinesis",
+        r"C:\Program Files (x86)\Thorlabs\Kinesis",
+    ]
+    # В PyInstaller --onedir DLL лежат в _internal/ рядом с exe
+    if getattr(sys, 'frozen', False):
+        internal = os.path.join(os.path.dirname(sys.executable), '_internal')
+        if os.path.isdir(internal):
+            paths.append(internal)
+    return paths
+
+
+def _add_kinesis_to_path():
+    """Добавляет пути к Kinesis DLL в поиск загрузчика и сбрасывает кеш."""
+    for p in _kinesis_paths():
+        if os.path.isdir(p):
+            try:
+                os.add_dll_directory(p)
+                logger.info(f"[Thorlabs] Добавлен путь к DLL: {p}")
+            except AttributeError:
+                logger.warning("[Thorlabs] os.add_dll_directory не поддерживается")
+
+    # Сбрасываем кеш модулей thorlabs_kinesis — чтобы перезагрузить их с DLL
+    for mod in list(sys.modules.keys()):
+        if 'thorlabs_kinesis' in mod and mod != __name__:
+            del sys.modules[mod]
 
 KDC_ENCODER_STEP = 0.03
 BSM_ENCODER_STEP = 0.002
 
 
+def _scan_via(driver_module, label):
+    """Пытается получить список серийников через один DLL-модуль."""
+    from ctypes import create_string_buffer
+
+    dll_avail = getattr(driver_module, 'DLL_AVAILABLE', False)
+    logger.info(f"[Thorlabs.{label}] DLL_AVAILABLE={dll_avail}")
+
+    if not dll_avail:
+        logger.warning(f"[Thorlabs.{label}] DLL недоступна — пропускаем")
+        return []
+
+    driver_module.TLI_BuildDeviceList()
+    time.sleep(0.5)
+
+    device_count = driver_module.TLI_GetDeviceListSize()
+    logger.info(f"[Thorlabs.{label}] Найдено устройств: {device_count}")
+
+    if device_count and device_count > 0:
+        buf = create_string_buffer(1024)
+        driver_module.TLI_GetDeviceListExt(buf, 1024)
+        raw = buf.value.decode('utf-8')
+        serials = [s.strip() for s in raw.split(',') if s.strip()]
+        logger.info(f"[Thorlabs.{label}] Серийные номера: {serials}")
+        return serials
+    return []
+
+
 def get_thorlabs_serials():
     """Сканирует доступные устройства Thorlabs"""
     serials = []
+
+    _add_kinesis_to_path()
     
-    # ← ИМПОРТ ВНУТРИ ФУНКЦИИ (чтобы поймать ошибку DLL)
     try:
         from Hardware.Stages.thorlabs_kinesis import benchtop_stepper_motor as bsm
         from Hardware.Stages.thorlabs_kinesis import KCube_DC_Servo as kdc
     except Exception as e:
         logger.warning(f"[Thorlabs] DLL не найдена: {e}")
-        print(f"[Thorlabs] DLL не найдена — сканирование пропущено")
         return serials
-    
-    try:
-        print(">>> Пытаемся сканировать KDC...")
-        kdc.TLI_BuildDeviceList()
-        
-        if hasattr(kdc, 'TLI_GetDeviceListSize'):
-            device_count = kdc.TLI_GetDeviceListSize()
-            print(f"[Thorlabs] Найдено KDC устройств: {device_count}")
-            
-            for i in range(device_count):
-                if hasattr(kdc, 'TLI_GetDeviceListByType'):
-                    serial = kdc.TLI_GetDeviceListByType(i)
-                    if serial:
-                        serials.append(serial.decode('utf-8'))
-    except Exception as e:
-        logger.error(f"[Thorlabs] Ошибка сканирования: {e}")
-        print(f"[Thorlabs] Ошибка: {e}")
-    
+
+    logger.info(">>> Сканирование Thorlabs через KDC...")
+    serials.extend(_scan_via(kdc, 'KDC'))
+
+    logger.info(">>> Сканирование Thorlabs через BSM...")
+    serials.extend(_scan_via(bsm, 'BSM'))
+
+    # Убираем дубликаты
+    serials = list(dict.fromkeys(serials))
     return serials
 
 
 class ThorlabsAxis:
     def __init__(self, serial_no, axis_type='KDC'):
-        # ← ИМПОРТ ВНУТРИ КЛАССА
+        _add_kinesis_to_path()
+
         try:
             from Hardware.Stages.thorlabs_kinesis import benchtop_stepper_motor as bsm
             from Hardware.Stages.thorlabs_kinesis import KCube_DC_Servo as kdc
         except FileNotFoundError as e:
             raise RuntimeError(f"Thorlabs DLL не найдена: {e}")
-        
-        from ctypes import c_char_p, c_int, c_short, c_uint
         
         self.serial_no = c_char_p(bytes(serial_no, "utf-8"))
         self.axis_type = axis_type

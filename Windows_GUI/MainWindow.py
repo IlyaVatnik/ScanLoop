@@ -17,6 +17,7 @@ import time
 
 from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDialog, QLineEdit, QComboBox, QCheckBox, QMessageBox, QShortcut, QTabWidget
+from Windows_GUI.stage_panel_controller import StagePanelController
 
 import importlib
 import Common.Consts
@@ -153,9 +154,9 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.init_processing_interface()
         self.init_scanning_interface()
         self.init_scope_interface()
+        self.stage_panel = StagePanelController(self.ui)
         self.init_stages_interface()
-        self.populate_port_comboboxes()
-        self.rescan_thorlabs_serials()
+        self.rescan_com_ports(_initial=True)
         self.init_piezo_stage_interface()
         self.piezo_stage_connected = 0
         self.init_menu_bar()
@@ -568,24 +569,19 @@ class MainWindow(ThreadedMainWindow, Loggable):
     def connect_stages(self):
         self.logText(">>> Нажата кнопка 'Connect Stages'")
 
-        # --- НОВАЯ ЛОГИКА ---
-        # 1. Собираем конфигурацию прямо из интерфейса
-        try:
-            config = {
-                'X': {'type': self.ui.comboBox_X.currentText(), 'port': self.ui.comboBox_PortX.currentText()},
-                'Y': {'type': self.ui.comboBox_Y.currentText(), 'port': self.ui.comboBox_PortY.currentText()},
-                'Z': {'type': self.ui.comboBox_Z.currentText(), 'port': self.ui.comboBox_PortZ.currentText()},
-            }
-            
-            # Убираем оси, для которых не выбран порт
-            config = {axis: params for axis, params in config.items() if params['port']}
-            
-            if not config:
-                self.logWarningText("Не выбрана конфигурация ни для одной оси.")
-                return
+        config = self.stage_panel.get_config()
+        if not config:
+            self.logWarningText("Не выбрана конфигурация ни для одной оси.")
+            return
 
-        except Exception as e:
-            self.logWarningText(f"Ошибка чтения конфигурации из GUI: {e}. Убедитесь, что UI обновлен.")
+        # Оси без валидного источника отбрасываются
+        config = {
+            axis: params for axis, params in config.items()
+            if params.get('port', '-') not in ('', '-')
+            or params.get('serial', '-') not in ('', '-')
+        }
+        if not config:
+            self.logWarningText("Не выбрана конфигурация ни для одной оси.")
             return
 
         self.logText(f"Применяю конфигурацию: {config}")
@@ -639,39 +635,6 @@ class MainWindow(ThreadedMainWindow, Loggable):
             for key, axis in self.stages.axes.items():
                 if axis is not None:
                     self.stages.move_home(key)
-    # Добавь этот метод в класс MainWindow
-    def populate_port_comboboxes(self):
-        try:
-            from Hardware.Scanner import get_available_com_ports
-            ports = get_available_com_ports()
-            
-            # Очищаем старые списки
-            self.ui.comboBox_PortX.clear()
-            self.ui.comboBox_PortY.clear()
-            self.ui.comboBox_PortZ.clear()
-            
-            # Добавляем пустой элемент, чтобы можно было "отключить" ось
-            self.ui.comboBox_PortX.addItem("")
-            self.ui.comboBox_PortY.addItem("")
-            self.ui.comboBox_PortZ.addItem("")
-            
-            # Заполняем портами
-            self.ui.comboBox_PortX.addItems(ports)
-            self.ui.comboBox_PortY.addItems(ports)
-            self.ui.comboBox_PortZ.addItems(ports)
-            
-            self.logText(f"Доступные COM-порты: {', '.join(ports)}")
-        except ImportError:
-            self.logWarningText("Не удалось импортировать сканер портов!")
-        except Exception as e:
-            self.logWarningText(f"Ошибка при заполнении списка портов: {e}")
-
-    # В __init__ твоего MainWindow добавь вызов этого метода
-    # def __init__(self, ...):
-    #     ...
-    #     self.init_stages_interface()
-    #     self.populate_port_comboboxes() # <-- ДОБАВИТЬ ЭТУ СТРОКУ
-    #     ...
     def connect_PiezoStages(self):
         try:
             from Hardware.Stages.PiezoStageE53D_serial import PiezoStage
@@ -1407,87 +1370,33 @@ class MainWindow(ThreadedMainWindow, Loggable):
                 self.logWarningText(f"⚠️ Частичная загрузка параметров. Ошибка: {e}")
             except Exception as e:
                 self.logWarningText(f"❌ Ошибка при загрузке параметров: {e}")
-    def rescan_com_ports(self):
-        """
-        Пересканировать COM-порты и обновить comboBox_PortX, comboBox_PortY, comboBox_PortZ
-        Сохраняет текущий выбор пользователя, если порт всё ещё доступен
-        """
-        self.logText(">>> Пересканирование COM-портов...")
-        
+    def rescan_com_ports(self, _initial=False):
+        if not _initial:
+            self.logText(">>> Пересканирование COM-портов...")
         try:
             from Hardware.Scanner import get_available_com_ports
             ports = get_available_com_ports()
-            
-            # Сохраняем текущие выборы пользователя
-            current_port_x = self.ui.comboBox_PortX.currentText()
-            current_port_y = self.ui.comboBox_PortY.currentText()
-            current_port_z = self.ui.comboBox_PortZ.currentText()
-            
-            # Очищаем старые списки
-            self.ui.comboBox_PortX.clear()
-            self.ui.comboBox_PortY.clear()
-            self.ui.comboBox_PortZ.clear()
-            
-            # Добавляем пустой элемент "-" для возможности "отключить" ось
-            self.ui.comboBox_PortX.addItem("-")
-            self.ui.comboBox_PortY.addItem("-")
-            self.ui.comboBox_PortZ.addItem("-")
-            
-            # Заполняем портами
-            self.ui.comboBox_PortX.addItems(ports)
-            self.ui.comboBox_PortY.addItems(ports)
-            self.ui.comboBox_PortZ.addItems(ports)
-            
-            # Восстанавливаем выбор пользователя, если порт всё ещё доступен
-            if current_port_x in ports:
-                self.ui.comboBox_PortX.setCurrentText(current_port_x)
-            if current_port_y in ports:
-                self.ui.comboBox_PortY.setCurrentText(current_port_y)
-            if current_port_z in ports:
-                self.ui.comboBox_PortZ.setCurrentText(current_port_z)
-            
-            self.logText(f"✅ Найдено COM-портов: {len(ports)} | {', '.join(ports)}")
-            self.rescan_thorlabs_serials()  # ← ДОБАВИТЬ ЭТУ СТРОКУ
+            self.stage_panel.update_ports(ports)
+            self.logText(f"{'' if _initial else '✅ '}Найдено COM-портов: {len(ports)} | {', '.join(ports)}")
+            self.rescan_thorlabs_serials(_initial=_initial)
         except ImportError:
             self.logWarningText("❌ Не удалось импортировать сканер портов!")
         except Exception as e:
             self.log.exception(e)
             self.logWarningText(f"❌ Ошибка при пересканировании портов: {e}")
 
-    def rescan_thorlabs_serials(self):
-        """Сканирует серийные номера Thorlabs и заполняет comboBox_X_ID, comboBox_Y_ID, comboBox_Z_ID"""
-        self.logText(">>> НАЧАЛО СКАНИРОВАНИЯ THORLABS <<<")
-        
+    def rescan_thorlabs_serials(self, _initial=False):
+        if not _initial:
+            self.logText(">>> НАЧАЛО СКАНИРОВАНИЯ THORLABS <<<")
         try:
-            # ← Импорт внутри try/except, чтобы поймать ошибку DLL
             from Hardware.Stages.Thorlabs.thorlabs_stages import get_thorlabs_serials
             serials = get_thorlabs_serials()
-            
-            # Сохраняем текущий выбор
-            current_x = self.ui.comboBox_X_ID.currentText()
-            current_y = self.ui.comboBox_Y_ID.currentText()
-            current_z = self.ui.comboBox_Z_ID.currentText()
-            
-            # Очищаем и заполняем comboBox-ы
-            for combo in [self.ui.comboBox_X_ID, self.ui.comboBox_Y_ID, self.ui.comboBox_Z_ID]:
-                combo.clear()
-                combo.addItem("-")
-                combo.addItems(serials)
-            
-            # Восстанавливаем выбор
-            if current_x in serials:
-                self.ui.comboBox_X_ID.setCurrentText(current_x)
-            if current_y in serials:
-                self.ui.comboBox_Y_ID.setCurrentText(current_y)
-            if current_z in serials:
-                self.ui.comboBox_Z_ID.setCurrentText(current_z)
-            
-            # ЛОГ С РЕЗУЛЬТАТАМИ
+            self.stage_panel.update_ids(serials)
             if serials:
-                self.logText(f"✅ Найдено Thorlabs устройств: {len(serials)} | ID: {', '.join(serials)}")
+                prefix = "" if _initial else "✅ "
+                self.logText(f"{prefix}Найдено Thorlabs устройств: {len(serials)} | ID: {', '.join(serials)}")
             else:
                 self.logText("⚠️ Thorlabs устройств не найдено (проверь подключение и драйверы)")
-                
         except Exception as e:
             error_msg = str(e).lower()
             if 'dll' in error_msg or 'dynlib' in error_msg or 'thorlabs' in error_msg:
@@ -1497,9 +1406,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
                 self.logText(f"❌ Ошибка сканирования Thorlabs: {e}")
                 import traceback
                 self.logText(f"DEBUG: {traceback.format_exc()}")
-            for combo in [self.ui.comboBox_X_ID, self.ui.comboBox_Y_ID, self.ui.comboBox_Z_ID]:
-                combo.clear()
-                combo.addItem("-")
+            self.stage_panel.update_ids([])
 
     def choose_folder_for_spectral_processor(self):
         self.spectral_processor.source_dir_path = str(

@@ -331,15 +331,15 @@
               <property name="title">
                <string>Stages</string>
               </property>
-              <widget class="QLabel" name="label_PiezoStage_status">
-               <property name="geometry">
-                <rect>
-                 <x>110</x>
-                 <y>160</y>
-                 <width>31</width>
-                 <height>18</height>
-                </rect>
-               </property>
+               <widget class="QLabel" name="label_PiezoStage_status">
+                <property name="geometry">
+                 <rect>
+                  <x>110</x>
+                  <y>115</y>
+                  <width>31</width>
+                  <height>18</height>
+                 </rect>
+                </property>
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -362,15 +362,15 @@
                 <string/>
                </property>
               </widget>
-              <widget class="QPushButton" name="pushButton_PiezoStageConnect">
-               <property name="geometry">
-                <rect>
-                 <x>10</x>
-                 <y>160</y>
-                 <width>91</width>
-                 <height>20</height>
-                </rect>
-               </property>
+               <widget class="QPushButton" name="pushButton_PiezoStageConnect">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>115</y>
+                  <width>91</width>
+                  <height>20</height>
+                 </rect>
+                </property>
                <property name="font">
                 <font>
                  <family>MS Shell Dlg 2</family>
@@ -546,61 +546,16 @@
                  <string>STANDA</string>
                 </property>
                </item>
-              </widget>
-              <widget class="QComboBox" name="comboBox_Y_ID">
-               <property name="geometry">
-                <rect>
-                 <x>110</x>
-                 <y>120</y>
-                 <width>69</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <item>
-                <property name="text">
-                 <string>-</string>
-                </property>
-               </item>
-              </widget>
-              <widget class="QComboBox" name="comboBox_Z_ID">
-               <property name="geometry">
-                <rect>
-                 <x>200</x>
-                 <y>120</y>
-                 <width>69</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <item>
-                <property name="text">
-                 <string>-</string>
-                </property>
-               </item>
-              </widget>
-              <widget class="QComboBox" name="comboBox_X_ID">
-               <property name="geometry">
-                <rect>
-                 <x>20</x>
-                 <y>120</y>
-                 <width>69</width>
-                 <height>22</height>
-                </rect>
-               </property>
-               <item>
-                <property name="text">
-                 <string>-</string>
-                </property>
-               </item>
-              </widget>
+               </widget>
               <widget class="QComboBox" name="comboBox_Type_of_Stages">
-               <property name="geometry">
-                <rect>
-                 <x>170</x>
-                 <y>160</y>
-                 <width>91</width>
-                 <height>21</height>
-                </rect>
-               </property>
+                <property name="geometry">
+                 <rect>
+                  <x>170</x>
+                  <y>115</y>
+                  <width>91</width>
+                  <height>21</height>
+                 </rect>
+                </property>
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToMinimumContentsLength</enum>
                </property>
@@ -630,7 +585,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="comboBox_PortY">
+              <widget class="QComboBox" name="comboBox_SourceY">
                <property name="geometry">
                 <rect>
                  <x>110</x>
@@ -645,7 +600,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="comboBox_PortX">
+              <widget class="QComboBox" name="comboBox_SourceX">
                <property name="geometry">
                 <rect>
                  <x>20</x>
@@ -660,7 +615,7 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="comboBox_PortZ">
+              <widget class="QComboBox" name="comboBox_SourceZ">
                <property name="geometry">
                 <rect>
                  <x>200</x>
