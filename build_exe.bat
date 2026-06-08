@@ -23,7 +23,7 @@ if exist "venv\Scripts\python.exe" (
 
 :: --- Dependencies ---
 echo [SETUP] Installing/updating dependencies...
-call venv\Scripts\python -m pip install -r requirements.txt
+call venv\Scripts\python -m pip install -r build\scripts\requirements.txt
 if errorlevel 1 (
     echo [WARN] pip install had issues. Attempting build anyway...
 ) else (
