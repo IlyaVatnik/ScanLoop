@@ -1,17 +1,16 @@
 *.pyc
 *.pkl
-ZeroPosition.txt
-.pylint.d/main1.stats
-*.stats
-*.txt
-Windows/__pycache__/MainWindow.cpython-37.pyc
-Windows/UIs/__pycache__/MainWindowUI.cpython-37.pyc
-Windows/__pycache__/MainWindow.cpython-37.pyc
-plotting_parameters.txt
-ZeroPosition.txt
-Parameters.txt
 *.png
+__pycache__/
+ZeroPosition.txt
+plotting_parameters.txt
 Parameters.txt
-/build
+/build/_pyi/
 /Scanloop exe
 /dist
+venv/
+build_version_*.txt
+build_log_*.txt
+*.spec
+.idea/
+.vscode/

@@ -1,0 +1,275 @@
+ScanLoop — полное описание проекта
+====================================
+
+Что это
+-------
+Windows-приложение на PyQt5 + matplotlib для управления моторизованными
+столиками (Thorlabs Kinesis, Standa, LBTEK, PI, Piezo) и оптическими
+сканерами. Собирается в .exe через PyInstaller (--onedir --windowed).
+Тестируется и используется только в виде собранного EXE.
+
+
+Репозиторий
+-----------
+C:\Users\Александр\Documents\GitHub\ScanLoop\
+
+
+Ключевые файлы
+--------------
+main.py — точка входа приложения
+
+build_exe.bat — статический bat-файл (в git). Создаёт venv →
+  pip install -r requirements.txt → python build/scripts/build_exe.py.
+  Использует %~dp0 для поиска корня проекта.
+  Должен быть с CRLF (LF ломают cmd.exe).
+
+requirements.txt — PyInstaller, PyQt5, pyserial, numpy, scipy, matplotlib
+
+build/scripts/build_config.py — самоконфигурирующийся модуль:
+  автоопределение Kinesis, транслитерация юзернейма, версионность, пути
+
+build/scripts/build_exe.py — движок сборки:
+  Qt plugin патч, ошибки с советами, логирование, zip-архив
+
+Hardware/Stages/Thorlabs/thorlabs_stages.py — драйвер Thorlabs:
+  TLI_BuildDeviceList, TLI_GetDeviceListExt, os.add_dll_directory
+
+Hardware/Stages/thorlabs_kinesis/ — вендорные Python-биндинги Thorlabs
+Hardware/Stages/Standa/, Hardware/Stages/LBTEK/,
+Hardware/Stages/PIStages/, Hardware/Stages/PiezoStageE53D_serial/
+  — другие типы столиков
+
+Windows_GUI/stage_panel_controller.py — StagePanelController +
+  StageAxisSelector, единый comboBox_Source вместо отдельных
+  comboBox_Port + comboBox_X_ID
+
+build/scripts/kinesis_user_path.txt — сохранённый пользователем путь
+  к Kinesis (если не стандартный)
+
+
+Архитектура сборки
+------------------
+- Скрипты сборки: build/scripts/
+- PyInstaller временные файлы: build/_pyi/ (--workpath / --specpath)
+- .gitignore: /build/_pyi/, venv/, __pycache__/, *.spec, .idea/,
+  .vscode/, build_version_*.txt, build_log_*.txt
+- build_exe.bat — упрощён (без таймстампов, т.к. wmic/powershell
+  ломают cmd с UTF-8). Все метки времени ставит Python-скрипт.
+
+
+Qt плагины (исправленный баг с кириллицей)
+-------------------------------------------
+На системах с кириллицей в имени пользователя
+QLibraryInfo.location(PluginsPath) возвращает путь с '?' вместо
+кириллицы (C:/Users/?????????/...). Плагины не собирались, потому что
+pyqt5_library_info.qt_lib_dir — pathlib.Path, кешированный при
+_load_info(), содержал '?'. collect_plugins() находил qwindows.dll, но
+_validate_plugin_dependencies() не находил Qt5Core.dll в qt_lib_dir
+(путь с '?' не существует) и исключал все плагины. На выходе — 0
+плагинов, EXE падал с «Unable to initialize Qt platform plugin».
+
+Исправление в _patch_pyi_qt(): генерируется скрипт-обёртка
+build/_pyi/_qt_patch_wrapper.py, который запускается вместо
+-m PyInstaller. Обёртка:
+  1. Импортирует PyQt5, находит правильный путь к plugins
+  2. Триггерит pyqt5_library_info.version (загрузка данных)
+  3. Патчит не только location['PluginsPath'], но и
+     pyqt5_library_info.qt_lib_dir напрямую (pathlib.Path)
+  4. Затем вызывает PyInstaller.__main__.run()
+
+Проверено: qwindows.dll, qminimal.dll, qoffscreen.dll, qwebgl.dll
+присутствуют в _internal/PyQt5/Qt5/plugins/platforms/.
+
+
+Kinesis
+-------
+Автоопределение проверяет:
+  C:\Program Files\Thorlabs\Kinesis
+  C:\Program Files (x86)\Thorlabs\Kinesis
+
+Если не найден — интерактивное меню из 3 опций (с циклом):
+  1. Ввести путь вручную — если невалиден (DLL не найдены),
+     цикл повторяет запрос (не надо перезапускать сборку)
+  2. Показать ссылку для скачивания — показывает URL, возврат в меню
+  3. Продолжить без Thorlabs — сборка без Kinesis DLL
+
+При успешном ручном вводе путь сохраняется в
+build/scripts/kinesis_user_path.txt и автоматически подгружается
+при следующих запусках.
+
+Валидация: проверяет Thorlabs.MotionControl.KCube.DCServo.dll
+и Thorlabs.MotionControl.DeviceManager.dll.
+
+Формат пути: полный путь к папке Kinesis (не к файлу, не к родителю).
+Пример: C:\Program Files\Thorlabs\Kinesis
+
+
+Имя EXE
+-------
+Формат: v{version}_{APP_PREFIX}
+где APP_PREFIX = ScanLoop_{USER_SLUG}
+Пример: v19_ScanLoop_Aleksandr_DESKTOP-6OPTJ05.exe
+
+Строка сборки (build_exe.py:449):
+  app_name = f"v{version}_{cfg.APP_PREFIX}"
+
+
+Версионность
+------------
+- Файл build/scripts/build_version_{USER_SLUG}.txt
+  — свой счётчик на каждого пользователя
+- USER_SLUG = transliterate(USERNAME) + '_' + COMPUTERNAME
+  — транслитерация кириллицы в латиницу (побуквенно,
+    первая заглавная) + хост
+- Пример: Aleksandr_DESKTOP-6OPTJ05
+
+
+Транслитерация
+--------------
+- Полная таблица в build_config.py:_CYRILLIC_MAP
+- identity_slug() — транслитерирует, удаляет ведущие
+  не-алфавитные символы, капитализирует первую букву
+
+
+Обработка ошибок
+----------------
+- build_exe.py:main() обёрнут в try/except →
+  build/scripts/build_crash.log
+- Словарь ERROR_SUGGESTIONS с советами по типичным ошибкам PyInstaller
+- Unicode-safe вывод через encode(sys.stdout.encoding, errors='replace')
+- Сырые логи сборки в build/scripts/build_log_{USER_SLUG}.txt
+
+
+UI: StagePanelController
+------------------------
+- comboBox_Source заменил comboBox_Port + comboBox_X/Y/Z_ID
+  (в MainWindow.ui, MainWindowUI.py, stage_panel_controller.py,
+   MainWindow.py)
+- StageAxisSelector управляет source_combo сам — переключение типа
+  столика меняет наполнение комбобокса
+- StagePanelController вызывает update_ports(), update_ids(),
+  get_config()
+- Кнопки Piezo, LED статус, comboBox_Type_of_Stages сдвинуты
+  y=160 → y=115
+
+
+Thorlabs драйвер
+----------------
+- get_thorlabs_serials() использует TLI_GetDeviceListExt(buf, 1024)
+  вместо TLI_GetDeviceListByType(i)
+- _add_kinesis_to_path() — os.add_dll_directory(KINESIS_PATH) +
+  _internal/ для frozen exe
+- _scan_via(driver_module, label) — общий метод для Dual-DLL
+  сканирования
+- TLI_BuildDeviceList возвращает 0 = S_OK;
+  TLI_GetDeviceListSize возвращает 2 при закрытых столиках
+
+
+Оборудование в лаборатории
+--------------------------
+- 2 Thorlabs столика с серийниками 27254353, 27255020
+- Kinesis установлен в C:\Program Files\Thorlabs\Kinesis
+
+
+Проверка сборки (build_exe.bat)
+-------------------------------
+- Должен быть сохранён с CRLF (Windows line endings),
+  иначе cmd.exe ломается — if exist не работает, команды
+  интерпретируются как текст
+- chcp 65001 — UTF-8 code page, работает нормально
+- Таймстампы из bat убраны — всё логирование в Python
+- Использует errorlevel, без ! или %var% внутри if-блоков
+- Вызов: call venv\Scripts\python build\scripts\build_exe.py
+
+
+Проверенные сценарии
+-------------------
+1. Удалить venv/ → запустить build_exe.bat:
+   создаёт venv, pip install, сборка за ~100с           ✅
+2. Qt плагины (qwindows.dll) в dist проверены           ✅
+3. Kinesis отключён → ручной ввод → сохранение → сборка  ✅
+4. Kinesis восстановлен → автоопределение → сборка       ✅
+5. Меню опций 0-4 (отмена/вручную/ссылка/пропуск/поиск)
+   с циклом и откатом версии                            ✅
+6. Собранный EXE запущен и работает на ПК разработчика   ✅
+   (на другом ПК — позже)
+
+
+Известные ограничения
+---------------------
+1. PyInstaller @isolated.decorate — _read_qt_library_info()
+   запускается в изолированном подпроцессе.
+
+   Механизм @isolated.decorate:
+   PyInstaller использует декоратор @isolated.decorate для
+   запуска «ненадёжного» кода в отдельном подпроцессе
+   (fork/exec на Linux, subprocess на Windows). Это сделано
+   для того, чтобы импорт Qt (PyQt5.QtCore, QLibraryInfo)
+   не «загрязнял» основной процесс PyInstaller — Qt может
+   загружать плагины, устанавливать глобальные состояния
+   и т.д., что помешало бы анализу зависимостей.
+
+   Проблема: _read_qt_library_info() выполняется в подпроцессе,
+   который:
+     a) импортирует PyQt5.QtCore с нуля
+     b) вызывает QLibraryInfo.location(PluginsPath)
+     c) Qt считывает путь из своего скомпилированного
+        qt.conf (или реестра) — на системах с кириллицей
+        в имени пользователя этот путь содержит '?' вместо
+        кириллицы
+     d) возвращает результат обратно в основной процесс
+     e) основной процесс сохраняет его в
+        pyqt5_library_info._info['location']
+   После этого любые попытки исправить пути в основном
+   процессе работают, но:
+
+   Нюанс с qt_lib_dir:
+   Внутри QtLibraryInfo._load_info() дополнительно кешируется
+   поле self.qt_lib_dir как pathlib.Path (из location['BinariesPath']
+   для PyQt, из location['PrefixPath'] для PySide). Оно
+   кешируется один раз при первой загрузке и больше
+   не пересчитывается. Плагины собирает метод collect_plugins(),
+   который:
+     1) берёт plugin_src_dir = self.location['PluginsPath']
+        (работает, если мы его запатчили)
+     2) находит DLL плагинов (qwindows.dll и т.д.)
+     3) для каждой DLL вызывает _validate_plugin_dependencies()
+     4) валидация ищет Qt5Core.dll в self.qt_lib_dir
+        (search_paths=[self.qt_lib_dir])
+     5) если qt_lib_dir содержит '?' — путь не существует,
+        Qt5Core.dll не найден → плагин исключается
+        → итого 0 плагинов на выходе
+
+   Исправление:
+   Скрипт-обёртка (_qt_patch_wrapper.py) запускается ВМЕСТО
+   -m PyInstaller. Он:
+     • импортирует PyQt5 и находит ручной правильный путь
+     • триггерит pyqt5_library_info.version (загрузка данных
+       через @isolated в подпроцесс — получает кривой путь)
+     • патчит location['PluginsPath'] и все остальные
+       location-поля на правильные
+     • патчит pyqt5_library_info.qt_lib_dir напрямую
+       (pyqt5_library_info.qt_lib_dir = pathlib.Path(bin_path).resolve())
+     • только потом вызывает PyInstaller.__main__.run()
+   В результате:
+     - collect_plugins() видит правильный PluginsPath
+     - _validate_plugin_dependencies() находит Qt5Core.dll
+       в правильном qt_lib_dir → плагин проходит валидацию
+     - qwindows.dll и остальные собираются в dist
+
+   Если PyInstaller обновится и изменит логику кеширования
+   qt_lib_dir или способ чтения QtLibraryInfo — патч может
+   сломаться. В этом случае надо будет смотреть, как
+   новый PyInstaller хранит/читает qt_lib_dir, и либо
+   патчить его аналогично, либо переопределять через
+   hook-файл (--additional-hooks-dir).
+
+
+Что НЕ проверено
+----------------
+- Standa / LBTEK / PI / Piezo столики — не тестировались
+  (возможно, нет оборудования).
+- Работа comboBox_Source — автоподстановка при переключении
+  типа столика не проверена в рантайме.
+- Сборка на чистом ПК — не проверяли (нет второго ПК
+  с кириллическим юзером).
