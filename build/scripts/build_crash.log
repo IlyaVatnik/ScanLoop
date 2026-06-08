@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "C:\Users\Александр\Documents\GitHub\ScanLoop\build\scripts\build_exe.py", line 589, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Александр\Documents\GitHub\ScanLoop\build\scripts\build_exe.py", line 554, in main
+    retcode, raw_logs = run_pyinstaller(cmd, env_extras)
+                        ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\Александр\Documents\GitHub\ScanLoop\build\scripts\build_exe.py", line 458, in run_pyinstaller
+    sys.stdout.flush()
+    ~~~~~~~~~~~~~~~~^^
+OSError: [Errno 22] Invalid argument
