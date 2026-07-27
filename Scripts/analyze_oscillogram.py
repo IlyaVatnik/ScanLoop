@@ -85,7 +85,7 @@ if __name__=='__main__':
       
         
     import pickle
-    file=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\TimeDomainData\TD_3_X=0_Y=0_Z=0_piezoZ=0.0000_.osc_pkl"
+    file=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\data\time-domain\TD_3_X=0_Y=0_Z=0_piezoZ=0.0000_.osc_pkl"
     with open(file, 'rb') as f:
         data=pickle.load(f)
     times, signal=data[:,0],data[:,1]

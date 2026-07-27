@@ -12,7 +12,7 @@ from PyQt5.QtCore import QObject
 
 
 class ProcessAndPlotTD(QObject, Loggable):
-    ProcessedDataFolder='ProcessedData\\'
+    ProcessedDataFolder='data\\processed\\'
     skip_Header=0
     axis_to_plot_along='X'
     number_of_axis={'X':0,'Y':1,'Z':2}
@@ -149,5 +149,5 @@ if __name__ == "__main__":
     os.chdir('..')
     ProcessTD=ProcessAndPlotTD()
     ProcessTD.run(Averaging=True,
-                  DirName='TimeDomainData',axis_to_plot_along='Y',
+                  DirName='data\\time-domain',axis_to_plot_along='Y',
                   channel_number=0)

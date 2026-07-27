@@ -1,0 +1,229 @@
+18:18:26 
+============================================================
+18:18:26   DIAGNOSTIC BSM v5 — NO LoadSettings + StopImmediate — 2026-07-21 18:18:26
+18:18:26 ============================================================
+18:18:26   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v5_2026-07-21_18-18-26.log
+18:18:26 
+============================================================
+18:18:26   STEP 0: OPEN WITHOUT LoadSettings — DUMP RAW PARAMS
+18:18:26 ============================================================
+18:18:28 
+============================================================
+18:18:28   STEP 0 ch=1 (NO LoadSettings)
+18:18:28 ============================================================
+18:18:28   Status   [ch=1 RAW (no LoadSettings)]: 0x80101210 = FWD_SW_LIMIT | MOVING | ERROR
+18:18:28   Position [ch=1 RAW (no LoadSettings)]: raw=0, mm=0.0000
+18:18:28   VelParams [ch=1 RAW (no LoadSettings)]: maxVel=1000, accel=250
+18:18:28   PowerParams [ch=1 RAW (no LoadSettings)]: move=6%, rest=136%
+18:18:28   HomingParams [ch=1 RAW (no LoadSettings)]: dir=2, ls=1, vel=2500, offset=0
+18:18:28   LimitSwitch [ch=1 RAW (no LoadSettings)]: fwd=2, rev=2, fwd_lim=1228800, rev_lim=409600, sw=1
+18:18:28   SoftLimitMode [ch=1 RAW (no LoadSettings)]: -4048
+18:18:28   InputVoltage [ch=1 RAW (no LoadSettings)]: 720 mV
+18:18:28 
+============================================================
+18:18:28   STEP 0 ch=2 (NO LoadSettings)
+18:18:28 ============================================================
+18:18:28   Status   [ch=2 RAW (no LoadSettings)]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:18:28   Position [ch=2 RAW (no LoadSettings)]: raw=-887096, mm=-1774.1920
+18:18:28   VelParams [ch=2 RAW (no LoadSettings)]: maxVel=1000, accel=250
+18:18:28   PowerParams [ch=2 RAW (no LoadSettings)]: move=6%, rest=136%
+18:18:28   HomingParams [ch=2 RAW (no LoadSettings)]: dir=32760, ls=0, vel=0, offset=0
+18:18:28   LimitSwitch [ch=2 RAW (no LoadSettings)]: fwd=2, rev=2, fwd_lim=76800, rev_lim=25600, sw=3
+18:18:28   SoftLimitMode [ch=2 RAW (no LoadSettings)]: 0
+18:18:28   InputVoltage [ch=2 RAW (no LoadSettings)]: 656 mV
+18:18:29 
+============================================================
+18:18:29   STEP 1: ch=1 fix + home + move
+18:18:29 ============================================================
+18:18:29 
+============================================================
+18:18:29   FIX + TEST ch=1
+18:18:29 ============================================================
+18:18:31 
+--- Status BEFORE fix ---
+18:18:31   Status   [ch=1 BEFORE]: 0x80101210 = FWD_SW_LIMIT | MOVING | ERROR
+18:18:31   Position [ch=1 BEFORE]: raw=0, mm=0.0000
+18:18:31   VelParams [ch=1 BEFORE]: maxVel=1000, accel=250
+18:18:31   PowerParams [ch=1 BEFORE]: move=6%, rest=136%
+18:18:31   HomingParams [ch=1 BEFORE]: dir=2, ls=1, vel=2500, offset=0
+18:18:31   LimitSwitch [ch=1 BEFORE]: fwd=2, rev=2, fwd_lim=1228800, rev_lim=409600, sw=1
+18:18:31   SoftLimitMode [ch=1 BEFORE]: -14736
+18:18:31   InputVoltage [ch=1 BEFORE]: 728 mV
+18:18:31 
+--- StopImmediate (clear MOVING) ---
+18:18:31   StopImmediate -> err=0
+18:18:31   Status after StopImmediate: 0x80101000 = ERROR
+18:18:31 
+--- Fix VelParams ---
+18:18:31   SetVelParams(1000, 250) -> err=0
+18:18:31   Verify: maxVel=1000, accel=250 OK
+18:18:31 
+--- Fix PowerParams ---
+18:18:31   SetPowerParams(100, 50) -> err=0
+18:18:31   Verify: move=6%, rest=136% STILL6%
+18:18:31 
+--- Fix HomingParams ---
+18:18:31   SetHomingParams(REV, REV_LIMIT, 2500, 0) -> err=0
+18:18:31 
+--- Fix LimitSwitchParams ---
+18:18:31   SetLimitSwitchParams(Ignore, Ignore, 0, 0, Ignored) -> err=0
+18:18:31 
+--- Fix SoftLimitMode ---
+18:18:31   SetSoftLimitMode(0) -> err=None
+18:18:31 
+--- Fix StageAxisLimits ---
+18:18:31   SetStageAxisLimits(0, 409600) -> err=0
+18:18:31 
+--- PersistSettings ---
+18:18:32   PersistSettings attempt 1 -> True
+18:18:32 
+--- Re-verify after persist ---
+18:18:32   Status   [ch=1 AFTER]: 0x80101000 = ERROR
+18:18:32   Position [ch=1 AFTER]: raw=0, mm=0.0000
+18:18:32   VelParams [ch=1 AFTER]: maxVel=1000, accel=250
+18:18:32   PowerParams [ch=1 AFTER]: move=6%, rest=136%
+18:18:32   HomingParams [ch=1 AFTER]: dir=2, ls=1, vel=2500, offset=0
+18:18:32   LimitSwitch [ch=1 AFTER]: fwd=1, rev=1, fwd_lim=0, rev_lim=0, sw=1
+18:18:32   SoftLimitMode [ch=1 AFTER]: 0
+18:18:32   InputVoltage [ch=1 AFTER]: 752 mV
+18:18:34 
+============================================================
+18:18:34   HOME ch=1
+18:18:34 ============================================================
+18:18:35   Before home:
+18:18:35   Status   [ch=1 pre-home]: 0x80101000 = ERROR
+18:18:35   Position [ch=1 pre-home]: raw=0, mm=0.0000
+18:18:35   VelParams [ch=1 pre-home]: maxVel=1000, accel=250
+18:18:35   PowerParams [ch=1 pre-home]: move=6%, rest=136%
+18:18:35   HomingParams [ch=1 pre-home]: dir=2, ls=1, vel=2500, offset=0
+18:18:35   LimitSwitch [ch=1 pre-home]: fwd=1, rev=1, fwd_lim=0, rev_lim=0, sw=1
+18:18:35   SoftLimitMode [ch=1 pre-home]: 880
+18:18:35   InputVoltage [ch=1 pre-home]: 736 mV
+18:18:35 
+--- StopImmediate before Home ---
+18:18:36   Status after Stop: 0x80101000 = ERROR
+18:18:36 
+--- Home ---
+18:18:36   SBC_Home -> err=44
+18:18:36   Home FAILED: err=44
+18:18:37 
+============================================================
+18:18:37   MOVE ROUNDTRIP ch=1
+18:18:37 ============================================================
+18:18:38   Before: raw=0, mm=0.0000
+18:18:38 
+--- Move +40.0um ---
+18:18:38   Move: 40.0um = 20 steps
+18:18:38   MoveRelative err=0
+18:18:43   Stabilized: raw=20, mm=0.0400
+18:18:43   Result: delta=20, expected=20 -> PASS
+18:18:43 
+--- Move -40.0um ---
+18:18:43   Move: -40.0um = -20 steps
+18:18:43   MoveRelative err=0
+18:18:48   Stabilized: raw=0, mm=0.0000
+18:18:48   Result: delta=-20, expected=-20 -> PASS
+18:18:49 
+============================================================
+18:18:49   STEP 2: ch=2 fix + home + move
+18:18:49 ============================================================
+18:18:49 
+============================================================
+18:18:49   FIX + TEST ch=2
+18:18:49 ============================================================
+18:18:51 
+--- Status BEFORE fix ---
+18:18:51   Status   [ch=2 BEFORE]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:18:51   Position [ch=2 BEFORE]: raw=-897755, mm=-1795.5100
+18:18:51   VelParams [ch=2 BEFORE]: maxVel=4203520, accel=0
+18:18:51   PowerParams [ch=2 BEFORE]: move=100%, rest=6%
+18:18:51   HomingParams [ch=2 BEFORE]: dir=0, ls=16368, vel=27904, offset=0
+18:18:51   LimitSwitch [ch=2 BEFORE]: fwd=7, rev=7, fwd_lim=0, rev_lim=0, sw=0
+18:18:51   SoftLimitMode [ch=2 BEFORE]: 0
+18:18:51   InputVoltage [ch=2 BEFORE]: 680 mV
+18:18:51 
+--- StopImmediate (clear MOVING) ---
+18:18:51   StopImmediate -> err=0
+18:18:51   Status after StopImmediate: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:18:51 
+--- Fix VelParams ---
+18:18:51   SetVelParams(1000, 250) -> err=0
+18:18:51   Verify: maxVel=1000, accel=250 OK
+18:18:51 
+--- Fix PowerParams ---
+18:18:51   SetPowerParams(100, 50) -> err=0
+18:18:51   Verify: move=100%, rest=50% OK
+18:18:51 
+--- Fix HomingParams ---
+18:18:51   SetHomingParams(REV, REV_LIMIT, 2500, 0) -> err=0
+18:18:51 
+--- Fix LimitSwitchParams ---
+18:18:51   SetLimitSwitchParams(Ignore, Ignore, 0, 0, Ignored) -> err=0
+18:18:51 
+--- Fix SoftLimitMode ---
+18:18:51   SetSoftLimitMode(0) -> err=None
+18:18:51 
+--- Fix StageAxisLimits ---
+18:18:51   SetStageAxisLimits(0, 409600) -> err=0
+18:18:51 
+--- PersistSettings ---
+18:18:52   PersistSettings attempt 1 -> True
+18:18:52 
+--- Re-verify after persist ---
+18:18:52   Status   [ch=2 AFTER]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:18:52   Position [ch=2 AFTER]: raw=-897755, mm=-1795.5100
+18:18:52   VelParams [ch=2 AFTER]: maxVel=1000, accel=250
+18:18:52   PowerParams [ch=2 AFTER]: move=100%, rest=50%
+18:18:52   HomingParams [ch=2 AFTER]: dir=2, ls=1, vel=2500, offset=0
+18:18:52   LimitSwitch [ch=2 AFTER]: fwd=1, rev=1, fwd_lim=0, rev_lim=0, sw=1
+18:18:52   SoftLimitMode [ch=2 AFTER]: 0
+18:18:52   InputVoltage [ch=2 AFTER]: 680 mV
+18:18:54 
+============================================================
+18:18:54   HOME ch=2
+18:18:54 ============================================================
+18:18:56   Before home:
+18:18:56   Status   [ch=2 pre-home]: 0x80101000 = ERROR
+18:18:56   Position [ch=2 pre-home]: raw=-897990, mm=-1795.9800
+18:18:56   VelParams [ch=2 pre-home]: maxVel=1000, accel=250
+18:18:56   PowerParams [ch=2 pre-home]: move=6%, rest=136%
+18:18:56   HomingParams [ch=2 pre-home]: dir=2, ls=1, vel=2500, offset=0
+18:18:56   LimitSwitch [ch=2 pre-home]: fwd=1, rev=1, fwd_lim=0, rev_lim=0, sw=1
+18:18:56   SoftLimitMode [ch=2 pre-home]: 1
+18:18:56   InputVoltage [ch=2 pre-home]: 656 mV
+18:18:56 
+--- StopImmediate before Home ---
+18:18:57   Status after Stop: 0x80101000 = ERROR
+18:18:57 
+--- Home ---
+18:18:57   SBC_Home -> err=44
+18:18:57   Home FAILED: err=44
+18:18:58 
+============================================================
+18:18:58   MOVE ROUNDTRIP ch=2
+18:18:58 ============================================================
+18:18:59   Before: raw=-897990, mm=-1795.9800
+18:18:59 
+--- Move +40.0um ---
+18:18:59   Move: 40.0um = 20 steps
+18:19:00   MoveRelative err=39
+18:19:00   Stabilized: raw=-897990, mm=-1795.9800
+18:19:00   Result: delta=0, expected=20 -> FAIL
+18:19:00 
+--- Move -40.0um ---
+18:19:00   Move: -40.0um = -20 steps
+18:19:00   MoveRelative err=39
+18:19:01   Stabilized: raw=-897990, mm=-1795.9800
+18:19:01   Result: delta=0, expected=-20 -> FAIL
+18:19:02 
+============================================================
+18:19:02   SUMMARY
+18:19:02 ============================================================
+18:19:02   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v5_2026-07-21_18-18-26.log
+18:19:02 
+18:19:02   Test                                  Expected        Got   Result
+18:19:02   ----------------------------------- ---------- ---------- --------
+18:19:02   ch=1 +40.0um                                20         20     PASS
+18:19:02   ch=1 -40.0um                               -20        -20     PASS
+18:19:02   ch=2 +40.0um                                20          0     FAIL
+18:19:02   ch=2 -40.0um                               -20          0     FAIL

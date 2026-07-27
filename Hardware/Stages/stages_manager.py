@@ -27,10 +27,10 @@ except ImportError as e:
     LBTEKAxis = None
 
 try:
-    from Hardware.Stages.Thorlabs.thorlabs_stages import ThorlabsAxis
+    from Hardware.Stages.Thorlabs.thorlabs_stages import ThorlabsCube, ThorlabsBSM
 except (ImportError, FileNotFoundError) as e:
     logger.warning(f"Не удалось загрузить модуль Thorlabs: {e}")
-    ThorlabsAxis = None
+    ThorlabsCube = ThorlabsBSM = None
 
 
 class Stages(QObject):
@@ -52,7 +52,6 @@ class Stages(QObject):
         driver_map = {
             'STANDA': StandaAxis,
             'LBTEK': LBTEKAxis,
-            'THORLABS': ThorlabsAxis,  # ← ДОБАВЛЕНО
         }
 
         for axis_key, params in config.items():
@@ -60,20 +59,48 @@ class Stages(QObject):
                 continue
             try:
                 stage_type = params['type'].upper()
-                port = params.get('port', '')  # ← Для Thorlabs это серийник
-                serial = params.get('serial', port)  # ← Поддержка обоих полей
-                driver_class = driver_map.get(stage_type)
+                serial = params.get('serial', params.get('port', ''))
 
-                if driver_class is None:
-                    self.S_print_error.emit(f"Неизвестный тип подвижки: {stage_type}")
-                    continue
-
-                # Для Thorlabs передаём серийник, для остальных — порт
                 if stage_type == 'THORLABS':
-                    self.axes[axis_key] = driver_class(serial, params.get('thorlabs_type', 'KDC'))
+                    raw = serial
+                    if not raw:
+                        continue
+                    if 'B' in raw and raw[0].isdigit():
+                        channel = int(raw[0])
+                        serial = raw[2:]
+                        vel = params.get('velocity', 2.0)
+                        acc = params.get('acceleration', 0.5)
+                        if ThorlabsBSM:
+                            self.axes[axis_key] = ThorlabsBSM(serial, channel, vel, acc)
+                        else:
+                            continue
+                    elif raw.startswith('B'):
+                        serial = raw[1:]
+                        vel = params.get('velocity', 2.0)
+                        acc = params.get('acceleration', 0.5)
+                        if ThorlabsBSM:
+                            self.axes[axis_key] = ThorlabsBSM(serial, 0, vel, acc)
+                        else:
+                            continue
+                    elif raw.startswith('K'):
+                        serial = raw[1:]
+                        if ThorlabsCube:
+                            self.axes[axis_key] = ThorlabsCube(serial)
+                        else:
+                            continue
+                    else:
+                        if ThorlabsCube:
+                            self.axes[axis_key] = ThorlabsCube(raw)
+                        else:
+                            continue
                 else:
+                    driver_class = driver_map.get(stage_type)
+                    if driver_class is None:
+                        self.S_print_error.emit(f"Неизвестный тип подвижки: {stage_type}")
+                        continue
+                    port = params.get('port', '')
                     self.axes[axis_key] = driver_class(port)
-                    
+
                 logger.info(f"Ось {axis_key} ({stage_type} на {serial}) успешно инициализирована.")
 
             except Exception as e:
@@ -133,11 +160,14 @@ class Stages(QObject):
         for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
-                    self.abs_position[key] = axis_obj.get_position()
+                    pos = axis_obj.get_position()
+                    self.abs_position[key] = pos
+                    logger.debug(f"[Stages] update_position axis={key}: {pos} mm")
                 except Exception as e:
                     logger.error(f"Не удалось прочитать позицию оси {key}: {traceback.format_exc()}")
                     self.abs_position[key] = 0.0
         self.update_relative_positions()
+        logger.debug(f"[Stages] abs_positions: {self.abs_position}")
 
     def close_all(self):
         for key, axis_obj in self.axes.items():

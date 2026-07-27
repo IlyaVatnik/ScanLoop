@@ -1,0 +1,43 @@
+15:12:12 
+============================================================
+15:12:12   DIAGNOSTIC BSM — 2026-07-21 15:12:12
+15:12:12 ============================================================
+15:12:12   Script dir: C:\Users\Adm\Desktop\diagnostic_BSM
+15:12:12   Log file: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_15-12-12.log
+15:12:12 
+--- Loading Kinesis BSM DLL ---
+15:12:12   DLL loaded: True
+15:12:12 
+============================================================
+15:12:12   STEP 1: SCAN ALL DEVICES (Kinesis)
+15:12:12 ============================================================
+15:12:12   --- Attempt 1/3 ---
+15:12:12   TLI_BuildDeviceList -> 0
+15:12:13   TLI_GetDeviceListSize -> 1
+15:12:13   TLI_GetDeviceListExt -> 0, found 1 devices: ['70864299']
+15:12:13   Device 70864299: type=70, desc=APT Stepper Motor Controller, known=True, motor=131328, piezo=False, maxCh=256
+15:12:13 
+  BSM devices: ['70864299']
+15:12:13   KDC devices: []
+15:12:13 
+============================================================
+15:12:13   STEP 2: KINESIS API — DETAILED TEST FOR EACH BSM
+15:12:13 ============================================================
+15:12:13 
+============================================================
+15:12:13   BSM 70864299
+15:12:13 ============================================================
+15:12:13 
+--- 2.1 Open + LoadSettings ---
+15:12:15   SBC_Open -> 0
+15:12:15   SBC_CheckConnection -> True
+15:12:15   SBC_GetNumChannels -> 2
+15:12:15 
+--- 2.2 Channel 1 — LoadSettings ---
+15:12:15 FATAL ERROR: [WinError -529697949] Windows Error 0xe06d7363
+15:12:15 Traceback (most recent call last):
+  File "C:\Users\Adm\Desktop\diagnostic_BSM\diagnostic_bsm.py", line 301, in main
+    res = bsm.SBC_LoadSettings(serial, ch_short)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [WinError -529697949] Windows Error 0xe06d7363
+

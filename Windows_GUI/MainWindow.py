@@ -128,7 +128,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         
         self.painter = MyPainter(self.ui.groupBox_spectrum)
 
-        self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\ProcessedData\\Processed_spectrogram.pkl3d')
+        self.analyzer=Analyzer.Analyzer(os.getcwd()+'\\data\\processed\\Processed_spectrogram.pkl3d')
         self.logger = Logger(parent=None)
         self.spectral_processor=Spectral_processor.Spectral_processor(self.path_to_main)
         self.hardware_ports=Hardware_ports()
@@ -160,6 +160,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.init_piezo_stage_interface()
         self.piezo_stage_connected = 0
         self.init_menu_bar()
+        self._scan_powermeters()
         
         self.load_parameters_from_file()
         
@@ -261,6 +262,27 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.ui.pushButton_powermeter_connect.pressed.connect(self.connect_powermeter)
         self.ui.pushButton_powermeter_graph.clicked[bool].connect(self.run_powermeter_graph)
         self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
+
+    def _scan_powermeters(self, _initial=False):
+        if not _initial:
+            self.logText(">>> Сканирование PM100...")
+        try:
+            from Hardware.ThorlabsPM100 import scan_devices
+            devices = scan_devices()
+            self.ui.comboBox_powermeter_serial.clear()
+            if devices:
+                for d in devices:
+                    self.ui.comboBox_powermeter_serial.addItem(d['serial'], d)
+                prefix = "" if _initial else "✅ "
+                self.logText(f'{prefix}Найдено PM100: {len(devices)} | '
+                             + ', '.join(d["serial"] for d in devices))
+            else:
+                self.ui.comboBox_powermeter_serial.addItem('P0015055')
+                if not _initial:
+                    self.logText('⚠️ PM100 не найден')
+        except Exception as e:
+            self.log.warning('PM100 scan failed: %s', e)
+            self.ui.comboBox_powermeter_serial.addItem('P0015055')
         
         
 
@@ -427,6 +449,9 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
+        if not self.ui.checkBox_scope_connect.isChecked():
+            self.logText('Oscilloscope skipped (disabled by user)')
+            return
         
         importlib.reload(Common.Consts)
         
@@ -696,13 +721,19 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
+        if not self.ui.checkBox_powermeter_connect.isChecked():
+            self.logText('Powermeter skipped (disabled by user)')
+            return
         try:
             from Hardware import ThorlabsPM100
-            self.powermeter=ThorlabsPM100.PowerMeter(self.hardware_ports.powermeter_serial_number)
-            if self.powermeter is not None:
+            serial = self.ui.comboBox_powermeter_serial.currentText()
+            self.powermeter=ThorlabsPM100.PowerMeter(serial)
+            if self.powermeter is not None and self.powermeter.is_connected():
                 self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
                 self.ui.pushButton_powermeter_graph.setEnabled(True)
-                self.logText('NOTE: if you want to use PM Graph feature, change the iPython Graphic preferences from ''Automatic'' to ''Tkinter''')
+                self.logText(f'Connected to powermeter {serial}')
+            else:
+                self.logWarningText(f'Powermeter {serial} not found')
         except Exception as e:
             self.log.exception(e)
             self.logWarningText('Connection to power meter failed')
@@ -716,6 +747,9 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
+        if not self.ui.checkBox_laser_connect.isChecked():
+            self.logText('Laser skipped (disabled by user)')
+            return
         interface='serial'
         COMPort=self.hardware_ports.laser_Pure_Photonics
         try:
@@ -741,7 +775,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
                 wavelength_start=float(self.ui.lineEdit_laser_lambda.text()),
                 detuning=0,   
                 max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text()),
-                file_to_save='ProcessedData\\Power_from_powermeter_VS_laser_wavelength.laserdata')
+                file_to_save='data\\processed\\Power_from_powermeter_VS_laser_wavelength.laserdata')
             self.add_thread([self.laser_scanning_process])
             self.laser_scanning_process.S_updateCurrentWavelength.connect(lambda S:self.ui.label_current_laser_wavelength.setText(S))
             self.laser_scanning_process.S_update_fine_tune.connect(lambda S:self.ui.lineEdit_laser_fine_tune.setText(S))
@@ -761,28 +795,29 @@ class MainWindow(ThreadedMainWindow, Loggable):
     
     def run_powermeter_graph(self,pressed:bool):
         '''
-        plot live graph with data from powermeter
+        plot live graph with data from powermeter.
+        If "PM vs Time" checkbox is checked, also records to CSV file.
         
         Parameters
         ----------
         pressed : bool
             DESCRIPTION. current state of the button
 
-
         '''
         if pressed:
-            # from Visualization.Powermeter_painter import Powermeter_painter
-            # self.powermeter_graph=Powermeter_painter(self.powermeter)
-            # self.add_thread([self.powermeter_graph])
-            
             self.painter.create_powermeter_plot()
             self.powermeter.power_received.connect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.connect(self.powermeter.get_power)
             self.painter.powermeter_canvas_updated.emit()
+            if self.ui.checkBox_powermeter_independent.isChecked():
+                self.powermeter.start_recording()
+                self.logText('PM recording started (PM vs Time)')
         else:
             self.powermeter.power_received.disconnect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.disconnect(self.powermeter.get_power)
-            # self.painter.delete_powermeter_plot()
+            if self.powermeter._recording:
+                self.powermeter.stop_recording()
+                self.logText('PM recording stopped')
             
 
     def on_pushButton_laser_On(self,pressed:bool):
@@ -861,8 +896,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
     def laser_scanning(self,pressed:bool):
         '''
         run scan of the Pure Photonics laser wavelength and save data from either OSA or powermeter at each laser wavelength
-        Spectra are saved to 'SpectralData\\'
-        Power VS wavelength is saved to 'ProcessedData\\Power_from_powermeter_VS_laser_wavelength.txt' when scanning is stopped
+        Spectra are saved to 'data\\spectral\\'
+        Power VS wavelength is saved to 'data\\processed\\Power_from_powermeter_VS_laser_wavelength.txt' when scanning is stopped
 
         Parameters
         ----------
@@ -1294,8 +1329,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
 
 
     def on_Push_Button_ProcessSpectra(self):
-        self.spectral_processor.processedData_dir_path=self.path_to_main+'\\ProcessedData\\'
-        self.spectral_processor.source_dir_path=self.path_to_main+'\\SpectralData\\'
+        self.spectral_processor.processedData_dir_path=self.path_to_main+'\\data\\processed\\'
+        self.spectral_processor.source_dir_path=self.path_to_main+'\\data\\spectral\\'
         self.spectral_processor.run()
         self.analyzer.spectrogram_file_path= self.spectral_processor.processedData_dir_path+self.spectral_processor.f_name
         self.ui.label_analyzer_file.setText(self.analyzer.spectrogram_file_path)
@@ -1308,7 +1343,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.ProcessTD=ProcessAndPlotTD()
         Thread=self.add_thread([self.ProcessTD])
         self.ProcessTD.run(Averaging=self.ui.checkBox_processing_isAveraging.isChecked(),
-            DirName='TimeDomainData',
+            DirName='data\\time-domain',
             axis_to_plot_along=self.ui.comboBox_axis_to_plot_along.currentText(),
             channel_number=self.ui.comboBox_TD_channel_to_plot.currentIndex())
         Thread.quit()
@@ -1379,6 +1414,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.stage_panel.update_ports(ports)
             self.logText(f"{'' if _initial else '✅ '}Найдено COM-портов: {len(ports)} | {', '.join(ports)}")
             self.rescan_thorlabs_serials(_initial=_initial)
+            self._scan_powermeters(_initial=_initial)
         except ImportError:
             self.logWarningText("❌ Не удалось импортировать сканер портов!")
         except Exception as e:
@@ -1390,11 +1426,12 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.logText(">>> НАЧАЛО СКАНИРОВАНИЯ THORLABS <<<")
         try:
             from Hardware.Stages.Thorlabs.thorlabs_stages import get_thorlabs_serials
-            serials = get_thorlabs_serials()
-            self.stage_panel.update_ids(serials)
-            if serials:
+            devices = get_thorlabs_serials()
+            self.stage_panel.update_ids(devices)
+            if devices:
                 prefix = "" if _initial else "✅ "
-                self.logText(f"{prefix}Найдено Thorlabs устройств: {len(serials)} | ID: {', '.join(serials)}")
+                ids_str = ', '.join(f"{d['type']}:{d['serial']}" for d in devices)
+                self.logText(f"{prefix}Найдено Thorlabs устройств: {len(devices)} | {ids_str}")
             else:
                 self.logText("⚠️ Thorlabs устройств не найдено (проверь подключение и драйверы)")
         except Exception as e:
@@ -1493,7 +1530,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.logWarningText('Spectrogram window error: ' + str(e))
 
     def choose_file_for_analyzer(self):
-        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File", self.path_to_main + '\\ProcessedData\\', '*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
+        DataFilePath= str(QFileDialog.getOpenFileName(self, "Select Data File", self.path_to_main + '\\data\\processed\\', '*.pkl *.pkl3d *.SNAP *.cSNAP' )).split("\',")[0].split("('")[1]
         if DataFilePath=='':
             self.logWarningText('file is not chosen or previous choice is preserved')
         self.analyzer.spectrogram_file_path=DataFilePath
@@ -1592,7 +1629,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         returnValue = msg.exec()
         if returnValue == QMessageBox.Ok:  
-            dirs=['\\SpectralData\\','\\SpectralBinData\\']
+            dirs=['\\data\\spectral\\','\\data\\spectral-bin\\']
             for directory in dirs:
                 l=os.listdir(self.path_to_main+directory)
                 if '.gitignore' in l:l.remove('.gitignore')

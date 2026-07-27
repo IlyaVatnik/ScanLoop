@@ -14,3 +14,6 @@ build_log_*.txt
 *.spec
 .idea/
 .vscode/
+data/**/*.csv
+data/**/*.txt
+Hardware/drivers/zadig.exe

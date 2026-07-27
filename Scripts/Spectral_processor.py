@@ -29,8 +29,8 @@ class Spectral_processor(QObject, Loggable):
 
     def __init__(self, path_to_main:str):
         QObject.__init__(self)
-        self.processedData_dir_path=path_to_main+'\\ProcessedData\\'
-        self.source_dir_path=path_to_main+'\\SpectralData\\'
+        self.processedData_dir_path=path_to_main+'\\data\\processed\\'
+        self.source_dir_path=path_to_main+'\\data\\spectral\\'
         self.use_out_of_contact_data=False  # do we use spectra measured out of contact with microcavity to extract those
         self.StepSize=30 # um, Step in Z direction, legacy code
         self.isAveraging=False 
@@ -476,7 +476,7 @@ class Spectral_processor(QObject, Loggable):
 if __name__ == "__main__":
     # os.chdir('..')
     # path= os.getcwd()
-    path='C:\\Users\\t-vatniki\\Desktop\\SpectralData'
+    path='C:\\Users\\t-vatniki\\Desktop\\data\\spectral'
     p=Spectral_processor(path)
     p.type_of_input_data='pkl'
     p.isInterpolation=False

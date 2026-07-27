@@ -1,0 +1,156 @@
+18:08:32 
+============================================================
+18:08:32   DIAGNOSTIC BSM v4 (FIX AND TEST) - 2026-07-21 18:08:32
+18:08:32 ============================================================
+18:08:32   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v4_2026-07-21_18-08-32.log
+18:08:32 
+============================================================
+18:08:32   STEP 1: FIX ALL EEPROM PARAMETERS
+18:08:32 ============================================================
+18:08:32 
+============================================================
+18:08:32   STEP 1 ch=1
+18:08:32 ============================================================
+18:08:33   Status [ch=1 BEFORE fix]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:08:33   Position [ch=1 BEFORE fix]: raw=-58259, mm=-116.5180
+18:08:33   VelParams [ch=1 BEFORE fix]: maxVel=135182, accel=659706977
+18:08:33   PowerParams [ch=1 BEFORE fix]: move=6%, rest=130%
+18:08:33   InputVoltage [ch=1 BEFORE fix]: 720 mV
+18:08:33 
+--- 1.1 Fix VelParams ---
+18:08:33   SetVelParams(maxVel=1000, accel=250) -> err=0
+18:08:34   VelParams verified: maxVel=1000, accel=250 OK
+18:08:34 
+--- 1.2 Fix PowerParams ---
+18:08:34   SetPowerParams(move=100, rest=50) -> err=0
+18:08:34   PowerParams verify: move=6%, rest=136%
+18:08:34   PowerParams NOT persisted (may be EEPROM issue)
+18:08:34 
+--- 1.3 Fix HomingParams ---
+18:08:34   SetHomingParams(REV, REV_LIMIT, vel=2500, offset=0) -> err=0
+18:08:34   HomingParams verify: dir=2, ls=1, vel=2500, offset=0
+18:08:34 
+--- 1.4 Fix SoftLimitMode ---
+18:08:34   SetLimitsSoftwareApproachPolicy(DisallowAllMoves) -> err=None
+18:08:34   SoftLimitMode verify: 0
+18:08:34 
+--- 1.5 Fix StageAxisLimits ---
+18:08:34   SetStageAxisLimits(0, 409600) -> err=0
+18:08:34 
+--- 1.6 PersistSettings ---
+18:08:35   PersistSettings attempt 1 -> True
+18:08:35 
+--- 1.7 Re-verify after persist ---
+18:08:35   VelParams: maxVel=1000, accel=250
+18:08:35   PowerParams: move=6%, rest=136%
+18:08:35   HomingParams: dir=2, ls=1, vel=2500, offset=0
+18:08:35   SoftLimitMode: 0
+18:08:36 
+============================================================
+18:08:36   STEP 1 ch=2
+18:08:36 ============================================================
+18:08:37   Status [ch=2 BEFORE fix]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:08:37   Position [ch=2 BEFORE fix]: raw=-605435, mm=-1210.8700
+18:08:37   VelParams [ch=2 BEFORE fix]: maxVel=-1342177278, accel=-2095894137
+18:08:37   PowerParams [ch=2 BEFORE fix]: move=6%, rest=130%
+18:08:37   InputVoltage [ch=2 BEFORE fix]: 680 mV
+18:08:37 
+--- 1.1 Fix VelParams ---
+18:08:37   SetVelParams(maxVel=1000, accel=250) -> err=0
+18:08:37   VelParams verified: maxVel=1000, accel=250 OK
+18:08:37 
+--- 1.2 Fix PowerParams ---
+18:08:37   SetPowerParams(move=100, rest=50) -> err=0
+18:08:37   PowerParams verify: move=6%, rest=136%
+18:08:37   PowerParams NOT persisted (may be EEPROM issue)
+18:08:37 
+--- 1.3 Fix HomingParams ---
+18:08:37   SetHomingParams(REV, REV_LIMIT, vel=2500, offset=0) -> err=0
+18:08:38   HomingParams verify: dir=2, ls=1, vel=2500, offset=0
+18:08:38 
+--- 1.4 Fix SoftLimitMode ---
+18:08:38   SetLimitsSoftwareApproachPolicy(DisallowAllMoves) -> err=None
+18:08:38   SoftLimitMode verify: 0
+18:08:38 
+--- 1.5 Fix StageAxisLimits ---
+18:08:38   SetStageAxisLimits(0, 409600) -> err=0
+18:08:38 
+--- 1.6 PersistSettings ---
+18:08:39   PersistSettings attempt 1 -> True
+18:08:39 
+--- 1.7 Re-verify after persist ---
+18:08:39   VelParams: maxVel=1000, accel=250
+18:08:39   PowerParams: move=6%, rest=136%
+18:08:39   HomingParams: dir=2, ls=1, vel=2500, offset=0
+18:08:39   SoftLimitMode: 0
+18:08:40 
+============================================================
+18:08:40   STEP 2: HOME + ZERO POSITION
+18:08:40 ============================================================
+18:08:40 
+============================================================
+18:08:40   STEP 2 ch=1
+18:08:40 ============================================================
+18:08:41   Status [ch=1 before home]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:08:41   Position [ch=1 before home]: raw=-58618, mm=-117.2360
+18:08:41   VelParams [ch=1 before home]: maxVel=1000, accel=250
+18:08:41   PowerParams [ch=1 before home]: move=6%, rest=136%
+18:08:41   InputVoltage [ch=1 before home]: 728 mV
+18:08:41 
+--- 2.1 SetBacklash(0) ---
+18:08:41 
+--- 2.2 Home ---
+18:08:41   SBC_Home -> err=0
+18:08:41   Homing complete: Status=0x80101220, pos=-58634
+18:08:41   Position after home: raw=-58634, mm=-117.2680
+18:08:41 
+--- 2.3 SetPositionCounter(0) ---
+18:08:41   SetPositionCounter(0) -> err=36
+18:08:41   Position after reset: raw=-58637, mm=-117.2740
+18:08:41   SetPositionCounter failed (err=36), trying alternative: move to zero
+18:08:41   move_relative: 117268.0 um = 58634 steps
+18:08:42   MoveRelativeDistance err=0
+18:08:57   Timeout after 15s, last raw=-59341
+18:08:57   Position after correction: raw=-59342
+18:08:58 
+============================================================
+18:08:58   STEP 3: MOVE ROUNDTRIP TEST
+18:08:58 ============================================================
+18:08:58 
+============================================================
+18:08:58   STEP 3 ch=1
+18:08:58 ============================================================
+18:08:59   Before: raw=-59453, mm=-118.9060
+18:08:59 
+--- 3.1 Move +40.0um ---
+18:08:59   move_relative: 40.0 um = 20 steps
+18:08:59   MoveRelativeDistance err=0
+18:09:14   Timeout after 15s, last raw=-60162
+18:09:14   After +40.0um: raw=-60162, delta=-709 (expected 20)
+18:09:14   +40.0um: FAIL (got -709, expected 20)
+18:09:14 
+--- 3.2 Move -40.0um ---
+18:09:14   move_relative: -40.0 um = -20 steps
+18:09:14   MoveRelativeDistance err=0
+18:09:29   Timeout after 15s, last raw=-60865
+18:09:29   After -40.0um: raw=-60868, delta_back=-706, total=-1415
+18:09:29   -40.0um: FAIL (got -706, expected -20)
+18:09:29   Status [ch=1 FINAL]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR
+18:09:29   Position [ch=1 FINAL]: raw=-60870, mm=-121.7400
+18:09:29   VelParams [ch=1 FINAL]: maxVel=1000, accel=250
+18:09:29   PowerParams [ch=1 FINAL]: move=6%, rest=136%
+18:09:29   InputVoltage [ch=1 FINAL]: 720 mV
+18:09:29 
+--- 3.3 Try SetPositionCounter(0) after move test ---
+18:09:29   SetPositionCounter(0) -> err=36
+18:09:30   Before=-60873, After=-60873
+18:09:31 
+============================================================
+18:09:31   SUMMARY
+18:09:31 ============================================================
+18:09:31   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v4_2026-07-21_18-08-32.log
+18:09:31 
+18:09:31   Test                                  Expected        Got   Result
+18:09:31   ----------------------------------- ---------- ---------- --------
+18:09:31   ch=1 +40.0um                                20       -709     FAIL
+18:09:31   ch=1 -40.0um                               -20       -706     FAIL

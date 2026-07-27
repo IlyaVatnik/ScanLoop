@@ -266,8 +266,8 @@ class Analyzer(QObject, Loggable):
                     f'Unknown data format: {type_name}{shape_info} in file: '
                     + self.spectrogram_file_path
                     + '. Expected SNAP object or dict with spectrogram data. '
-                    + 'Use ProcessedData/ folder (contains .pkl spectrograms) '
-                    + 'or load raw spectra from SpectralData/ first.')
+                    + 'Use data/processed/ folder (contains .pkl spectrograms) '
+                    + 'or load raw spectra from data/spectral/ first.')
                 self.log.error('Unknown data format in file: %s, type: %s',
                                self.spectrogram_file_path, type(loaded_object))
                 self.SNAP = None
@@ -1296,7 +1296,7 @@ if __name__ == "__main__":
     # a.iterate_different_bandwidths=False
     # a.bandwidth_for_fitting=200
     # a.get_modes_parameters()
-    # analyzer.single_spectrum_path=os.getcwd()+'\\ProcessedData\\test.laserdata'
+    # analyzer.single_spectrum_path=os.getcwd()+'\\data\\processed\\test.laserdata'
     # analyzer.plot_single_spectrum_from_file()
 #
     #

@@ -1,0 +1,125 @@
+18:32:11 
+============================================================
+  DIAGNOSTIC BSM v6 — 2026-07-21 18:32:11
+============================================================
+18:32:11   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v6_2026-07-21_18-32-11.log
+18:32:11 
+============================================================
+  FIX ch=1
+============================================================
+18:32:13   [ch=1 BEFORE] Status=0x80101000=ERROR Pos=0(0.0000mm)
+18:32:13   [ch=1 BEFORE] Vel=1000/250 Power=6%/136% Homing=2/1/2500/0
+18:32:13   [ch=1 BEFORE] LimitSw=1/1/0/0/1 SoftLim=25280 Vin=720mV
+18:32:13 
+--- StopImmediate ---
+18:32:13   StopImmediate -> 0
+18:32:14   Status after: 0x80101000
+18:32:14 
+--- VelParams ---
+18:32:14 
+--- PowerParams ---
+18:32:14 
+--- HomingParams ---
+18:32:14 
+--- LimitSwitchParams (MakeOnContact) ---
+18:32:14   SetLimitSwitchParams -> 0
+18:32:14 
+--- SoftLimitMode=0 ---
+18:32:14 
+--- StageAxisLimits ---
+18:32:14 
+--- PersistSettings ---
+18:32:15 
+--- Re-verify ---
+18:32:15   [ch=1 AFTER] Status=0x80101000=ERROR Pos=0(0.0000mm)
+18:32:15   [ch=1 AFTER] Vel=1000/250 Power=6%/136% Homing=2/1/2500/0
+18:32:15   [ch=1 AFTER] LimitSw=2/2/409600/0/2 SoftLim=0 Vin=720mV
+18:32:16 
+============================================================
+  HOME + MOVE ch=1
+============================================================
+18:32:18   [ch=1 pre-home] Status=0x80101000=ERROR Pos=0(0.0000mm)
+18:32:18   [ch=1 pre-home] Vel=1000/250 Power=6%/136% Homing=2/1/2500/0
+18:32:18   [ch=1 pre-home] LimitSw=2/2/409600/0/2 SoftLim=0 Vin=728mV
+18:32:18 
+--- NeedsHoming / CanMoveWithoutHoming ---
+18:32:18   NeedsHoming=0, CanMoveWithoutHoming=1, CanHome=1
+18:32:18 
+--- SetBacklash(0) ---
+18:32:18 
+--- StopImmediate before Home ---
+18:32:18   Status: 0x80101000=ERROR
+18:32:18 
+--- Try SetPositionCounter(0) ---
+18:32:18   SetPositionCounter(0) -> err=0
+18:32:18   Pos after: 0
+18:32:18 
+--- Home ---
+18:32:18   SBC_Home -> err=0
+18:32:18   Home done: 0x80101220 pos=-4
+18:32:18   Pos after home: -5
+18:32:20 
+============================================================
+  MOVE ROUNDTRIP ch=1
+============================================================
+18:32:21   Before: raw=-123, mm=-0.2460
+18:32:21 
+--- Move +40.0um ---
+18:32:21   move 40.0um = 20 steps
+18:32:21   MoveRelative err=0
+18:32:36   delta=-706 expected=20 -> FAIL
+18:32:36 
+--- Move -40.0um ---
+18:32:36   move -40.0um = -20 steps
+18:32:36   MoveRelative err=0
+18:32:51   delta=-706 expected=-20 -> FAIL
+18:32:51   [ch=1 FINAL] Status=0x80101220=REV_SW_LIMIT | MOVING | ERROR Pos=-1536(-3.0720mm)
+18:32:51   [ch=1 FINAL] Vel=1000/250 Power=6%/136% Homing=2/1/2500/0
+18:32:51   [ch=1 FINAL] LimitSw=2/2/409600/0/2 SoftLim=-5680 Vin=736mV
+18:32:53 
+============================================================
+  FIX ch=2
+============================================================
+18:32:54   [ch=2 BEFORE] Status=0x80101000=ERROR Pos=-897990(-1795.9800mm)
+18:32:54   [ch=2 BEFORE] Vel=1000/250 Power=6%/136% Homing=0/16368/27904/0
+18:32:54   [ch=2 BEFORE] LimitSw=1/1/0/0/1 SoftLim=0 Vin=688mV
+18:32:54 
+--- StopImmediate ---
+18:32:54   StopImmediate -> 0
+18:32:54   Status after: 0x80101000
+18:32:54 
+--- VelParams ---
+18:32:54 
+--- PowerParams ---
+18:32:54 
+--- HomingParams ---
+18:32:55 
+--- LimitSwitchParams (MakeOnContact) ---
+18:32:55   SetLimitSwitchParams -> 0
+18:32:55 
+--- SoftLimitMode=0 ---
+18:32:55 
+--- StageAxisLimits ---
+18:32:55 
+--- PersistSettings ---
+18:32:56 
+--- Re-verify ---
+18:32:56   [ch=2 AFTER] Status=0x80101000=ERROR Pos=-897990(-1795.9800mm)
+18:32:56   [ch=2 AFTER] Vel=1000/250 Power=6%/136% Homing=2/1/2500/0
+18:32:56   [ch=2 AFTER] LimitSw=2/2/409600/0/2 SoftLim=0 Vin=664mV
+18:32:57 
+============================================================
+  HOME + MOVE ch=2
+============================================================
+18:32:57   SBC_Open attempt 1/3 failed
+18:32:57   SBC_Open attempt 2/3 failed
+18:32:58   SBC_Open attempt 3/3 failed
+18:33:00   SBC_Open FAILED
+18:33:00 
+============================================================
+  SUMMARY
+============================================================
+18:33:00   Test                                     Exp      Got   Result
+18:33:00   ----------------------------------- -------- -------- --------
+18:33:00   ch=1 +40.0um                              20     -706     FAIL
+18:33:00   ch=1 -40.0um                             -20     -706     FAIL

@@ -1,0 +1,662 @@
+15:35:25 
+============================================================
+15:35:25   DIAGNOSTIC BSM — 2026-07-21 15:35:25
+15:35:25 ============================================================
+15:35:25   Script dir: C:\Users\Adm\Desktop\diagnostic_BSM
+15:35:25   Log file: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_15-35-25.log
+15:35:25 
+--- Loading Kinesis BSM DLL ---
+15:35:25   DLL loaded: True
+15:35:25 
+============================================================
+15:35:25   STEP 1: SCAN ALL DEVICES (Kinesis)
+15:35:25 ============================================================
+15:35:25   --- Attempt 1/3 ---
+15:35:25   TLI_BuildDeviceList -> 0
+15:35:26   TLI_GetDeviceListSize -> 1
+15:35:26   TLI_GetDeviceListExt -> 0, found 1 devices: ['70864299']
+15:35:26   Device 70864299: type=70, desc=APT Stepper Motor Controller, known=True, motor=131328, piezo=False, maxCh=256
+15:35:26 
+  BSM devices: ['70864299']
+15:35:26   KDC devices: []
+15:35:26 
+============================================================
+15:35:26   STEP 2: KINESIS API — DETAILED TEST FOR EACH BSM
+15:35:26 ============================================================
+15:35:26 
+============================================================
+15:35:26   BSM 70864299
+15:35:26 ============================================================
+15:35:26 
+--- 2.1 Open + LoadSettings ---
+15:35:28   SBC_Open -> 0
+15:35:28   SBC_CheckConnection -> True
+15:35:28   SBC_GetNumChannels -> 2
+15:35:28 
+--- 2.2 Channel 1 — LoadSettings ---
+15:35:30   SBC_LoadSettings(ch=1) -> True
+15:35:30 
+--- 2.2 Channel 2 — LoadSettings ---
+15:35:30   SBC_LoadSettings(ch=2) -> True
+15:35:30 
+--- 2.3 Channel 1 — Status BEFORE Enable ---
+15:35:30   Status [ch=1 pre-enable]: 0x80101000 = ERROR [upper=0x80100000]
+15:35:30   PowerParams [ch=1 pre-enable]: move=8%, rest=130%
+15:35:30   InputVoltage [ch=1 pre-enable]: 736 mV (0.736 V)
+15:35:30   Position [ch=1 pre-enable]: raw=0, mm=0.0000
+15:35:30   VelParams [ch=1 pre-enable]: accel=135182, maxVel=659706977
+15:35:30 
+--- 2.3 Channel 2 — Status BEFORE Enable ---
+15:35:30   Status [ch=2 pre-enable]: 0x80101000 = ERROR [upper=0x80100000]
+15:35:31   PowerParams [ch=2 pre-enable]: move=8%, rest=130%
+15:35:31   InputVoltage [ch=2 pre-enable]: 672 mV (0.672 V)
+15:35:31   Position [ch=2 pre-enable]: raw=0, mm=0.0000
+15:35:31   VelParams [ch=2 pre-enable]: accel=135182, maxVel=659706977
+15:35:31 
+--- 2.4 Channel 1 — StartPolling + EnableChannel ---
+15:35:31   SBC_EnableChannel(ch=1) -> 0
+15:35:31 
+--- 2.4 Channel 2 — StartPolling + EnableChannel ---
+15:35:31   SBC_EnableChannel(ch=2) -> 0
+15:35:31 
+--- 2.5 Channel 1 — Status AFTER Enable ---
+15:35:31   Status [ch=1 post-enable]: 0x80101000 = ERROR [upper=0x80100000]
+15:35:31   PowerParams [ch=1 post-enable]: move=8%, rest=130%
+15:35:31   InputVoltage [ch=1 post-enable]: 744 mV (0.744 V)
+15:35:31   Position [ch=1 post-enable]: raw=0, mm=0.0000
+15:35:31   VelParams [ch=1 post-enable]: accel=135182, maxVel=659706977
+15:35:31 
+--- 2.5 Channel 2 — Status AFTER Enable ---
+15:35:31   Status [ch=2 post-enable]: 0x80101000 = ERROR [upper=0x80100000]
+15:35:32   PowerParams [ch=2 post-enable]: move=8%, rest=130%
+15:35:32   InputVoltage [ch=2 post-enable]: 656 mV (0.656 V)
+15:35:32   Position [ch=2 post-enable]: raw=0, mm=0.0000
+15:35:32   VelParams [ch=2 post-enable]: accel=135182, maxVel=659706977
+15:35:32 
+--- 2.6 Limit Switch Params ---
+15:35:32   ch=1 LimitSwitch: CW=0x02 ACW=0x02 CW_pos=1228800 ACW_pos=409600 soft=0x01
+15:35:32   ch=2 LimitSwitch: CW=0x02 ACW=0x02 CW_pos=1228800 ACW_pos=409600 soft=0x01
+15:35:32 
+--- 2.7 Stage Axis Limits ---
+15:35:32   ch=1 AxisLimits: min=0, max=40960000
+15:35:32   ch=2 AxisLimits: min=0, max=40960000
+15:35:32 
+--- 2.8 Homing Params ---
+15:35:32   ch=1 HomingParams: dir=2, limitSwitch=1, vel=21990233, offset=40960
+15:35:32   ch=2 HomingParams: dir=2, limitSwitch=1, vel=21990233, offset=40960
+15:35:32 
+--- 2.9 Soft Limit Mode ---
+15:35:32   ch=1 SoftLimitMode: 0 (DisallowIllegalMoves)
+15:35:32   ch=2 SoftLimitMode: 0 (DisallowIllegalMoves)
+15:35:32 
+--- 2.10 Set PowerParams (move=100, rest=50) ---
+15:35:32   ch=1 SBC_SetPowerParams(move=100, rest=50) -> 0
+15:35:32   ch=1 Verify: move=8%, rest=136%
+15:35:32   ch=2 SBC_SetPowerParams(move=100, rest=50) -> 0
+15:35:32   ch=2 Verify: move=8%, rest=136%
+15:35:32 
+--- 2.11 Set SoftLimitMode = AllowAllMoves ---
+15:35:32   ch=1 SoftLimitMode after set: 2
+15:35:32   ch=2 SoftLimitMode after set: 2
+15:35:32 
+--- 2.12 Set HomingParams (direction=2 REV, limitSwitch=1 REV, vel=5mm/s) ---
+15:35:32   ch=1 SBC_SetHomingParamsBlock -> 0
+15:35:32   ch=2 SBC_SetHomingParamsBlock -> 0
+15:35:32 
+--- 2.13 Homing (ch=1) ---
+15:35:32 
+--- 2.13 Homing ch=1 ---
+15:35:32   SBC_Home(ch=1) -> 0
+15:35:32   Homing ch=1 complete. Status: 0x80101220
+15:35:32   Status [ch=1 post-home]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+15:35:32   PowerParams [ch=1 post-home]: move=6%, rest=136%
+15:35:32   InputVoltage [ch=1 post-home]: 744 mV (0.744 V)
+15:35:32   Position [ch=1 post-home]: raw=-6, mm=-0.0120
+15:35:32   VelParams [ch=1 post-home]: accel=135182, maxVel=659706977
+15:35:32 
+--- 2.14 Movement Test: +40 um then -40 um (ALL channels) ---
+15:35:32 
+--- 2.14.1 Move test ch=1 ---
+15:35:32   === ch=1 Move +40 um ===
+15:35:32   Before: raw=-9, mm=-0.0180
+15:35:32   move_relative: 40.0 um = 20 steps
+15:35:32   MoveRelativeDistance err=0
+15:35:32     poll: raw=-18, mm=-0.0360
+15:35:32     poll: raw=-21, mm=-0.0420
+15:35:33     poll: raw=-24, mm=-0.0480
+15:35:33     poll: raw=-27, mm=-0.0540
+15:35:33     poll: raw=-31, mm=-0.0620
+15:35:33     poll: raw=-33, mm=-0.0660
+15:35:33     poll: raw=-36, mm=-0.0720
+15:35:33     poll: raw=-41, mm=-0.0820
+15:35:33     poll: raw=-44, mm=-0.0880
+15:35:33     poll: raw=-47, mm=-0.0940
+15:35:33     poll: raw=-52, mm=-0.1040
+15:35:33     poll: raw=-53, mm=-0.1060
+15:35:33     poll: raw=-57, mm=-0.1140
+15:35:33     poll: raw=-59, mm=-0.1180
+15:35:33     poll: raw=-64, mm=-0.1280
+15:35:33     poll: raw=-67, mm=-0.1340
+15:35:34     poll: raw=-70, mm=-0.1400
+15:35:34     poll: raw=-73, mm=-0.1460
+15:35:34     poll: raw=-77, mm=-0.1540
+15:35:34     poll: raw=-79, mm=-0.1580
+15:35:34     poll: raw=-82, mm=-0.1640
+15:35:34     poll: raw=-85, mm=-0.1700
+15:35:34     poll: raw=-90, mm=-0.1800
+15:35:34     poll: raw=-93, mm=-0.1860
+15:35:34     poll: raw=-96, mm=-0.1920
+15:35:34     poll: raw=-98, mm=-0.1960
+15:35:34     poll: raw=-99, mm=-0.1980
+15:35:34     poll: raw=-103, mm=-0.2060
+15:35:34     poll: raw=-105, mm=-0.2100
+15:35:34     poll: raw=-110, mm=-0.2200
+15:35:34     poll: raw=-113, mm=-0.2260
+15:35:35     poll: raw=-116, mm=-0.2320
+15:35:35     poll: raw=-118, mm=-0.2360
+15:35:35     poll: raw=-119, mm=-0.2380
+15:35:35     poll: raw=-123, mm=-0.2460
+15:35:35     poll: raw=-125, mm=-0.2500
+15:35:35     poll: raw=-128, mm=-0.2560
+15:35:35     poll: raw=-131, mm=-0.2620
+15:35:35     poll: raw=-136, mm=-0.2720
+15:35:35     poll: raw=-139, mm=-0.2780
+15:35:35     poll: raw=-144, mm=-0.2880
+15:35:35     poll: raw=-145, mm=-0.2900
+15:35:35     poll: raw=-149, mm=-0.2980
+15:35:35     poll: raw=-154, mm=-0.3080
+15:35:35     poll: raw=-156, mm=-0.3120
+15:35:35     poll: raw=-159, mm=-0.3180
+15:35:36     poll: raw=-164, mm=-0.3280
+15:35:36     poll: raw=-165, mm=-0.3300
+15:35:36     poll: raw=-169, mm=-0.3380
+15:35:36     poll: raw=-174, mm=-0.3480
+15:35:36     poll: raw=-176, mm=-0.3520
+15:35:36     poll: raw=-179, mm=-0.3580
+15:35:36     poll: raw=-185, mm=-0.3700
+15:35:36     poll: raw=-191, mm=-0.3820
+15:35:36     poll: raw=-194, mm=-0.3880
+15:35:36     poll: raw=-196, mm=-0.3920
+15:35:36     poll: raw=-200, mm=-0.4000
+15:35:36     poll: raw=-202, mm=-0.4040
+15:35:36     poll: raw=-205, mm=-0.4100
+15:35:37     poll: raw=-210, mm=-0.4200
+15:35:37     poll: raw=-214, mm=-0.4280
+15:35:37     poll: raw=-217, mm=-0.4340
+15:35:37     poll: raw=-219, mm=-0.4380
+15:35:37     poll: raw=-220, mm=-0.4400
+15:35:37     poll: raw=-222, mm=-0.4440
+15:35:37     poll: raw=-225, mm=-0.4500
+15:35:37     poll: raw=-231, mm=-0.4620
+15:35:37     poll: raw=-237, mm=-0.4740
+15:35:37     poll: raw=-240, mm=-0.4800
+15:35:37     poll: raw=-242, mm=-0.4840
+15:35:37     poll: raw=-246, mm=-0.4920
+15:35:37     poll: raw=-248, mm=-0.4960
+15:35:37     poll: raw=-254, mm=-0.5080
+15:35:38     poll: raw=-257, mm=-0.5140
+15:35:38     poll: raw=-260, mm=-0.5200
+15:35:38     poll: raw=-261, mm=-0.5220
+15:35:38     poll: raw=-268, mm=-0.5360
+15:35:38     poll: raw=-271, mm=-0.5420
+15:35:38     poll: raw=-274, mm=-0.5480
+15:35:38     poll: raw=-277, mm=-0.5540
+15:35:38     poll: raw=-282, mm=-0.5640
+15:35:38     poll: raw=-287, mm=-0.5740
+15:35:38     poll: raw=-288, mm=-0.5760
+15:35:38     poll: raw=-294, mm=-0.5880
+15:35:38     poll: raw=-297, mm=-0.5940
+15:35:39     poll: raw=-302, mm=-0.6040
+15:35:39     poll: raw=-303, mm=-0.6060
+15:35:39     poll: raw=-307, mm=-0.6140
+15:35:39     poll: raw=-308, mm=-0.6160
+15:35:39     poll: raw=-314, mm=-0.6280
+15:35:39     poll: raw=-317, mm=-0.6340
+15:35:39     poll: raw=-320, mm=-0.6400
+15:35:39     poll: raw=-323, mm=-0.6460
+15:35:39     poll: raw=-328, mm=-0.6560
+15:35:39     poll: raw=-329, mm=-0.6580
+15:35:39     poll: raw=-333, mm=-0.6660
+15:35:39     poll: raw=-337, mm=-0.6740
+15:35:39     poll: raw=-340, mm=-0.6800
+15:35:39     poll: raw=-343, mm=-0.6860
+15:35:40     poll: raw=-348, mm=-0.6960
+15:35:40     poll: raw=-349, mm=-0.6980
+15:35:40     poll: raw=-353, mm=-0.7060
+15:35:40     poll: raw=-354, mm=-0.7080
+15:35:40     poll: raw=-360, mm=-0.7200
+15:35:40     poll: raw=-363, mm=-0.7260
+15:35:40     poll: raw=-366, mm=-0.7320
+15:35:40     poll: raw=-369, mm=-0.7380
+15:35:40     poll: raw=-373, mm=-0.7460
+15:35:40     poll: raw=-375, mm=-0.7500
+15:35:40     poll: raw=-380, mm=-0.7600
+15:35:40     poll: raw=-383, mm=-0.7660
+15:35:40     poll: raw=-384, mm=-0.7680
+15:35:40     poll: raw=-386, mm=-0.7720
+15:35:41     poll: raw=-398, mm=-0.7960
+15:35:41     poll: raw=-401, mm=-0.8020
+15:35:41     poll: raw=-404, mm=-0.8080
+15:35:41     poll: raw=-407, mm=-0.8140
+15:35:41     poll: raw=-409, mm=-0.8180
+15:35:41     poll: raw=-410, mm=-0.8200
+15:35:41     poll: raw=-414, mm=-0.8280
+15:35:41     poll: raw=-415, mm=-0.8300
+15:35:41     poll: raw=-419, mm=-0.8380
+15:35:41     poll: raw=-424, mm=-0.8480
+15:35:41     poll: raw=-427, mm=-0.8540
+15:35:41     poll: raw=-430, mm=-0.8600
+15:35:41     poll: raw=-435, mm=-0.8700
+15:35:41     poll: raw=-436, mm=-0.8720
+15:35:41     poll: raw=-440, mm=-0.8800
+15:35:42     poll: raw=-441, mm=-0.8820
+15:35:42     poll: raw=-447, mm=-0.8940
+15:35:42     poll: raw=-450, mm=-0.9000
+15:35:42     poll: raw=-453, mm=-0.9060
+15:35:42     poll: raw=-455, mm=-0.9100
+15:35:42     poll: raw=-456, mm=-0.9120
+15:35:42     poll: raw=-460, mm=-0.9200
+15:35:42     poll: raw=-464, mm=-0.9280
+15:35:42     poll: raw=-467, mm=-0.9340
+15:35:42     poll: raw=-470, mm=-0.9400
+15:35:42     poll: raw=-473, mm=-0.9460
+15:35:42     poll: raw=-476, mm=-0.9520
+15:35:42     poll: raw=-481, mm=-0.9620
+15:35:42     poll: raw=-482, mm=-0.9640
+15:35:42     poll: raw=-486, mm=-0.9720
+15:35:43     poll: raw=-490, mm=-0.9800
+15:35:43     poll: raw=-493, mm=-0.9860
+15:35:43     poll: raw=-496, mm=-0.9920
+15:35:43     poll: raw=-501, mm=-1.0020
+15:35:43     poll: raw=-502, mm=-1.0040
+15:35:43     poll: raw=-507, mm=-1.0140
+15:35:43     poll: raw=-510, mm=-1.0200
+15:35:43     poll: raw=-513, mm=-1.0260
+15:35:43     poll: raw=-516, mm=-1.0320
+15:35:43     poll: raw=-521, mm=-1.0420
+15:35:43     poll: raw=-522, mm=-1.0440
+15:35:43     poll: raw=-526, mm=-1.0520
+15:35:43     poll: raw=-530, mm=-1.0600
+15:35:43     poll: raw=-533, mm=-1.0660
+15:35:44     poll: raw=-536, mm=-1.0720
+15:35:44     poll: raw=-537, mm=-1.0740
+15:35:44     poll: raw=-539, mm=-1.0780
+15:35:44     poll: raw=-542, mm=-1.0840
+15:35:44     poll: raw=-547, mm=-1.0940
+15:35:44     poll: raw=-551, mm=-1.1020
+15:35:44     poll: raw=-553, mm=-1.1060
+15:35:44     poll: raw=-556, mm=-1.1120
+15:35:44     poll: raw=-557, mm=-1.1140
+15:35:44     poll: raw=-559, mm=-1.1180
+15:35:44     poll: raw=-562, mm=-1.1240
+15:35:44     poll: raw=-567, mm=-1.1340
+15:35:44     poll: raw=-568, mm=-1.1360
+15:35:44     poll: raw=-574, mm=-1.1480
+15:35:44     poll: raw=-576, mm=-1.1520
+15:35:44     poll: raw=-579, mm=-1.1580
+15:35:45     poll: raw=-582, mm=-1.1640
+15:35:45     poll: raw=-587, mm=-1.1740
+15:35:45     poll: raw=-588, mm=-1.1760
+15:35:45     poll: raw=-594, mm=-1.1880
+15:35:45     poll: raw=-597, mm=-1.1940
+15:35:45     poll: raw=-599, mm=-1.1980
+15:35:45     poll: raw=-603, mm=-1.2060
+15:35:45     poll: raw=-605, mm=-1.2100
+15:35:45     poll: raw=-608, mm=-1.2160
+15:35:45     poll: raw=-613, mm=-1.2260
+15:35:45     poll: raw=-617, mm=-1.2340
+15:35:45     poll: raw=-620, mm=-1.2400
+15:35:45     poll: raw=-623, mm=-1.2460
+15:35:46     poll: raw=-625, mm=-1.2500
+15:35:46     poll: raw=-628, mm=-1.2560
+15:35:46     poll: raw=-633, mm=-1.2660
+15:35:46     poll: raw=-637, mm=-1.2740
+15:35:46     poll: raw=-640, mm=-1.2800
+15:35:46     poll: raw=-644, mm=-1.2880
+15:35:46     poll: raw=-645, mm=-1.2900
+15:35:46     poll: raw=-649, mm=-1.2980
+15:35:46     poll: raw=-651, mm=-1.3020
+15:35:46     poll: raw=-657, mm=-1.3140
+15:35:46     poll: raw=-660, mm=-1.3200
+15:35:46     poll: raw=-664, mm=-1.3280
+15:35:46     poll: raw=-665, mm=-1.3300
+15:35:46     poll: raw=-669, mm=-1.3380
+15:35:46     poll: raw=-674, mm=-1.3480
+15:35:47     poll: raw=-677, mm=-1.3540
+15:35:47     poll: raw=-680, mm=-1.3600
+15:35:47     poll: raw=-684, mm=-1.3680
+15:35:47     poll: raw=-685, mm=-1.3700
+15:35:47     poll: raw=-689, mm=-1.3780
+15:35:47     poll: raw=-694, mm=-1.3880
+15:35:47     poll: raw=-697, mm=-1.3940
+15:35:47     poll: raw=-700, mm=-1.4000
+15:35:47     poll: raw=-705, mm=-1.4100
+15:35:47     poll: raw=-706, mm=-1.4120
+15:35:47     poll: raw=-710, mm=-1.4200
+15:35:47     poll: raw=-711, mm=-1.4220
+15:35:47   Timeout after 15s, last raw=-711, mm=-1.4220
+15:35:47   After: raw=-715, mm=-1.4300
+15:35:47   Delta: raw=-706, mm=-1.4120
+15:35:47   === ch=1 Move -40 um ===
+15:35:47   Before: raw=-715, mm=-1.4300
+15:35:47   move_relative: -40.0 um = -20 steps
+15:35:47   MoveRelativeDistance err=0
+15:35:48     poll: raw=-721, mm=-1.4420
+15:35:48     poll: raw=-723, mm=-1.4460
+15:35:48     poll: raw=-726, mm=-1.4520
+15:35:48     poll: raw=-729, mm=-1.4580
+15:35:48     poll: raw=-732, mm=-1.4640
+15:35:48     poll: raw=-737, mm=-1.4740
+15:35:48     poll: raw=-741, mm=-1.4820
+15:35:48     poll: raw=-743, mm=-1.4860
+15:35:48     poll: raw=-746, mm=-1.4920
+15:35:48     poll: raw=-747, mm=-1.4940
+15:35:48     poll: raw=-749, mm=-1.4980
+15:35:48     poll: raw=-752, mm=-1.5040
+15:35:48     poll: raw=-755, mm=-1.5100
+15:35:48     poll: raw=-758, mm=-1.5160
+15:35:48     poll: raw=-762, mm=-1.5240
+15:35:48     poll: raw=-763, mm=-1.5260
+15:35:49     poll: raw=-767, mm=-1.5340
+15:35:49     poll: raw=-772, mm=-1.5440
+15:35:49     poll: raw=-775, mm=-1.5500
+15:35:49     poll: raw=-781, mm=-1.5620
+15:35:49     poll: raw=-784, mm=-1.5680
+15:35:49     poll: raw=-786, mm=-1.5720
+15:35:49     poll: raw=-789, mm=-1.5780
+15:35:49     poll: raw=-792, mm=-1.5840
+15:35:49     poll: raw=-793, mm=-1.5860
+15:35:49     poll: raw=-795, mm=-1.5900
+15:35:49     poll: raw=-798, mm=-1.5960
+15:35:49     poll: raw=-804, mm=-1.6080
+15:35:49     poll: raw=-807, mm=-1.6140
+15:35:49     poll: raw=-808, mm=-1.6160
+15:35:49     poll: raw=-810, mm=-1.6200
+15:35:50     poll: raw=-813, mm=-1.6260
+15:35:50     poll: raw=-815, mm=-1.6300
+15:35:50     poll: raw=-818, mm=-1.6360
+15:35:50     poll: raw=-821, mm=-1.6420
+15:35:50     poll: raw=-824, mm=-1.6480
+15:35:50     poll: raw=-828, mm=-1.6560
+15:35:50     poll: raw=-830, mm=-1.6600
+15:35:50     poll: raw=-834, mm=-1.6680
+15:35:50     poll: raw=-835, mm=-1.6700
+15:35:50     poll: raw=-841, mm=-1.6820
+15:35:50     poll: raw=-847, mm=-1.6940
+15:35:50     poll: raw=-850, mm=-1.7000
+15:35:50     poll: raw=-853, mm=-1.7060
+15:35:50     poll: raw=-855, mm=-1.7100
+15:35:50     poll: raw=-858, mm=-1.7160
+15:35:51     poll: raw=-859, mm=-1.7180
+15:35:51     poll: raw=-861, mm=-1.7220
+15:35:51     poll: raw=-864, mm=-1.7280
+15:35:51     poll: raw=-867, mm=-1.7340
+15:35:51     poll: raw=-870, mm=-1.7400
+15:35:51     poll: raw=-874, mm=-1.7480
+15:35:51     poll: raw=-876, mm=-1.7520
+15:35:51     poll: raw=-879, mm=-1.7580
+15:35:51     poll: raw=-884, mm=-1.7680
+15:35:51     poll: raw=-887, mm=-1.7740
+15:35:51     poll: raw=-893, mm=-1.7860
+15:35:51     poll: raw=-896, mm=-1.7920
+15:35:51     poll: raw=-899, mm=-1.7980
+15:35:51     poll: raw=-901, mm=-1.8020
+15:35:51     poll: raw=-905, mm=-1.8100
+15:35:52     poll: raw=-907, mm=-1.8140
+15:35:52     poll: raw=-910, mm=-1.8200
+15:35:52     poll: raw=-913, mm=-1.8260
+15:35:52     poll: raw=-916, mm=-1.8320
+15:35:52     poll: raw=-920, mm=-1.8400
+15:35:52     poll: raw=-922, mm=-1.8440
+15:35:52     poll: raw=-926, mm=-1.8520
+15:35:52     poll: raw=-930, mm=-1.8600
+15:35:52     poll: raw=-933, mm=-1.8660
+15:35:52     poll: raw=-939, mm=-1.8780
+15:35:52     poll: raw=-942, mm=-1.8840
+15:35:52     poll: raw=-945, mm=-1.8900
+15:35:52     poll: raw=-947, mm=-1.8940
+15:35:52     poll: raw=-951, mm=-1.9020
+15:35:53     poll: raw=-953, mm=-1.9060
+15:35:53     poll: raw=-956, mm=-1.9120
+15:35:53     poll: raw=-959, mm=-1.9180
+15:35:53     poll: raw=-962, mm=-1.9240
+15:35:53     poll: raw=-966, mm=-1.9320
+15:35:53     poll: raw=-968, mm=-1.9360
+15:35:53     poll: raw=-971, mm=-1.9420
+15:35:53     poll: raw=-976, mm=-1.9520
+15:35:53     poll: raw=-979, mm=-1.9580
+15:35:53     poll: raw=-985, mm=-1.9700
+15:35:53     poll: raw=-988, mm=-1.9760
+15:35:53     poll: raw=-991, mm=-1.9820
+15:35:53     poll: raw=-993, mm=-1.9860
+15:35:53     poll: raw=-999, mm=-1.9980
+15:35:54     poll: raw=-1002, mm=-2.0040
+15:35:54     poll: raw=-1005, mm=-2.0100
+15:35:54     poll: raw=-1008, mm=-2.0160
+15:35:54     poll: raw=-1012, mm=-2.0240
+15:35:54     poll: raw=-1014, mm=-2.0280
+15:35:54     poll: raw=-1017, mm=-2.0340
+15:35:54     poll: raw=-1019, mm=-2.0380
+15:35:54     poll: raw=-1025, mm=-2.0500
+15:35:54     poll: raw=-1031, mm=-2.0620
+15:35:54     poll: raw=-1034, mm=-2.0680
+15:35:54     poll: raw=-1037, mm=-2.0740
+15:35:54     poll: raw=-1039, mm=-2.0780
+15:35:54     poll: raw=-1043, mm=-2.0860
+15:35:55     poll: raw=-1045, mm=-2.0900
+15:35:55     poll: raw=-1048, mm=-2.0960
+15:35:55     poll: raw=-1051, mm=-2.1020
+15:35:55     poll: raw=-1054, mm=-2.1080
+15:35:55     poll: raw=-1058, mm=-2.1160
+15:35:55     poll: raw=-1060, mm=-2.1200
+15:35:55     poll: raw=-1063, mm=-2.1260
+15:35:55     poll: raw=-1068, mm=-2.1360
+15:35:55     poll: raw=-1071, mm=-2.1420
+15:35:55     poll: raw=-1077, mm=-2.1540
+15:35:55     poll: raw=-1080, mm=-2.1600
+15:35:55     poll: raw=-1082, mm=-2.1640
+15:35:55     poll: raw=-1085, mm=-2.1700
+15:35:55     poll: raw=-1089, mm=-2.1780
+15:35:56     poll: raw=-1091, mm=-2.1820
+15:35:56     poll: raw=-1094, mm=-2.1880
+15:35:56     poll: raw=-1097, mm=-2.1940
+15:35:56     poll: raw=-1100, mm=-2.2000
+15:35:56     poll: raw=-1104, mm=-2.2080
+15:35:56     poll: raw=-1105, mm=-2.2100
+15:35:56     poll: raw=-1109, mm=-2.2180
+15:35:56     poll: raw=-1111, mm=-2.2220
+15:35:56     poll: raw=-1115, mm=-2.2300
+15:35:56     poll: raw=-1117, mm=-2.2340
+15:35:56     poll: raw=-1123, mm=-2.2460
+15:35:56     poll: raw=-1126, mm=-2.2520
+15:35:56     poll: raw=-1129, mm=-2.2580
+15:35:56     poll: raw=-1131, mm=-2.2620
+15:35:56     poll: raw=-1134, mm=-2.2680
+15:35:56     poll: raw=-1137, mm=-2.2740
+15:35:57     poll: raw=-1140, mm=-2.2800
+15:35:57     poll: raw=-1146, mm=-2.2920
+15:35:57     poll: raw=-1150, mm=-2.3000
+15:35:57     poll: raw=-1152, mm=-2.3040
+15:35:57     poll: raw=-1155, mm=-2.3100
+15:35:57     poll: raw=-1157, mm=-2.3140
+15:35:57     poll: raw=-1160, mm=-2.3200
+15:35:57     poll: raw=-1163, mm=-2.3260
+15:35:57     poll: raw=-1166, mm=-2.3320
+15:35:57     poll: raw=-1172, mm=-2.3440
+15:35:57     poll: raw=-1174, mm=-2.3480
+15:35:57     poll: raw=-1177, mm=-2.3540
+15:35:57     poll: raw=-1180, mm=-2.3600
+15:35:57     poll: raw=-1183, mm=-2.3660
+15:35:58     poll: raw=-1186, mm=-2.3720
+15:35:58     poll: raw=-1189, mm=-2.3780
+15:35:58     poll: raw=-1192, mm=-2.3840
+15:35:58     poll: raw=-1196, mm=-2.3920
+15:35:58     poll: raw=-1197, mm=-2.3940
+15:35:58     poll: raw=-1201, mm=-2.4020
+15:35:58     poll: raw=-1203, mm=-2.4060
+15:35:58     poll: raw=-1206, mm=-2.4120
+15:35:58     poll: raw=-1209, mm=-2.4180
+15:35:58     poll: raw=-1212, mm=-2.4240
+15:35:58     poll: raw=-1218, mm=-2.4360
+15:35:58     poll: raw=-1220, mm=-2.4400
+15:35:58     poll: raw=-1223, mm=-2.4460
+15:35:58     poll: raw=-1226, mm=-2.4520
+15:35:58     poll: raw=-1229, mm=-2.4580
+15:35:59     poll: raw=-1232, mm=-2.4640
+15:35:59     poll: raw=-1235, mm=-2.4700
+15:35:59     poll: raw=-1238, mm=-2.4760
+15:35:59     poll: raw=-1242, mm=-2.4840
+15:35:59     poll: raw=-1243, mm=-2.4860
+15:35:59     poll: raw=-1247, mm=-2.4940
+15:35:59     poll: raw=-1249, mm=-2.4980
+15:35:59     poll: raw=-1255, mm=-2.5100
+15:35:59     poll: raw=-1261, mm=-2.5220
+15:35:59     poll: raw=-1263, mm=-2.5260
+15:35:59     poll: raw=-1266, mm=-2.5320
+15:35:59     poll: raw=-1269, mm=-2.5380
+15:35:59     poll: raw=-1273, mm=-2.5460
+15:35:59     poll: raw=-1275, mm=-2.5500
+15:36:00     poll: raw=-1278, mm=-2.5560
+15:36:00     poll: raw=-1281, mm=-2.5620
+15:36:00     poll: raw=-1283, mm=-2.5660
+15:36:00     poll: raw=-1288, mm=-2.5760
+15:36:00     poll: raw=-1289, mm=-2.5780
+15:36:00     poll: raw=-1293, mm=-2.5860
+15:36:00     poll: raw=-1295, mm=-2.5900
+15:36:00     poll: raw=-1298, mm=-2.5960
+15:36:00     poll: raw=-1301, mm=-2.6020
+15:36:00     poll: raw=-1304, mm=-2.6080
+15:36:00     poll: raw=-1308, mm=-2.6160
+15:36:00     poll: raw=-1312, mm=-2.6240
+15:36:00     poll: raw=-1315, mm=-2.6300
+15:36:00     poll: raw=-1318, mm=-2.6360
+15:36:00     poll: raw=-1321, mm=-2.6420
+15:36:01     poll: raw=-1324, mm=-2.6480
+15:36:01     poll: raw=-1326, mm=-2.6520
+15:36:01     poll: raw=-1329, mm=-2.6580
+15:36:01     poll: raw=-1334, mm=-2.6680
+15:36:01     poll: raw=-1335, mm=-2.6700
+15:36:01     poll: raw=-1339, mm=-2.6780
+15:36:01     poll: raw=-1341, mm=-2.6820
+15:36:01     poll: raw=-1344, mm=-2.6880
+15:36:01     poll: raw=-1346, mm=-2.6920
+15:36:01     poll: raw=-1352, mm=-2.7040
+15:36:01     poll: raw=-1355, mm=-2.7100
+15:36:01     poll: raw=-1358, mm=-2.7160
+15:36:01     poll: raw=-1361, mm=-2.7220
+15:36:01     poll: raw=-1364, mm=-2.7280
+15:36:01     poll: raw=-1367, mm=-2.7340
+15:36:01     poll: raw=-1369, mm=-2.7380
+15:36:02     poll: raw=-1372, mm=-2.7440
+15:36:02     poll: raw=-1375, mm=-2.7500
+15:36:02     poll: raw=-1380, mm=-2.7600
+15:36:02     poll: raw=-1381, mm=-2.7620
+15:36:02     poll: raw=-1385, mm=-2.7700
+15:36:02     poll: raw=-1390, mm=-2.7800
+15:36:02     poll: raw=-1392, mm=-2.7840
+15:36:02     poll: raw=-1398, mm=-2.7960
+15:36:02     poll: raw=-1401, mm=-2.8020
+15:36:02     poll: raw=-1404, mm=-2.8080
+15:36:02     poll: raw=-1407, mm=-2.8140
+15:36:02     poll: raw=-1410, mm=-2.8200
+15:36:02     poll: raw=-1412, mm=-2.8240
+15:36:02     poll: raw=-1415, mm=-2.8300
+15:36:03     poll: raw=-1421, mm=-2.8420
+15:36:03   Timeout after 15s, last raw=-1421, mm=-2.8420
+15:36:03   After: raw=-1421, mm=-2.8420
+15:36:03   Delta: raw=-706, mm=-1.4120
+15:36:03   Status [ch=1 post-move]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+15:36:03   PowerParams [ch=1 post-move]: move=6%, rest=136%
+15:36:03   InputVoltage [ch=1 post-move]: 720 mV (0.720 V)
+15:36:03   Position [ch=1 post-move]: raw=-1422, mm=-2.8440
+15:36:03   VelParams [ch=1 post-move]: accel=135182, maxVel=659706977
+15:36:03 
+--- 2.14.2 Move test ch=2 ---
+15:36:03   === ch=2 Move +40 um ===
+15:36:03   Before: raw=0, mm=0.0000
+15:36:03   move_relative: 40.0 um = 20 steps
+15:36:03   MoveRelativeDistance err=0
+15:36:03     poll: raw=20, mm=0.0400
+15:36:04   Stabilized at raw=20, mm=0.0400
+15:36:04   After: raw=20, mm=0.0400
+15:36:04   Delta: raw=20, mm=0.0400
+15:36:04   === ch=2 Move -40 um ===
+15:36:04   Before: raw=20, mm=0.0400
+15:36:04   move_relative: -40.0 um = -20 steps
+15:36:04   MoveRelativeDistance err=0
+15:36:04     poll: raw=20, mm=0.0400
+15:36:04     poll: raw=-15177, mm=-30.3540
+15:36:04     poll: raw=-40819, mm=-81.6380
+15:36:04     poll: raw=0, mm=0.0000
+15:36:06   Stabilized at raw=0, mm=0.0000
+15:36:06   After: raw=0, mm=0.0000
+15:36:06   Delta: raw=-20, mm=-0.0400
+15:36:06   Status [ch=2 post-move]: 0x80101000 = ERROR [upper=0x80100000]
+15:36:06   PowerParams [ch=2 post-move]: move=8%, rest=136%
+15:36:06   InputVoltage [ch=2 post-move]: 648 mV (0.648 V)
+15:36:06   Position [ch=2 post-move]: raw=0, mm=0.0000
+15:36:06   VelParams [ch=2 post-move]: accel=135182, maxVel=659706977
+15:36:06 
+--- 2.15 Cleanup ---
+15:36:06   SBC_Close -> 0
+15:36:06   SBC_Close -> 2
+15:36:06 
+============================================================
+15:36:06   STEP 3: APT API TEST
+15:36:06 ============================================================
+15:36:06   APT DLL found: C:\Program Files\Thorlabs\Kinesis\Thorlabs.APT.dll
+15:36:06   APTInit -> 0
+15:36:06   EnableEventDlg(False)
+15:36:08   GetNumHWUnitsEx(BSC002) -> 0, count=2
+15:36:08 
+============================================================
+15:36:08   APT Test: Device 70864299
+15:36:08 ============================================================
+15:36:08 
+--- 3.1 InitHWDevice ---
+15:36:08   InitHWDevice(70864299) -> 10120
+15:36:08 
+--- 3.2 Status BEFORE Enable ---
+15:36:08   MOT_GetStatusBits -> err=10000, status=0x00000000 = NONE
+15:36:08 
+--- 3.3 MOT_EnableHWChannel ---
+15:36:08   MOT_EnableHWChannel -> 10000
+15:36:09 
+--- 3.4 Status AFTER Enable ---
+15:36:09   MOT_GetStatusBits -> err=10000, status=0x00000000 = NONE
+15:36:09 
+--- 3.5 Position ---
+15:36:09   MOT_GetPosition -> err=10000, pos=0.0 mm
+15:36:09 
+--- 3.6 SetVelParams + SetHomeParams ---
+15:36:09   MOT_SetVelParams(0, 3.5, 4.5)
+15:36:09   MOT_SetHomeParams(dir=2, lim=1, vel=7.0, offset=0.0001)
+15:36:09 
+--- 3.7 MOT_MoveHome (blocking=True) ---
+15:36:09   MOT_MoveHome -> 10000
+15:36:09   Position after home: 0.0 mm
+15:36:09   Status after home: 0x00000000 = NONE
+15:36:09 
+--- 3.8 Move +40 um (blocking=True) ---
+15:36:09   MOT_MoveRelativeEx(+0.040) -> 10000
+15:36:10   Position: 0.0 mm
+15:36:10 
+--- 3.9 Move -40 um (blocking=True) ---
+15:36:10   MOT_MoveRelativeEx(-0.040) -> 10000
+15:36:10   Position: 0.0 mm
+15:36:10 
+--- 3.10 Status after moves ---
+15:36:10   Status: 0x00000000 = NONE
+15:36:10   APTCleanUp called
+15:36:10 
+============================================================
+15:36:10   SUMMARY
+15:36:10 ============================================================
+15:36:10   Log saved to: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_15-35-25.log
+15:36:10   Diagnostic complete. Compare Kinesis vs APT results above.
+15:36:10   Key things to check:
+15:36:10     1. PowerParams: move%% and rest%% — should be 100/50 after set
+15:36:10     2. SoftLimitMode: should be 2 (AllowAllMoves) after set
+15:36:10     3. InputVoltage: if <5000 mV, power supply issue
+15:36:10     4. Movement: check if +40um/-40um works in both APIs
+15:36:10     5. Status bits: compare Kinesis vs APT after same operations

@@ -160,6 +160,7 @@ HIDDEN_IMPORTS = [
     "pyvisa",
     "pyvisa_py",
     "pyusb",
+    "libusb_package",
     "typing_extensions",
 ]
 

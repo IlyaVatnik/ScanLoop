@@ -652,7 +652,7 @@ if __name__ == "__main__":
     
     # from  Unpickling_proper_modules import renamed_load
     
-    f=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\SpectralBinData\Sp_p=1_j=0_X=22500.0_Y=4997.5_Z=1500.0_.bin"
+    f=r"F:\!Projects\!SNAP system\!Python Scripts, Numerics\ScanLoop\data\spectral-bin\Sp_p=1_j=0_X=22500.0_Y=4997.5_Z=1500.0_.bin"
     with open(f,'rb') as file:
         S=pickle.load(file)
         # S=renamed_load(file)

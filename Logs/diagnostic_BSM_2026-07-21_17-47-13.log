@@ -1,0 +1,1186 @@
+17:47:13 
+============================================================
+17:47:13   DIAGNOSTIC BSM v3 - 2026-07-21 17:47:13
+17:47:13 ============================================================
+17:47:13   Script dir: C:\Users\Adm\Desktop\diagnostic_BSM
+17:47:13   Log file: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_17-47-13.log
+17:47:13 
+--- Loading Kinesis BSM DLL ---
+17:47:13   DLL loaded: True
+17:47:13 
+============================================================
+17:47:13   STEP 0: SCAN AND DUMP ALL PARAMETERS
+17:47:13 ============================================================
+17:47:13   --- Attempt 1/3 ---
+17:47:13   TLI_BuildDeviceList -> 0
+17:47:14   TLI_GetDeviceListSize -> 1
+17:47:14   TLI_GetDeviceListExt -> 0, found 1 devices: ['70864299']
+17:47:14   Device 70864299: type=70, desc=APT Stepper Motor Controller, known=True, motor=131328, maxCh=256
+17:47:14   BSM devices: ['70864299']
+17:47:14 
+============================================================
+17:47:14   DUMP ALL PARAMETERS: BSM 70864299
+17:47:14 ============================================================
+17:47:16   SBC_Open -> 0
+17:47:17   SBC_CheckConnection -> True
+17:47:17   SBC_GetNumChannels -> 2
+17:47:17 
+============================================================
+17:47:17   DUMP ch=1
+17:47:17 ============================================================
+17:47:17   Status [ch=1 current]: 0x80101400 = ENABLED | ERROR [upper=0x80100000]
+17:47:17   PowerParams [ch=1 current]: move=6%, rest=130%
+17:47:17   InputVoltage [ch=1 current]: 736 mV (0.736 V)
+17:47:17   Position [ch=1 current]: raw=0, mm=0.0000
+17:47:17   VelParams [ch=1 current]: maxVel=135182, accel=659706977
+17:47:17   HomingParams [ch=1]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=21990233, offset=40960
+17:47:17   LimitSwitchParams [ch=1]: CW=0x0002, ACW=0x0002, CW_pos=1228800, ACW_pos=409600, softMode=1
+17:47:17   JogParams [ch=1]: mode=0, stop=2, step=204800
+17:47:17   CanHome=True, NeedsHoming=False, CanMoveWithoutHoming=True
+17:47:17   SoftLimitMode=27504
+17:47:17   StageAxisLimits: min=-2147483648, max=2147483647
+17:47:17 
+============================================================
+17:47:17   DUMP ch=2
+17:47:17 ============================================================
+17:47:17   Status [ch=2 current]: 0x00000000 = NONE
+17:47:17   PowerParams [ch=2 current]: move=100%, rest=6%
+17:47:17   InputVoltage [ch=2 current]: 65535 mV (65.535 V)
+17:47:17   Position [ch=2 current]: raw=-1, mm=-0.0020
+17:47:17   VelParams [ch=2 current]: maxVel=127, accel=0
+17:47:17   HomingParams [ch=2]: dir=32760(UNKNOWN(32760)), limitSwitch=0(UNDEFINED), velocity=0, offset=0
+17:47:17   LimitSwitchParams [ch=2]: CW=0x0007, ACW=0x0007, CW_pos=0, ACW_pos=0, softMode=0
+17:47:17   JogParams [ch=2]: mode=0, stop=-12288, step=0
+17:47:17   CanHome=True, NeedsHoming=False, CanMoveWithoutHoming=True
+17:47:17   SoftLimitMode=0
+17:47:17   StageAxisLimits: min=-2147483648, max=2147483647
+17:47:18 
+============================================================
+17:47:18   STEP 1: MINIMAL TEST (old code style, ch=2 only)
+17:47:18 ============================================================
+17:47:18 
+============================================================
+17:47:18   STEP 1 ch=1: Open -> Backlash(0) -> Home -> Move (NO LoadSettings, NO EnableChannel)
+17:47:18 ============================================================
+17:47:20   SBC_Open -> 0
+17:47:20 
+--- 1.1 Status BEFORE any init ch=1 ---
+17:47:20   Status [ch=1 pre-init]: 0x80101400 = ENABLED | ERROR [upper=0x80100000]
+17:47:20   PowerParams [ch=1 pre-init]: move=6%, rest=130%
+17:47:20   InputVoltage [ch=1 pre-init]: 736 mV (0.736 V)
+17:47:20   Position [ch=1 pre-init]: raw=0, mm=0.0000
+17:47:20   VelParams [ch=1 pre-init]: maxVel=135182, accel=659706977
+17:47:20   HomingParams [ch=1 pre-init]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=21990233, offset=40960
+17:47:20 
+--- 1.2 SetBacklash(0) ch=1 ---
+17:47:20   SBC_SetBacklash(0) -> 0
+17:47:20 
+--- 1.3 Home ch=1 (like old code) ---
+17:47:20   Homing ch=1 (timeout=30s)...
+17:47:20     SBC_Home -> err=0
+17:47:21     Homing ch=1 complete. Status: 0x80101220, pos=-11221
+17:47:21 
+--- 1.4 Move test ch=1: +40.0um then -40.0um ---
+17:47:21   [minimal ch=1] Before: raw=-13606, mm=-27.2120
+17:47:21   move_relative: 40.0 um = 20 steps
+17:47:21     MoveRelativeDistance err=0
+17:47:21     poll: raw=-45082, mm=-90.1640
+17:47:21     poll: raw=-60943, mm=-121.8860
+17:47:21     poll: raw=-58798, mm=-117.5960
+17:47:21     poll: raw=-50958, mm=-101.9160
+17:47:21     poll: raw=-43267, mm=-86.5340
+17:47:22     poll: raw=-38320, mm=-76.6400
+17:47:22     poll: raw=68, mm=0.1360
+17:47:22     poll: raw=3431, mm=6.8620
+17:47:22     poll: raw=8437, mm=16.8740
+17:47:22     poll: raw=33168, mm=66.3360
+17:47:22     poll: raw=39715, mm=79.4300
+17:47:22     poll: raw=0, mm=0.0000
+17:47:23   Stabilized at raw=0, mm=0.0000
+17:47:23   [minimal ch=1] After +40.0um: raw=0, delta=13606 steps (27.2120 mm)
+17:47:23   move_relative: -40.0 um = -20 steps
+17:47:23     MoveRelativeDistance err=0
+17:47:23     poll: raw=-20, mm=-0.0400
+17:47:24   Stabilized at raw=-20, mm=-0.0400
+17:47:24   [minimal ch=1] After -40.0um: raw=-20, delta_back=-20, total=13586
+17:47:24   [minimal ch=1] RESULT: FAIL (got 13606, expected 20)
+17:47:24 
+--- 1.5 Final status ch=1 ---
+17:47:24   Status [ch=1 final]: 0x80101400 = ENABLED | ERROR [upper=0x80100000]
+17:47:24   PowerParams [ch=1 final]: move=8%, rest=130%
+17:47:24   InputVoltage [ch=1 final]: 712 mV (0.712 V)
+17:47:24   Position [ch=1 final]: raw=-20, mm=-0.0400
+17:47:24   VelParams [ch=1 final]: maxVel=135182, accel=659706977
+17:47:24   HomingParams [ch=1 final]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=21990233, offset=40960
+17:47:25 
+============================================================
+17:47:25   STEP 1 ch=2: Open -> Backlash(0) -> Home -> Move (NO LoadSettings, NO EnableChannel)
+17:47:25 ============================================================
+17:47:27   SBC_Open -> 0
+17:47:27 
+--- 1.1 Status BEFORE any init ch=2 ---
+17:47:27   Status [ch=2 pre-init]: 0x00000000 = NONE
+17:47:27   PowerParams [ch=2 pre-init]: move=100%, rest=6%
+17:47:27   InputVoltage [ch=2 pre-init]: 65535 mV (65.535 V)
+17:47:27   Position [ch=2 pre-init]: raw=-1, mm=-0.0020
+17:47:27   VelParams [ch=2 pre-init]: maxVel=808398381, accel=875770417
+17:47:27   HomingParams [ch=2 pre-init]: dir=28012(UNKNOWN(28012)), limitSwitch=28526(UNKNOWN(28526)), velocity=1936879984, offset=2004252020
+17:47:27 
+--- 1.2 SetBacklash(0) ch=2 ---
+17:47:27   SBC_SetBacklash(0) -> 0
+17:47:27 
+--- 1.3 Home ch=2 (like old code) ---
+17:47:27   Homing ch=2 (timeout=30s)...
+17:47:27     SBC_Home -> err=0
+17:47:28     Homing ch=2 complete. Status: 0x00000000, pos=-1
+17:47:28 
+--- 1.4 Move test ch=2: +40.0um then -40.0um ---
+17:47:28   [minimal ch=2] Before: raw=-1, mm=-0.0020
+17:47:28   move_relative: 40.0 um = 20 steps
+17:47:28     MoveRelativeDistance err=0
+17:47:28     poll: raw=-1, mm=-0.0020
+17:47:28   Stabilized at raw=-1, mm=-0.0020
+17:47:28   [minimal ch=2] After +40.0um: raw=-1, delta=0 steps (0.0000 mm)
+17:47:28   move_relative: -40.0 um = -20 steps
+17:47:28     MoveRelativeDistance err=0
+17:47:29     poll: raw=-519, mm=-1.0380
+17:47:29     poll: raw=-548, mm=-1.0960
+17:47:29     poll: raw=-578, mm=-1.1560
+17:47:29     poll: raw=-599, mm=-1.1980
+17:47:29     poll: raw=-608, mm=-1.2160
+17:47:29     poll: raw=-650, mm=-1.3000
+17:47:29     poll: raw=-667, mm=-1.3340
+17:47:29     poll: raw=-703, mm=-1.4060
+17:47:29     poll: raw=-726, mm=-1.4520
+17:47:29     poll: raw=-784, mm=-1.5680
+17:47:29     poll: raw=-813, mm=-1.6260
+17:47:29     poll: raw=-858, mm=-1.7160
+17:47:29     poll: raw=-873, mm=-1.7460
+17:47:29     poll: raw=-910, mm=-1.8200
+17:47:29     poll: raw=-932, mm=-1.8640
+17:47:30     poll: raw=-991, mm=-1.9820
+17:47:30     poll: raw=-1020, mm=-2.0400
+17:47:30     poll: raw=-1050, mm=-2.1000
+17:47:30     poll: raw=-1067, mm=-2.1340
+17:47:30     poll: raw=-1079, mm=-2.1580
+17:47:30     poll: raw=-1119, mm=-2.2380
+17:47:30     poll: raw=-1138, mm=-2.2760
+17:47:30     poll: raw=-1197, mm=-2.3940
+17:47:30     poll: raw=-1227, mm=-2.4540
+17:47:30     poll: raw=-1256, mm=-2.5120
+17:47:30     poll: raw=-1276, mm=-2.5520
+17:47:30     poll: raw=-1285, mm=-2.5700
+17:47:30     poll: raw=-1328, mm=-2.6560
+17:47:30     poll: raw=-1344, mm=-2.6880
+17:47:30     poll: raw=-1381, mm=-2.7620
+17:47:30     poll: raw=-1432, mm=-2.8640
+17:47:31     poll: raw=-1462, mm=-2.9240
+17:47:31     poll: raw=-1491, mm=-2.9820
+17:47:31     poll: raw=-1537, mm=-3.0740
+17:47:31     poll: raw=-1550, mm=-3.1000
+17:47:31     poll: raw=-1589, mm=-3.1780
+17:47:31     poll: raw=-1638, mm=-3.2760
+17:47:31     poll: raw=-1667, mm=-3.3340
+17:47:31     poll: raw=-1697, mm=-3.3940
+17:47:31     poll: raw=-1747, mm=-3.4940
+17:47:31     poll: raw=-1755, mm=-3.5100
+17:47:31     poll: raw=-1800, mm=-3.6000
+17:47:31     poll: raw=-1844, mm=-3.6880
+17:47:31     poll: raw=-1873, mm=-3.7460
+17:47:31     poll: raw=-1903, mm=-3.8060
+17:47:32     poll: raw=-1955, mm=-3.9100
+17:47:32     poll: raw=-1961, mm=-3.9220
+17:47:32     poll: raw=-2008, mm=-4.0160
+17:47:32     poll: raw=-2049, mm=-4.0980
+17:47:32     poll: raw=-2078, mm=-4.1560
+17:47:32     poll: raw=-2108, mm=-4.2160
+17:47:32     poll: raw=-2114, mm=-4.2280
+17:47:32     poll: raw=-2137, mm=-4.2740
+17:47:32     poll: raw=-2166, mm=-4.3320
+17:47:32     poll: raw=-2224, mm=-4.4480
+17:47:32     poll: raw=-2254, mm=-4.5080
+17:47:32     poll: raw=-2283, mm=-4.5660
+17:47:32     poll: raw=-2324, mm=-4.6480
+17:47:32     poll: raw=-2342, mm=-4.6840
+17:47:32     poll: raw=-2376, mm=-4.7520
+17:47:33     poll: raw=-2429, mm=-4.8580
+17:47:33     poll: raw=-2460, mm=-4.9200
+17:47:33     poll: raw=-2490, mm=-4.9800
+17:47:33     poll: raw=-2520, mm=-5.0400
+17:47:33     poll: raw=-2549, mm=-5.0980
+17:47:33     poll: raw=-2584, mm=-5.1680
+17:47:33     poll: raw=-2608, mm=-5.2160
+17:47:33     poll: raw=-2638, mm=-5.2760
+17:47:33     poll: raw=-2697, mm=-5.3940
+17:47:33     poll: raw=-2726, mm=-5.4520
+17:47:33     poll: raw=-2755, mm=-5.5100
+17:47:33     poll: raw=-2785, mm=-5.5700
+17:47:33     poll: raw=-2793, mm=-5.5860
+17:47:33     poll: raw=-2815, mm=-5.6300
+17:47:33     poll: raw=-2845, mm=-5.6900
+17:47:34     poll: raw=-2902, mm=-5.8040
+17:47:34     poll: raw=-2931, mm=-5.8620
+17:47:34     poll: raw=-2961, mm=-5.9220
+17:47:34     poll: raw=-3003, mm=-6.0060
+17:47:34     poll: raw=-3020, mm=-6.0400
+17:47:34     poll: raw=-3054, mm=-6.1080
+17:47:34     poll: raw=-3079, mm=-6.1580
+17:47:34     poll: raw=-3137, mm=-6.2740
+17:47:34     poll: raw=-3166, mm=-6.3320
+17:47:34     poll: raw=-3212, mm=-6.4240
+17:47:34     poll: raw=-3225, mm=-6.4500
+17:47:34     poll: raw=-3264, mm=-6.5280
+17:47:34     poll: raw=-3284, mm=-6.5680
+17:47:34     poll: raw=-3343, mm=-6.6860
+17:47:35     poll: raw=-3373, mm=-6.7460
+17:47:35     poll: raw=-3402, mm=-6.8040
+17:47:35     poll: raw=-3421, mm=-6.8420
+17:47:35     poll: raw=-3431, mm=-6.8620
+17:47:35     poll: raw=-3473, mm=-6.9460
+17:47:35     poll: raw=-3491, mm=-6.9820
+17:47:35     poll: raw=-3549, mm=-7.0980
+17:47:35     poll: raw=-3578, mm=-7.1560
+17:47:35     poll: raw=-3608, mm=-7.2160
+17:47:35     poll: raw=-3630, mm=-7.2600
+17:47:35     poll: raw=-3638, mm=-7.2760
+17:47:35     poll: raw=-3682, mm=-7.3640
+17:47:35     poll: raw=-3696, mm=-7.3920
+17:47:35     poll: raw=-3734, mm=-7.4680
+17:47:35     poll: raw=-3785, mm=-7.5700
+17:47:35     poll: raw=-3816, mm=-7.6320
+17:47:36     poll: raw=-3845, mm=-7.6900
+17:47:36     poll: raw=-3875, mm=-7.7500
+17:47:36     poll: raw=-3904, mm=-7.8080
+17:47:36     poll: raw=-3943, mm=-7.8860
+17:47:36     poll: raw=-3963, mm=-7.9260
+17:47:36     poll: raw=-4022, mm=-8.0440
+17:47:36     poll: raw=-4051, mm=-8.1020
+17:47:36     poll: raw=-4080, mm=-8.1600
+17:47:36     poll: raw=-4100, mm=-8.2000
+17:47:36     poll: raw=-4110, mm=-8.2200
+17:47:36     poll: raw=-4151, mm=-8.3020
+17:47:36     poll: raw=-4169, mm=-8.3380
+17:47:36     poll: raw=-4204, mm=-8.4080
+17:47:36     poll: raw=-4228, mm=-8.4560
+17:47:36     poll: raw=-4286, mm=-8.5720
+17:47:37     poll: raw=-4315, mm=-8.6300
+17:47:37     poll: raw=-4361, mm=-8.7220
+17:47:37     poll: raw=-4374, mm=-8.7480
+17:47:37     poll: raw=-4433, mm=-8.8660
+17:47:37     poll: raw=-4462, mm=-8.9240
+17:47:37     poll: raw=-4491, mm=-8.9820
+17:47:37     poll: raw=-4521, mm=-9.0420
+17:47:37     poll: raw=-4570, mm=-9.1400
+17:47:37     poll: raw=-4579, mm=-9.1580
+17:47:37     poll: raw=-4622, mm=-9.2440
+17:47:37     poll: raw=-4668, mm=-9.3360
+17:47:37     poll: raw=-4698, mm=-9.3960
+17:47:37     poll: raw=-4728, mm=-9.4560
+17:47:37     poll: raw=-4757, mm=-9.5140
+17:47:37     poll: raw=-4779, mm=-9.5580
+17:47:38     poll: raw=-4786, mm=-9.5720
+17:47:38     poll: raw=-4832, mm=-9.6640
+17:47:38     poll: raw=-4845, mm=-9.6900
+17:47:38     poll: raw=-4904, mm=-9.8080
+17:47:38     poll: raw=-4933, mm=-9.8660
+17:47:38     poll: raw=-4936, mm=-9.8720
+17:47:38     poll: raw=-4963, mm=-9.9260
+17:47:38     poll: raw=-4992, mm=-9.9840
+17:47:38     poll: raw=-5042, mm=-10.0840
+17:47:38     poll: raw=-5051, mm=-10.1020
+17:47:38     poll: raw=-5110, mm=-10.2200
+17:47:38     poll: raw=-5140, mm=-10.2800
+17:47:38     poll: raw=-5170, mm=-10.3400
+17:47:38     poll: raw=-5199, mm=-10.3980
+17:47:38     poll: raw=-5251, mm=-10.5020
+17:47:39     poll: raw=-5258, mm=-10.5160
+17:47:39   Timeout after 10s, last raw=-5258
+17:47:39   [minimal ch=2] After -40.0um: raw=-5287, delta_back=-5286, total=-5286
+17:47:39   [minimal ch=2] RESULT: FAIL (got 0, expected 20)
+17:47:39 
+--- 1.5 Final status ch=2 ---
+17:47:39   Status [ch=2 final]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+17:47:39   PowerParams [ch=2 final]: move=6%, rest=130%
+17:47:39   InputVoltage [ch=2 final]: 664 mV (0.664 V)
+17:47:39   Position [ch=2 final]: raw=-5329, mm=-10.6580
+17:47:39   VelParams [ch=2 final]: maxVel=768000, accel=768000
+17:47:39   HomingParams [ch=2 final]: dir=28012(UNKNOWN(28012)), limitSwitch=28526(UNKNOWN(28526)), velocity=1936879984, offset=2004252020
+17:47:40 
+============================================================
+17:47:40   STEP 2: RESTORE HOMING PARAMS (4 combinations)
+17:47:40 ============================================================
+17:47:40 
+============================================================
+17:47:40   STEP 2 ch=1 combo 1/4: dir=FORWARDS, ls=FWD_LIMIT
+17:47:40 ============================================================
+17:47:40   SBC_Open -> 7
+17:47:40 
+--- 2.1.1 SetBacklash(0) ---
+17:47:40 
+--- 2.1.2 SetHomingParams: dir=FORWARDS, ls=FWD_LIMIT ---
+17:47:40   SBC_SetHomingParamsBlock -> 1
+17:47:40   HomingParams [after-set]: dir=0(UNDEFINED), limitSwitch=0(UNDEFINED), velocity=0, offset=0
+17:47:40 
+--- 2.1.3 PersistSettings ---
+17:47:40   SBC_PersistSettings -> False
+17:47:40 
+--- 2.1.4 Home ch=1 ---
+17:47:40   Homing ch=1 (timeout=30s)...
+17:47:40     SBC_Home -> err=1
+17:47:40     Homing ch=1 FAILED with err=1
+17:47:40   Home failed, skipping move test
+17:47:40 
+============================================================
+17:47:40   STEP 2 ch=1 combo 2/4: dir=REVERSE, ls=REV_LIMIT
+17:47:40 ============================================================
+17:47:41   SBC_Open -> 0
+17:47:42 
+--- 2.2.1 SetBacklash(0) ---
+17:47:42 
+--- 2.2.2 SetHomingParams: dir=REVERSE, ls=REV_LIMIT ---
+17:47:42   SBC_SetHomingParamsBlock -> 0
+17:47:42   HomingParams [after-set]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=2500, offset=0
+17:47:42 
+--- 2.2.3 PersistSettings ---
+17:47:43   SBC_PersistSettings -> True
+17:47:43 
+--- 2.2.4 Home ch=1 ---
+17:47:43   Homing ch=1 (timeout=30s)...
+17:47:43     SBC_Home -> err=0
+17:47:43     Homing ch=1 complete. Status: 0x80101220, pos=-25
+17:47:43   Position after home: raw=-25, mm=-0.0500
+17:47:43   Home position is -25 (not 0), skipping move test
+17:47:44 
+============================================================
+17:47:44   STEP 2 ch=1 combo 3/4: dir=FORWARDS, ls=REV_LIMIT
+17:47:44 ============================================================
+17:47:44   SBC_Open -> 7
+17:47:44 
+--- 2.3.1 SetBacklash(0) ---
+17:47:44 
+--- 2.3.2 SetHomingParams: dir=FORWARDS, ls=REV_LIMIT ---
+17:47:44   SBC_SetHomingParamsBlock -> 1
+17:47:44   HomingParams [after-set]: dir=0(UNDEFINED), limitSwitch=0(UNDEFINED), velocity=0, offset=0
+17:47:44 
+--- 2.3.3 PersistSettings ---
+17:47:44   SBC_PersistSettings -> False
+17:47:44 
+--- 2.3.4 Home ch=1 ---
+17:47:44   Homing ch=1 (timeout=30s)...
+17:47:44     SBC_Home -> err=1
+17:47:44     Homing ch=1 FAILED with err=1
+17:47:44   Home failed, skipping move test
+17:47:44 
+============================================================
+17:47:44   STEP 2 ch=1 combo 4/4: dir=REVERSE, ls=FWD_LIMIT
+17:47:44 ============================================================
+17:47:47   SBC_Open -> 0
+17:47:47 
+--- 2.4.1 SetBacklash(0) ---
+17:47:47 
+--- 2.4.2 SetHomingParams: dir=REVERSE, ls=FWD_LIMIT ---
+17:47:47   SBC_SetHomingParamsBlock -> 0
+17:47:47   HomingParams [after-set]: dir=2(REVERSE), limitSwitch=4(FWD_LIMIT), velocity=2500, offset=0
+17:47:47 
+--- 2.4.3 PersistSettings ---
+17:47:48   SBC_PersistSettings -> True
+17:47:48 
+--- 2.4.4 Home ch=1 ---
+17:47:48   Homing ch=1 (timeout=30s)...
+17:47:48     SBC_Home -> err=0
+17:47:48     Homing ch=1 complete. Status: 0x80101220, pos=-273
+17:47:48   Position after home: raw=-274, mm=-0.5480
+17:47:48   Home position is -274 (not 0), skipping move test
+17:47:49 
+============================================================
+17:47:49   STEP 2 ch=2 combo 1/4: dir=FORWARDS, ls=FWD_LIMIT
+17:47:49 ============================================================
+17:47:50   SBC_Open -> 0
+17:47:50 
+--- 2.1.1 SetBacklash(0) ---
+17:47:50 
+--- 2.1.2 SetHomingParams: dir=FORWARDS, ls=FWD_LIMIT ---
+17:47:50   SBC_SetHomingParamsBlock -> 0
+17:47:50   HomingParams [after-set]: dir=1(FORWARDS), limitSwitch=4(FWD_LIMIT), velocity=2500, offset=0
+17:47:50 
+--- 2.1.3 PersistSettings ---
+17:47:51   SBC_PersistSettings -> True
+17:47:51 
+--- 2.1.4 Home ch=2 ---
+17:47:51   Homing ch=2 (timeout=30s)...
+17:47:51     SBC_Home -> err=0
+17:47:52     Homing ch=2 complete. Status: 0x00000000, pos=-1
+17:47:52   Position after home: raw=-11531, mm=-23.0620
+17:47:52   Home position is -11531 (not 0), skipping move test
+17:47:53 
+============================================================
+17:47:53   STEP 2 ch=2 combo 2/4: dir=REVERSE, ls=REV_LIMIT
+17:47:53 ============================================================
+17:47:53   SBC_Open -> 0
+17:47:54 
+--- 2.2.1 SetBacklash(0) ---
+17:47:54 
+--- 2.2.2 SetHomingParams: dir=REVERSE, ls=REV_LIMIT ---
+17:47:54   SBC_SetHomingParamsBlock -> 0
+17:47:54   HomingParams [after-set]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=2500, offset=0
+17:47:54 
+--- 2.2.3 PersistSettings ---
+17:47:55   SBC_PersistSettings -> True
+17:47:55 
+--- 2.2.4 Home ch=2 ---
+17:47:55   Homing ch=2 (timeout=30s)...
+17:47:55     SBC_Home -> err=0
+17:47:55     Homing ch=2 complete. Status: 0x80101220, pos=-13128
+17:47:55   Position after home: raw=-13128, mm=-26.2560
+17:47:55   Home position is -13128 (not 0), skipping move test
+17:47:56 
+============================================================
+17:47:56   STEP 2 ch=2 combo 3/4: dir=FORWARDS, ls=REV_LIMIT
+17:47:56 ============================================================
+17:47:56   SBC_Open -> 7
+17:47:56 
+--- 2.3.1 SetBacklash(0) ---
+17:47:56 
+--- 2.3.2 SetHomingParams: dir=FORWARDS, ls=REV_LIMIT ---
+17:47:56   SBC_SetHomingParamsBlock -> 1
+17:47:56   HomingParams [after-set]: dir=0(UNDEFINED), limitSwitch=0(UNDEFINED), velocity=0, offset=0
+17:47:56 
+--- 2.3.3 PersistSettings ---
+17:47:56   SBC_PersistSettings -> False
+17:47:56 
+--- 2.3.4 Home ch=2 ---
+17:47:56   Homing ch=2 (timeout=30s)...
+17:47:56     SBC_Home -> err=1
+17:47:56     Homing ch=2 FAILED with err=1
+17:47:56   Home failed, skipping move test
+17:47:57 
+============================================================
+17:47:57   STEP 2 ch=2 combo 4/4: dir=REVERSE, ls=FWD_LIMIT
+17:47:57 ============================================================
+17:47:58   SBC_Open -> 0
+17:47:58 
+--- 2.4.1 SetBacklash(0) ---
+17:47:58 
+--- 2.4.2 SetHomingParams: dir=REVERSE, ls=FWD_LIMIT ---
+17:47:58   SBC_SetHomingParamsBlock -> 0
+17:47:58   HomingParams [after-set]: dir=2(REVERSE), limitSwitch=4(FWD_LIMIT), velocity=2500, offset=0
+17:47:58 
+--- 2.4.3 PersistSettings ---
+17:47:59   SBC_PersistSettings -> True
+17:47:59 
+--- 2.4.4 Home ch=2 ---
+17:47:59   Homing ch=2 (timeout=30s)...
+17:47:59     SBC_Home -> err=0
+17:47:59     Homing ch=2 complete. Status: 0x80101220, pos=-15148
+17:47:59   Position after home: raw=-15148, mm=-30.2960
+17:47:59   Home position is -15148 (not 0), skipping move test
+17:48:00 
+============================================================
+17:48:00   STEP 3: RAW MOVE (SetPositionCounter without homing)
+17:48:00 ============================================================
+17:48:00 
+============================================================
+17:48:00   STEP 3 ch=1: SetPositionCounter(0) -> Move
+17:48:00 ============================================================
+17:48:01   SBC_Open -> 0
+17:48:01 
+--- 3.1 Status before ---
+17:48:01   Status [ch=1]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+17:48:01   PowerParams [ch=1]: move=6%, rest=130%
+17:48:01   InputVoltage [ch=1]: 736 mV (0.736 V)
+17:48:01   Position [ch=1]: raw=-890, mm=-1.7800
+17:48:01   VelParams [ch=1]: maxVel=135182, accel=659706977
+17:48:01 
+--- 3.2 SetPositionCounter(0) ---
+17:48:01   SBC_SetPositionCounter(0) -> 36
+17:48:01 
+--- 3.3 Position after reset ---
+17:48:01   Position: raw=-895, mm=-1.7900
+17:48:01 
+--- 3.4 Move test ch=1: +40.0um then -40.0um ---
+17:48:01   [raw ch=1] Before: raw=-896, mm=-1.7920
+17:48:01   move_relative: 40.0 um = 20 steps
+17:48:02     MoveRelativeDistance err=0
+17:48:02     poll: raw=-905, mm=-1.8100
+17:48:02     poll: raw=-910, mm=-1.8200
+17:48:02     poll: raw=-916, mm=-1.8320
+17:48:02     poll: raw=-919, mm=-1.8380
+17:48:02     poll: raw=-923, mm=-1.8460
+17:48:02     poll: raw=-925, mm=-1.8500
+17:48:02     poll: raw=-929, mm=-1.8580
+17:48:02     poll: raw=-933, mm=-1.8660
+17:48:02     poll: raw=-936, mm=-1.8720
+17:48:02     poll: raw=-939, mm=-1.8780
+17:48:02     poll: raw=-941, mm=-1.8820
+17:48:03     poll: raw=-944, mm=-1.8880
+17:48:03     poll: raw=-946, mm=-1.8920
+17:48:03     poll: raw=-949, mm=-1.8980
+17:48:03     poll: raw=-951, mm=-1.9020
+17:48:03     poll: raw=-956, mm=-1.9120
+17:48:03     poll: raw=-959, mm=-1.9180
+17:48:03     poll: raw=-962, mm=-1.9240
+17:48:03     poll: raw=-965, mm=-1.9300
+17:48:03     poll: raw=-969, mm=-1.9380
+17:48:03     poll: raw=-971, mm=-1.9420
+17:48:03     poll: raw=-974, mm=-1.9480
+17:48:03     poll: raw=-979, mm=-1.9580
+17:48:03     poll: raw=-980, mm=-1.9600
+17:48:03     poll: raw=-985, mm=-1.9700
+17:48:03     poll: raw=-988, mm=-1.9760
+17:48:04     poll: raw=-991, mm=-1.9820
+17:48:04     poll: raw=-993, mm=-1.9860
+17:48:04     poll: raw=-995, mm=-1.9900
+17:48:04     poll: raw=-997, mm=-1.9940
+17:48:04     poll: raw=-1000, mm=-2.0000
+17:48:04     poll: raw=-1002, mm=-2.0040
+17:48:04     poll: raw=-1008, mm=-2.0160
+17:48:04     poll: raw=-1014, mm=-2.0280
+17:48:04     poll: raw=-1016, mm=-2.0320
+17:48:04     poll: raw=-1022, mm=-2.0440
+17:48:04     poll: raw=-1028, mm=-2.0560
+17:48:04     poll: raw=-1031, mm=-2.0620
+17:48:04     poll: raw=-1035, mm=-2.0700
+17:48:05     poll: raw=-1037, mm=-2.0740
+17:48:05     poll: raw=-1042, mm=-2.0840
+17:48:05     poll: raw=-1045, mm=-2.0900
+17:48:05     poll: raw=-1048, mm=-2.0960
+17:48:05     poll: raw=-1049, mm=-2.0980
+17:48:05     poll: raw=-1053, mm=-2.1060
+17:48:05     poll: raw=-1056, mm=-2.1120
+17:48:05     poll: raw=-1058, mm=-2.1160
+17:48:05     poll: raw=-1062, mm=-2.1240
+17:48:05     poll: raw=-1065, mm=-2.1300
+17:48:05     poll: raw=-1068, mm=-2.1360
+17:48:05     poll: raw=-1071, mm=-2.1420
+17:48:05     poll: raw=-1074, mm=-2.1480
+17:48:05     poll: raw=-1080, mm=-2.1600
+17:48:05     poll: raw=-1081, mm=-2.1620
+17:48:06     poll: raw=-1083, mm=-2.1660
+17:48:06     poll: raw=-1087, mm=-2.1740
+17:48:06     poll: raw=-1091, mm=-2.1820
+17:48:06     poll: raw=-1094, mm=-2.1880
+17:48:06     poll: raw=-1097, mm=-2.1940
+17:48:06     poll: raw=-1102, mm=-2.2040
+17:48:06     poll: raw=-1105, mm=-2.2100
+17:48:06     poll: raw=-1107, mm=-2.2140
+17:48:06     poll: raw=-1109, mm=-2.2180
+17:48:06     poll: raw=-1112, mm=-2.2240
+17:48:06     poll: raw=-1117, mm=-2.2340
+17:48:06     poll: raw=-1120, mm=-2.2400
+17:48:06     poll: raw=-1126, mm=-2.2520
+17:48:06     poll: raw=-1128, mm=-2.2560
+17:48:07     poll: raw=-1131, mm=-2.2620
+17:48:07     poll: raw=-1134, mm=-2.2680
+17:48:07     poll: raw=-1138, mm=-2.2760
+17:48:07     poll: raw=-1142, mm=-2.2840
+17:48:07     poll: raw=-1143, mm=-2.2860
+17:48:07     poll: raw=-1148, mm=-2.2960
+17:48:07     poll: raw=-1149, mm=-2.2980
+17:48:07     poll: raw=-1154, mm=-2.3080
+17:48:07     poll: raw=-1157, mm=-2.3140
+17:48:07     poll: raw=-1158, mm=-2.3160
+17:48:07     poll: raw=-1161, mm=-2.3220
+17:48:07     poll: raw=-1165, mm=-2.3300
+17:48:07     poll: raw=-1166, mm=-2.3320
+17:48:07     poll: raw=-1170, mm=-2.3400
+17:48:07     poll: raw=-1172, mm=-2.3440
+17:48:08     poll: raw=-1177, mm=-2.3540
+17:48:08     poll: raw=-1179, mm=-2.3580
+17:48:08     poll: raw=-1183, mm=-2.3660
+17:48:08     poll: raw=-1186, mm=-2.3720
+17:48:08     poll: raw=-1189, mm=-2.3780
+17:48:08     poll: raw=-1193, mm=-2.3860
+17:48:08     poll: raw=-1195, mm=-2.3900
+17:48:08     poll: raw=-1199, mm=-2.3980
+17:48:08     poll: raw=-1203, mm=-2.4060
+17:48:08     poll: raw=-1204, mm=-2.4080
+17:48:08     poll: raw=-1207, mm=-2.4140
+17:48:08     poll: raw=-1212, mm=-2.4240
+17:48:08     poll: raw=-1215, mm=-2.4300
+17:48:08     poll: raw=-1218, mm=-2.4360
+17:48:08     poll: raw=-1219, mm=-2.4380
+17:48:09     poll: raw=-1221, mm=-2.4420
+17:48:09     poll: raw=-1224, mm=-2.4480
+17:48:09     poll: raw=-1226, mm=-2.4520
+17:48:09     poll: raw=-1231, mm=-2.4620
+17:48:09     poll: raw=-1232, mm=-2.4640
+17:48:09     poll: raw=-1235, mm=-2.4700
+17:48:09     poll: raw=-1240, mm=-2.4800
+17:48:09     poll: raw=-1245, mm=-2.4900
+17:48:09     poll: raw=-1246, mm=-2.4920
+17:48:09     poll: raw=-1250, mm=-2.5000
+17:48:09     poll: raw=-1254, mm=-2.5080
+17:48:09     poll: raw=-1255, mm=-2.5100
+17:48:09     poll: raw=-1260, mm=-2.5200
+17:48:09     poll: raw=-1261, mm=-2.5220
+17:48:09     poll: raw=-1266, mm=-2.5320
+17:48:09     poll: raw=-1269, mm=-2.5380
+17:48:10     poll: raw=-1272, mm=-2.5440
+17:48:10     poll: raw=-1275, mm=-2.5500
+17:48:10     poll: raw=-1277, mm=-2.5540
+17:48:10     poll: raw=-1278, mm=-2.5560
+17:48:10     poll: raw=-1282, mm=-2.5640
+17:48:10     poll: raw=-1284, mm=-2.5680
+17:48:10     poll: raw=-1287, mm=-2.5740
+17:48:10     poll: raw=-1292, mm=-2.5840
+17:48:10     poll: raw=-1295, mm=-2.5900
+17:48:10     poll: raw=-1296, mm=-2.5920
+17:48:10     poll: raw=-1298, mm=-2.5960
+17:48:10     poll: raw=-1301, mm=-2.6020
+17:48:10     poll: raw=-1306, mm=-2.6120
+17:48:10     poll: raw=-1307, mm=-2.6140
+17:48:10     poll: raw=-1311, mm=-2.6220
+17:48:10     poll: raw=-1315, mm=-2.6300
+17:48:11     poll: raw=-1318, mm=-2.6360
+17:48:11     poll: raw=-1321, mm=-2.6420
+17:48:11     poll: raw=-1327, mm=-2.6540
+17:48:11     poll: raw=-1329, mm=-2.6580
+17:48:11     poll: raw=-1332, mm=-2.6640
+17:48:11     poll: raw=-1333, mm=-2.6660
+17:48:11     poll: raw=-1337, mm=-2.6740
+17:48:11     poll: raw=-1338, mm=-2.6760
+17:48:11     poll: raw=-1344, mm=-2.6880
+17:48:11     poll: raw=-1347, mm=-2.6940
+17:48:11     poll: raw=-1353, mm=-2.7060
+17:48:11     poll: raw=-1357, mm=-2.7140
+17:48:11     poll: raw=-1358, mm=-2.7160
+17:48:12     poll: raw=-1364, mm=-2.7280
+17:48:12     poll: raw=-1366, mm=-2.7320
+17:48:12     poll: raw=-1367, mm=-2.7340
+17:48:12   Timeout after 10s, last raw=-1367
+17:48:12   [raw ch=1] After +40.0um: raw=-1370, delta=-474 steps (-0.9480 mm)
+17:48:12   move_relative: -40.0 um = -20 steps
+17:48:12     MoveRelativeDistance err=0
+17:48:12     poll: raw=-1376, mm=-2.7520
+17:48:12     poll: raw=-1380, mm=-2.7600
+17:48:12     poll: raw=-1381, mm=-2.7620
+17:48:12     poll: raw=-1387, mm=-2.7740
+17:48:12     poll: raw=-1392, mm=-2.7840
+17:48:12     poll: raw=-1395, mm=-2.7900
+17:48:12     poll: raw=-1397, mm=-2.7940
+17:48:12     poll: raw=-1399, mm=-2.7980
+17:48:12     poll: raw=-1403, mm=-2.8060
+17:48:12     poll: raw=-1407, mm=-2.8140
+17:48:13     poll: raw=-1409, mm=-2.8180
+17:48:13     poll: raw=-1415, mm=-2.8300
+17:48:13     poll: raw=-1417, mm=-2.8340
+17:48:13     poll: raw=-1418, mm=-2.8360
+17:48:13     poll: raw=-1422, mm=-2.8440
+17:48:13     poll: raw=-1424, mm=-2.8480
+17:48:13     poll: raw=-1427, mm=-2.8540
+17:48:13     poll: raw=-1431, mm=-2.8620
+17:48:13     poll: raw=-1435, mm=-2.8700
+17:48:13     poll: raw=-1438, mm=-2.8760
+17:48:13     poll: raw=-1442, mm=-2.8840
+17:48:13     poll: raw=-1445, mm=-2.8900
+17:48:13     poll: raw=-1448, mm=-2.8960
+17:48:13     poll: raw=-1450, mm=-2.9000
+17:48:13     poll: raw=-1455, mm=-2.9100
+17:48:14     poll: raw=-1458, mm=-2.9160
+17:48:14     poll: raw=-1461, mm=-2.9220
+17:48:14     poll: raw=-1463, mm=-2.9260
+17:48:14     poll: raw=-1467, mm=-2.9340
+17:48:14     poll: raw=-1469, mm=-2.9380
+17:48:14     poll: raw=-1473, mm=-2.9460
+17:48:14     poll: raw=-1476, mm=-2.9520
+17:48:14     poll: raw=-1478, mm=-2.9560
+17:48:14     poll: raw=-1483, mm=-2.9660
+17:48:14     poll: raw=-1484, mm=-2.9680
+17:48:14     poll: raw=-1490, mm=-2.9800
+17:48:14     poll: raw=-1493, mm=-2.9860
+17:48:14     poll: raw=-1497, mm=-2.9940
+17:48:14     poll: raw=-1498, mm=-2.9960
+17:48:15     poll: raw=-1503, mm=-3.0060
+17:48:15     poll: raw=-1506, mm=-3.0120
+17:48:15     poll: raw=-1510, mm=-3.0200
+17:48:15     poll: raw=-1513, mm=-3.0260
+17:48:15     poll: raw=-1514, mm=-3.0280
+17:48:15     poll: raw=-1516, mm=-3.0320
+17:48:15     poll: raw=-1520, mm=-3.0400
+17:48:15     poll: raw=-1524, mm=-3.0480
+17:48:15     poll: raw=-1525, mm=-3.0500
+17:48:15     poll: raw=-1529, mm=-3.0580
+17:48:15     poll: raw=-1530, mm=-3.0600
+17:48:15     poll: raw=-1534, mm=-3.0680
+17:48:15     poll: raw=-1539, mm=-3.0780
+17:48:15     poll: raw=-1543, mm=-3.0860
+17:48:15     poll: raw=-1547, mm=-3.0940
+17:48:16     poll: raw=-1549, mm=-3.0980
+17:48:16     poll: raw=-1550, mm=-3.1000
+17:48:16     poll: raw=-1555, mm=-3.1100
+17:48:16     poll: raw=-1557, mm=-3.1140
+17:48:16     poll: raw=-1562, mm=-3.1240
+17:48:16     poll: raw=-1564, mm=-3.1280
+17:48:16     poll: raw=-1567, mm=-3.1340
+17:48:16     poll: raw=-1570, mm=-3.1400
+17:48:16     poll: raw=-1571, mm=-3.1420
+17:48:16     poll: raw=-1575, mm=-3.1500
+17:48:16     poll: raw=-1576, mm=-3.1520
+17:48:16     poll: raw=-1582, mm=-3.1640
+17:48:16     poll: raw=-1584, mm=-3.1680
+17:48:16     poll: raw=-1587, mm=-3.1740
+17:48:16     poll: raw=-1593, mm=-3.1860
+17:48:17     poll: raw=-1596, mm=-3.1920
+17:48:17     poll: raw=-1600, mm=-3.2000
+17:48:17     poll: raw=-1604, mm=-3.2080
+17:48:17     poll: raw=-1605, mm=-3.2100
+17:48:17     poll: raw=-1609, mm=-3.2180
+17:48:17     poll: raw=-1613, mm=-3.2260
+17:48:17     poll: raw=-1616, mm=-3.2320
+17:48:17     poll: raw=-1619, mm=-3.2380
+17:48:17     poll: raw=-1621, mm=-3.2420
+17:48:17     poll: raw=-1623, mm=-3.2460
+17:48:17     poll: raw=-1626, mm=-3.2520
+17:48:17     poll: raw=-1628, mm=-3.2560
+17:48:17     poll: raw=-1632, mm=-3.2640
+17:48:17     poll: raw=-1633, mm=-3.2660
+17:48:17     poll: raw=-1637, mm=-3.2740
+17:48:17     poll: raw=-1642, mm=-3.2840
+17:48:18     poll: raw=-1646, mm=-3.2920
+17:48:18     poll: raw=-1648, mm=-3.2960
+17:48:18     poll: raw=-1651, mm=-3.3020
+17:48:18     poll: raw=-1655, mm=-3.3100
+17:48:18     poll: raw=-1657, mm=-3.3140
+17:48:18     poll: raw=-1662, mm=-3.3240
+17:48:18     poll: raw=-1668, mm=-3.3360
+17:48:18     poll: raw=-1671, mm=-3.3420
+17:48:18     poll: raw=-1672, mm=-3.3440
+17:48:18     poll: raw=-1674, mm=-3.3480
+17:48:18     poll: raw=-1679, mm=-3.3580
+17:48:18     poll: raw=-1685, mm=-3.3700
+17:48:19     poll: raw=-1688, mm=-3.3760
+17:48:19     poll: raw=-1693, mm=-3.3860
+17:48:19     poll: raw=-1694, mm=-3.3880
+17:48:19     poll: raw=-1698, mm=-3.3960
+17:48:19     poll: raw=-1699, mm=-3.3980
+17:48:19     poll: raw=-1703, mm=-3.4060
+17:48:19     poll: raw=-1708, mm=-3.4160
+17:48:19     poll: raw=-1711, mm=-3.4220
+17:48:19     poll: raw=-1714, mm=-3.4280
+17:48:19     poll: raw=-1718, mm=-3.4360
+17:48:19     poll: raw=-1721, mm=-3.4420
+17:48:19     poll: raw=-1723, mm=-3.4460
+17:48:19     poll: raw=-1728, mm=-3.4560
+17:48:19     poll: raw=-1731, mm=-3.4620
+17:48:19     poll: raw=-1734, mm=-3.4680
+17:48:20     poll: raw=-1737, mm=-3.4740
+17:48:20     poll: raw=-1740, mm=-3.4800
+17:48:20     poll: raw=-1742, mm=-3.4840
+17:48:20     poll: raw=-1744, mm=-3.4880
+17:48:20     poll: raw=-1748, mm=-3.4960
+17:48:20     poll: raw=-1749, mm=-3.4980
+17:48:20     poll: raw=-1751, mm=-3.5020
+17:48:20     poll: raw=-1757, mm=-3.5140
+17:48:20     poll: raw=-1760, mm=-3.5200
+17:48:20     poll: raw=-1763, mm=-3.5260
+17:48:20     poll: raw=-1764, mm=-3.5280
+17:48:20     poll: raw=-1767, mm=-3.5340
+17:48:20     poll: raw=-1769, mm=-3.5380
+17:48:20     poll: raw=-1772, mm=-3.5440
+17:48:20     poll: raw=-1774, mm=-3.5480
+17:48:20     poll: raw=-1780, mm=-3.5600
+17:48:21     poll: raw=-1783, mm=-3.5660
+17:48:21     poll: raw=-1786, mm=-3.5720
+17:48:21     poll: raw=-1789, mm=-3.5780
+17:48:21     poll: raw=-1791, mm=-3.5820
+17:48:21     poll: raw=-1795, mm=-3.5900
+17:48:21     poll: raw=-1797, mm=-3.5940
+17:48:21     poll: raw=-1803, mm=-3.6060
+17:48:21     poll: raw=-1805, mm=-3.6100
+17:48:21     poll: raw=-1809, mm=-3.6180
+17:48:21     poll: raw=-1810, mm=-3.6200
+17:48:21     poll: raw=-1811, mm=-3.6220
+17:48:21     poll: raw=-1817, mm=-3.6340
+17:48:21     poll: raw=-1820, mm=-3.6400
+17:48:21     poll: raw=-1823, mm=-3.6460
+17:48:21     poll: raw=-1826, mm=-3.6520
+17:48:22     poll: raw=-1828, mm=-3.6560
+17:48:22     poll: raw=-1830, mm=-3.6600
+17:48:22     poll: raw=-1833, mm=-3.6660
+17:48:22     poll: raw=-1835, mm=-3.6700
+17:48:22     poll: raw=-1840, mm=-3.6800
+17:48:22     poll: raw=-1843, mm=-3.6860
+17:48:22   Timeout after 10s, last raw=-1843
+17:48:22   [raw ch=1] After -40.0um: raw=-1844, delta_back=-474, total=-948
+17:48:22   [raw ch=1] RESULT: FAIL (got -474, expected 20)
+17:48:22 
+--- 3.5 Final status ch=1 ---
+17:48:22   Status [ch=1]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+17:48:22   PowerParams [ch=1]: move=6%, rest=130%
+17:48:22   InputVoltage [ch=1]: 736 mV (0.736 V)
+17:48:22   Position [ch=1]: raw=-1844, mm=-3.6880
+17:48:22   VelParams [ch=1]: maxVel=135182, accel=659706977
+17:48:23 
+============================================================
+17:48:23   STEP 3 ch=2: SetPositionCounter(0) -> Move
+17:48:23 ============================================================
+17:48:24   SBC_Open -> 0
+17:48:24 
+--- 3.1 Status before ---
+17:48:24   Status [ch=2]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+17:48:24   PowerParams [ch=2]: move=100%, rest=6%
+17:48:24   InputVoltage [ch=2]: 664 mV (0.664 V)
+17:48:24   Position [ch=2]: raw=-26864, mm=-53.7280
+17:48:24   VelParams [ch=2]: maxVel=-805306368, accel=-573444
+17:48:24 
+--- 3.2 SetPositionCounter(0) ---
+17:48:24   SBC_SetPositionCounter(0) -> 36
+17:48:24 
+--- 3.3 Position after reset ---
+17:48:24   Position: raw=-26864, mm=-53.7280
+17:48:24 
+--- 3.4 Move test ch=2: +40.0um then -40.0um ---
+17:48:24   [raw ch=2] Before: raw=-27064, mm=-54.1280
+17:48:24   move_relative: 40.0 um = 20 steps
+17:48:24     MoveRelativeDistance err=0
+17:48:24     poll: raw=-27123, mm=-54.2460
+17:48:24     poll: raw=-27150, mm=-54.3000
+17:48:25     poll: raw=-27177, mm=-54.3540
+17:48:25     poll: raw=-27236, mm=-54.4720
+17:48:25     poll: raw=-27265, mm=-54.5300
+17:48:25     poll: raw=-27295, mm=-54.5900
+17:48:25     poll: raw=-27324, mm=-54.6480
+17:48:25     poll: raw=-27342, mm=-54.6840
+17:48:25     poll: raw=-27354, mm=-54.7080
+17:48:25     poll: raw=-27389, mm=-54.7780
+17:48:25     poll: raw=-27413, mm=-54.8260
+17:48:25     poll: raw=-27442, mm=-54.8840
+17:48:25     poll: raw=-27490, mm=-54.9800
+17:48:25     poll: raw=-27530, mm=-55.0600
+17:48:25     poll: raw=-27559, mm=-55.1180
+17:48:25     poll: raw=-27589, mm=-55.1780
+17:48:25     poll: raw=-27618, mm=-55.2360
+17:48:25     poll: raw=-27628, mm=-55.2560
+17:48:25     poll: raw=-27648, mm=-55.2960
+17:48:26     poll: raw=-27700, mm=-55.4000
+17:48:26     poll: raw=-27724, mm=-55.4480
+17:48:26     poll: raw=-27752, mm=-55.5040
+17:48:26     poll: raw=-27772, mm=-55.5440
+17:48:26     poll: raw=-27824, mm=-55.6480
+17:48:26     poll: raw=-27853, mm=-55.7060
+17:48:26     poll: raw=-27867, mm=-55.7340
+17:48:26     poll: raw=-27883, mm=-55.7660
+17:48:26     poll: raw=-27915, mm=-55.8300
+17:48:26     poll: raw=-27971, mm=-55.9420
+17:48:26     poll: raw=-28000, mm=-56.0000
+17:48:26     poll: raw=-28030, mm=-56.0600
+17:48:26     poll: raw=-28059, mm=-56.1180
+17:48:26     poll: raw=-28088, mm=-56.1760
+17:48:26     poll: raw=-28106, mm=-56.2120
+17:48:26     poll: raw=-28119, mm=-56.2380
+17:48:27     poll: raw=-28171, mm=-56.3420
+17:48:27     poll: raw=-28202, mm=-56.4040
+17:48:27     poll: raw=-28223, mm=-56.4460
+17:48:27     poll: raw=-28235, mm=-56.4700
+17:48:27     poll: raw=-28393, mm=-56.7860
+17:48:27     poll: raw=-28440, mm=-56.8800
+17:48:27     poll: raw=-28469, mm=-56.9380
+17:48:27     poll: raw=-28489, mm=-56.9780
+17:48:27     poll: raw=-28528, mm=-57.0560
+17:48:27     poll: raw=-28538, mm=-57.0760
+17:48:27     poll: raw=-28557, mm=-57.1140
+17:48:27     poll: raw=-28591, mm=-57.1820
+17:48:28     poll: raw=-28632, mm=-57.2640
+17:48:28     poll: raw=-28646, mm=-57.2920
+17:48:28     poll: raw=-28705, mm=-57.4100
+17:48:28     poll: raw=-28763, mm=-57.5260
+17:48:28     poll: raw=-28776, mm=-57.5520
+17:48:28     poll: raw=-28798, mm=-57.5960
+17:48:28     poll: raw=-28823, mm=-57.6460
+17:48:28     poll: raw=-28851, mm=-57.7020
+17:48:28     poll: raw=-28903, mm=-57.8060
+17:48:28     poll: raw=-28919, mm=-57.8380
+17:48:28     poll: raw=-28969, mm=-57.9380
+17:48:28     poll: raw=-28998, mm=-57.9960
+17:48:28     poll: raw=-29027, mm=-58.0540
+17:48:28     poll: raw=-29086, mm=-58.1720
+17:48:29     poll: raw=-29115, mm=-58.2300
+17:48:29     poll: raw=-29163, mm=-58.3260
+17:48:29     poll: raw=-29174, mm=-58.3480
+17:48:29     poll: raw=-29216, mm=-58.4320
+17:48:29     poll: raw=-29263, mm=-58.5260
+17:48:29     poll: raw=-29292, mm=-58.5840
+17:48:29     poll: raw=-29321, mm=-58.6420
+17:48:29     poll: raw=-29372, mm=-58.7440
+17:48:29     poll: raw=-29397, mm=-58.7940
+17:48:29     poll: raw=-29425, mm=-58.8500
+17:48:29     poll: raw=-29445, mm=-58.8900
+17:48:29     poll: raw=-29498, mm=-58.9960
+17:48:29     poll: raw=-29527, mm=-59.0540
+17:48:29     poll: raw=-29556, mm=-59.1120
+17:48:30     poll: raw=-29588, mm=-59.1760
+17:48:30     poll: raw=-29636, mm=-59.2720
+17:48:30     poll: raw=-29645, mm=-59.2900
+17:48:30     poll: raw=-29685, mm=-59.3700
+17:48:30     poll: raw=-29703, mm=-59.4060
+17:48:30     poll: raw=-29737, mm=-59.4740
+17:48:30     poll: raw=-29779, mm=-59.5580
+17:48:30     poll: raw=-29821, mm=-59.6420
+17:48:30     poll: raw=-29850, mm=-59.7000
+17:48:30     poll: raw=-29879, mm=-59.7580
+17:48:30     poll: raw=-29894, mm=-59.7880
+17:48:30     poll: raw=-29923, mm=-59.8460
+17:48:30     poll: raw=-29946, mm=-59.8920
+17:48:30     poll: raw=-29971, mm=-59.9420
+17:48:30     poll: raw=-29998, mm=-59.9960
+17:48:30     poll: raw=-30056, mm=-60.1120
+17:48:31     poll: raw=-30085, mm=-60.1700
+17:48:31     poll: raw=-30114, mm=-60.2280
+17:48:31     poll: raw=-30144, mm=-60.2880
+17:48:31     poll: raw=-30162, mm=-60.3240
+17:48:31     poll: raw=-30173, mm=-60.3460
+17:48:31     poll: raw=-30210, mm=-60.4200
+17:48:31     poll: raw=-30232, mm=-60.4640
+17:48:31     poll: raw=-30262, mm=-60.5240
+17:48:31     poll: raw=-30310, mm=-60.6200
+17:48:31     poll: raw=-30320, mm=-60.6400
+17:48:31     poll: raw=-30362, mm=-60.7240
+17:48:31     poll: raw=-30379, mm=-60.7580
+17:48:31     poll: raw=-30438, mm=-60.8760
+17:48:31     poll: raw=-30467, mm=-60.9340
+17:48:31     poll: raw=-30519, mm=-61.0380
+17:48:32     poll: raw=-30544, mm=-61.0880
+17:48:32     poll: raw=-30571, mm=-61.1420
+17:48:32     poll: raw=-30614, mm=-61.2280
+17:48:32     poll: raw=-30643, mm=-61.2860
+17:48:32     poll: raw=-30672, mm=-61.3440
+17:48:32     poll: raw=-30688, mm=-61.3760
+17:48:32     poll: raw=-30701, mm=-61.4020
+17:48:32     poll: raw=-30735, mm=-61.4700
+17:48:32     poll: raw=-30783, mm=-61.5660
+17:48:32     poll: raw=-30819, mm=-61.6380
+17:48:32     poll: raw=-30848, mm=-61.6960
+17:48:32     poll: raw=-30877, mm=-61.7540
+17:48:32     poll: raw=-30906, mm=-61.8120
+17:48:32     poll: raw=-30927, mm=-61.8540
+17:48:32     poll: raw=-30965, mm=-61.9300
+17:48:32     poll: raw=-30995, mm=-61.9900
+17:48:33     poll: raw=-31041, mm=-62.0820
+17:48:33     poll: raw=-31070, mm=-62.1400
+17:48:33     poll: raw=-31093, mm=-62.1860
+17:48:33     poll: raw=-31141, mm=-62.2820
+17:48:33     poll: raw=-31170, mm=-62.3400
+17:48:33     poll: raw=-31200, mm=-62.4000
+17:48:33     poll: raw=-31214, mm=-62.4280
+17:48:33     poll: raw=-31249, mm=-62.4980
+17:48:33     poll: raw=-31261, mm=-62.5220
+17:48:33     poll: raw=-31301, mm=-62.6020
+17:48:33     poll: raw=-31318, mm=-62.6360
+17:48:33     poll: raw=-31377, mm=-62.7540
+17:48:33     poll: raw=-31405, mm=-62.8100
+17:48:33     poll: raw=-31435, mm=-62.8700
+17:48:33     poll: raw=-31465, mm=-62.9300
+17:48:34     poll: raw=-31495, mm=-62.9900
+17:48:34     poll: raw=-31524, mm=-63.0480
+17:48:34     poll: raw=-31563, mm=-63.1260
+17:48:34     poll: raw=-31596, mm=-63.1920
+17:48:34     poll: raw=-31615, mm=-63.2300
+17:48:34     poll: raw=-31671, mm=-63.3420
+17:48:34     poll: raw=-31700, mm=-63.4000
+17:48:34     poll: raw=-31730, mm=-63.4600
+17:48:34     poll: raw=-31759, mm=-63.5180
+17:48:34     poll: raw=-31770, mm=-63.5400
+17:48:34     poll: raw=-31789, mm=-63.5780
+17:48:34     poll: raw=-31835, mm=-63.6700
+17:48:34     poll: raw=-31847, mm=-63.6940
+17:48:34     poll: raw=-31883, mm=-63.7660
+17:48:34   Timeout after 10s, last raw=-31883
+17:48:34   [raw ch=2] After +40.0um: raw=-31907, delta=-4843 steps (-9.6860 mm)
+17:48:34   move_relative: -40.0 um = -20 steps
+17:48:34     MoveRelativeDistance err=0
+17:48:35     poll: raw=-31978, mm=-63.9560
+17:48:35     poll: raw=-31992, mm=-63.9840
+17:48:35     poll: raw=-32026, mm=-64.0520
+17:48:35     poll: raw=-32051, mm=-64.1020
+17:48:35     poll: raw=-32080, mm=-64.1600
+17:48:35     poll: raw=-32127, mm=-64.2540
+17:48:35     poll: raw=-32139, mm=-64.2780
+17:48:35     poll: raw=-32197, mm=-64.3940
+17:48:35     poll: raw=-32226, mm=-64.4520
+17:48:35     poll: raw=-32256, mm=-64.5120
+17:48:35     poll: raw=-32285, mm=-64.5700
+17:48:35     poll: raw=-32337, mm=-64.6740
+17:48:35     poll: raw=-32361, mm=-64.7220
+17:48:35     poll: raw=-32389, mm=-64.7780
+17:48:35     poll: raw=-32432, mm=-64.8640
+17:48:36     poll: raw=-32461, mm=-64.9220
+17:48:36     poll: raw=-32491, mm=-64.9820
+17:48:36     poll: raw=-32504, mm=-65.0080
+17:48:36     poll: raw=-32544, mm=-65.0880
+17:48:36     poll: raw=-32552, mm=-65.1040
+17:48:36     poll: raw=-32596, mm=-65.1920
+17:48:36     poll: raw=-32609, mm=-65.2180
+17:48:36     poll: raw=-32649, mm=-65.2980
+17:48:36     poll: raw=-32667, mm=-65.3340
+17:48:36     poll: raw=-32700, mm=-65.4000
+17:48:36     poll: raw=-32743, mm=-65.4860
+17:48:36     poll: raw=-32756, mm=-65.5120
+17:48:36     poll: raw=-32815, mm=-65.6300
+17:48:36     poll: raw=-32844, mm=-65.6880
+17:48:36     poll: raw=-32873, mm=-65.7460
+17:48:36     poll: raw=-32887, mm=-65.7740
+17:48:37     poll: raw=-32908, mm=-65.8160
+17:48:37     poll: raw=-32934, mm=-65.8680
+17:48:37     poll: raw=-32961, mm=-65.9220
+17:48:37     poll: raw=-33013, mm=-66.0260
+17:48:37     poll: raw=-33050, mm=-66.1000
+17:48:37     poll: raw=-33079, mm=-66.1580
+17:48:37     poll: raw=-33109, mm=-66.2180
+17:48:37     poll: raw=-33126, mm=-66.2520
+17:48:37     poll: raw=-33138, mm=-66.2760
+17:48:37     poll: raw=-33173, mm=-66.3460
+17:48:37     poll: raw=-33197, mm=-66.3940
+17:48:37     poll: raw=-33226, mm=-66.4520
+17:48:37     poll: raw=-33275, mm=-66.5500
+17:48:37     poll: raw=-33285, mm=-66.5700
+17:48:37     poll: raw=-33327, mm=-66.6540
+17:48:37     poll: raw=-33373, mm=-66.7460
+17:48:38     poll: raw=-33403, mm=-66.8060
+17:48:38     poll: raw=-33432, mm=-66.8640
+17:48:38     poll: raw=-33484, mm=-66.9680
+17:48:38     poll: raw=-33508, mm=-67.0160
+17:48:38     poll: raw=-33537, mm=-67.0740
+17:48:38     poll: raw=-33579, mm=-67.1580
+17:48:38     poll: raw=-33608, mm=-67.2160
+17:48:38     poll: raw=-33637, mm=-67.2740
+17:48:38     poll: raw=-33651, mm=-67.3020
+17:48:38     poll: raw=-33667, mm=-67.3340
+17:48:38     poll: raw=-33699, mm=-67.3980
+17:48:38     poll: raw=-33755, mm=-67.5100
+17:48:38     poll: raw=-33785, mm=-67.5700
+17:48:38     poll: raw=-33814, mm=-67.6280
+17:48:38     poll: raw=-33843, mm=-67.6860
+17:48:38     poll: raw=-33873, mm=-67.7460
+17:48:39     poll: raw=-33890, mm=-67.7800
+17:48:39     poll: raw=-33932, mm=-67.8640
+17:48:39     poll: raw=-33961, mm=-67.9220
+17:48:39     poll: raw=-34020, mm=-68.0400
+17:48:39     poll: raw=-34034, mm=-68.0680
+17:48:39     poll: raw=-34058, mm=-68.1160
+17:48:39     poll: raw=-34082, mm=-68.1640
+17:48:39     poll: raw=-34110, mm=-68.2200
+17:48:39     poll: raw=-34163, mm=-68.3260
+17:48:39     poll: raw=-34196, mm=-68.3920
+17:48:39     poll: raw=-34226, mm=-68.4520
+17:48:39     poll: raw=-34256, mm=-68.5120
+17:48:39     poll: raw=-34273, mm=-68.5460
+17:48:39     poll: raw=-34285, mm=-68.5700
+17:48:39     poll: raw=-34344, mm=-68.6880
+17:48:40     poll: raw=-34403, mm=-68.8060
+17:48:40     poll: raw=-34432, mm=-68.8640
+17:48:40     poll: raw=-34461, mm=-68.9220
+17:48:40     poll: raw=-34491, mm=-68.9820
+17:48:40     poll: raw=-34512, mm=-69.0240
+17:48:40     poll: raw=-34528, mm=-69.0560
+17:48:40     poll: raw=-34559, mm=-69.1180
+17:48:40     poll: raw=-34580, mm=-69.1600
+17:48:40     poll: raw=-34633, mm=-69.2660
+17:48:40     poll: raw=-34655, mm=-69.3100
+17:48:40     poll: raw=-34685, mm=-69.3700
+17:48:40     poll: raw=-34728, mm=-69.4560
+17:48:40     poll: raw=-34737, mm=-69.4740
+17:48:40     poll: raw=-34787, mm=-69.5740
+17:48:40     poll: raw=-34816, mm=-69.6320
+17:48:41     poll: raw=-34875, mm=-69.7500
+17:48:41     poll: raw=-34904, mm=-69.8080
+17:48:41     poll: raw=-34934, mm=-69.8680
+17:48:41     poll: raw=-34963, mm=-69.9260
+17:48:41     poll: raw=-34993, mm=-69.9860
+17:48:41     poll: raw=-35023, mm=-70.0460
+17:48:41     poll: raw=-35038, mm=-70.0760
+17:48:41     poll: raw=-35081, mm=-70.1620
+17:48:41     poll: raw=-35111, mm=-70.2220
+17:48:41     poll: raw=-35133, mm=-70.2660
+17:48:41     poll: raw=-35155, mm=-70.3100
+17:48:41     poll: raw=-35181, mm=-70.3620
+17:48:41     poll: raw=-35206, mm=-70.4120
+17:48:41     poll: raw=-35257, mm=-70.5140
+17:48:41     poll: raw=-35287, mm=-70.5740
+17:48:42     poll: raw=-35316, mm=-70.6320
+17:48:42     poll: raw=-35324, mm=-70.6480
+17:48:42     poll: raw=-35364, mm=-70.7280
+17:48:42     poll: raw=-35375, mm=-70.7500
+17:48:42     poll: raw=-35434, mm=-70.8680
+17:48:42     poll: raw=-35492, mm=-70.9840
+17:48:42     poll: raw=-35551, mm=-71.1020
+17:48:42     poll: raw=-35563, mm=-71.1260
+17:48:42     poll: raw=-35580, mm=-71.1600
+17:48:42     poll: raw=-35627, mm=-71.2540
+17:48:42     poll: raw=-35639, mm=-71.2780
+17:48:42     poll: raw=-35679, mm=-71.3580
+17:48:42     poll: raw=-35707, mm=-71.4140
+17:48:42     poll: raw=-35757, mm=-71.5140
+17:48:43     poll: raw=-35787, mm=-71.5740
+17:48:43     poll: raw=-35816, mm=-71.6320
+17:48:43     poll: raw=-35836, mm=-71.6720
+17:48:43     poll: raw=-35850, mm=-71.7000
+17:48:43     poll: raw=-35898, mm=-71.7960
+17:48:43     poll: raw=-35904, mm=-71.8080
+17:48:43     poll: raw=-35946, mm=-71.8920
+17:48:43     poll: raw=-35992, mm=-71.9840
+17:48:43     poll: raw=-35994, mm=-71.9880
+17:48:43     poll: raw=-36021, mm=-72.0420
+17:48:43     poll: raw=-36051, mm=-72.1020
+17:48:43     poll: raw=-36089, mm=-72.1780
+17:48:43     poll: raw=-36150, mm=-72.3000
+17:48:43     poll: raw=-36185, mm=-72.3700
+17:48:43     poll: raw=-36202, mm=-72.4040
+17:48:43     poll: raw=-36257, mm=-72.5140
+17:48:44     poll: raw=-36316, mm=-72.6320
+17:48:44     poll: raw=-36346, mm=-72.6920
+17:48:44     poll: raw=-36359, mm=-72.7180
+17:48:44     poll: raw=-36376, mm=-72.7520
+17:48:44     poll: raw=-36412, mm=-72.8240
+17:48:44     poll: raw=-36434, mm=-72.8680
+17:48:44     poll: raw=-36472, mm=-72.9440
+17:48:44     poll: raw=-36493, mm=-72.9860
+17:48:44     poll: raw=-36522, mm=-73.0440
+17:48:44     poll: raw=-36568, mm=-73.1360
+17:48:44     poll: raw=-36581, mm=-73.1620
+17:48:44     poll: raw=-36621, mm=-73.2420
+17:48:44     poll: raw=-36663, mm=-73.3260
+17:48:44     poll: raw=-36673, mm=-73.3460
+17:48:44     poll: raw=-36711, mm=-73.4220
+17:48:45     poll: raw=-36756, mm=-73.5120
+17:48:45   Timeout after 10s, last raw=-36756
+17:48:45   [raw ch=2] After -40.0um: raw=-36756, delta_back=-4849, total=-9692
+17:48:45   [raw ch=2] RESULT: FAIL (got -4843, expected 20)
+17:48:45 
+--- 3.5 Final status ch=2 ---
+17:48:45   Status [ch=2]: 0x80101220 = REV_SW_LIMIT | MOVING | ERROR [upper=0x80100000]
+17:48:45   PowerParams [ch=2]: move=6%, rest=130%
+17:48:45   InputVoltage [ch=2]: 656 mV (0.656 V)
+17:48:45   Position [ch=2]: raw=-36762, mm=-73.5240
+17:48:45   VelParams [ch=2]: maxVel=768000, accel=768000
+17:48:46 
+============================================================
+17:48:46   STEP 4: APT API (subprocess)
+17:48:46 ============================================================
+17:48:46   Running APT test in subprocess: C:\Users\Adm\Desktop\diagnostic_BSM\apt_test.py
+17:48:46   (Kinesis DLL must be fully closed before APT can work)
+17:48:46   Device: 70864299
+17:48:46   APT subprocess stdout:
+17:48:46 APT test for device 70864299
+17:48:46 Parent log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_17-47-13.log
+17:48:46 APT test log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\apt_test_2026-07-21_17-48-46.log
+17:48:46   APT DLL not found
+17:48:46   Cannot load APT DLL, skipping
+
+17:48:46   APT subprocess return code: 1
+17:48:46 
+============================================================
+17:48:46   SUMMARY
+17:48:46 ============================================================
+17:48:46   Log saved to: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_17-47-13.log
+17:48:46 
+17:48:46   Test                                            Expected        Got   Result
+17:48:46   --------------------------------------------- ---------- ---------- --------
+17:48:46   minimal ch=1                                          20      13606     FAIL
+17:48:46   minimal ch=2                                          20          0     FAIL
+17:48:46   raw ch=1                                              20       -474     FAIL
+17:48:46   raw ch=2                                              20      -4843     FAIL
+17:48:46 
+17:48:46   If STEP 1 ch=2 works: old code pattern is correct, fix thorlabs_stages.py to match
+17:48:46   If STEP 2 combo works: we found correct HomingParams, use it
+17:48:46   If STEP 3 works: homing is broken but raw movement works
+17:48:46   If NOTHING works: hardware issue (check intermediate driver)

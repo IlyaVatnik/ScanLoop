@@ -1,0 +1,46 @@
+17:33:27 
+============================================================
+17:33:27   DIAGNOSTIC BSM v3 - 2026-07-21 17:33:27
+17:33:27 ============================================================
+17:33:27   Script dir: C:\Users\Adm\Desktop\diagnostic_BSM
+17:33:27   Log file: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_BSM_2026-07-21_17-33-27.log
+17:33:27 
+--- Loading Kinesis BSM DLL ---
+17:33:27   DLL loaded: True
+17:33:27 
+============================================================
+17:33:27   STEP 0: SCAN AND DUMP ALL PARAMETERS
+17:33:27 ============================================================
+17:33:27   --- Attempt 1/3 ---
+17:33:28   TLI_BuildDeviceList -> 0
+17:33:29   TLI_GetDeviceListSize -> 1
+17:33:29   TLI_GetDeviceListExt -> 0, found 1 devices: ['70864299']
+17:33:29   Device 70864299: type=70, desc=APT Stepper Motor Controller, known=True, motor=131328, maxCh=256
+17:33:29   BSM devices: ['70864299']
+17:33:29 
+============================================================
+17:33:29   DUMP ALL PARAMETERS: BSM 70864299
+17:33:29 ============================================================
+17:33:29   SBC_Open -> 0
+17:33:30   SBC_CheckConnection -> True
+17:33:30   SBC_GetNumChannels -> 2
+17:33:30 
+============================================================
+17:33:30   DUMP ch=1
+17:33:30 ============================================================
+17:33:30   Status [ch=1 current]: 0x80101400 = ENABLED | ERROR [upper=0x80100000]
+17:33:30   PowerParams [ch=1 current]: move=6%, rest=130%
+17:33:30   InputVoltage [ch=1 current]: 736 mV (0.736 V)
+17:33:30   Position [ch=1 current]: raw=0, mm=0.0000
+17:33:30   VelParams [ch=1 current]: maxVel=135182, accel=659706977
+17:33:30   HomingParams [ch=1]: dir=2(REVERSE), limitSwitch=1(REV_LIMIT), velocity=21990233, offset=40960
+17:33:30   LimitSwitchParams [ch=1]: CW=0x0002, ACW=0x0002, CW_pos=1228800, ACW_pos=409600, softMode=1
+17:33:30 FATAL ERROR: argument 3: TypeError: expected LP_c_short instance instead of pointer to c_long
+17:33:30 Traceback (most recent call last):
+  File "C:\Users\Adm\Desktop\diagnostic_BSM\diagnostic_bsm.py", line 414, in main
+    jog_mode, jog_stop, jog_step = get_jog_params(serial, ch_short)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adm\Desktop\diagnostic_BSM\diagnostic_bsm.py", line 166, in get_jog_params
+    bsm.SBC_GetJogMode(serial, channel, byref(mode), byref(stop))
+ctypes.ArgumentError: argument 3: TypeError: expected LP_c_short instance instead of pointer to c_long
+

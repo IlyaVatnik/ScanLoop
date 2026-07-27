@@ -65,7 +65,6 @@ class StageAxisSelector:
         cfg = {'type': self.type_combo.currentText()}
         if self.is_thorlabs():
             cfg['serial'] = source
-            cfg['thorlabs_type'] = 'KDC'
         else:
             cfg['port'] = source
         return cfg
@@ -123,10 +122,20 @@ class StagePanelController:
                 ax._on_type_changed(ax.type_combo.currentText())
         self._refresh_all()
 
-    def update_ids(self, ids):
-        self._all_ids = list(ids)
+    def update_ids(self, devices):
+        self._all_ids = []
+        for dev in devices:
+            if dev['type'] == 'KDC':
+                self._all_ids.append(f"K{dev['serial']}")
+            elif dev['type'] == 'BSM':
+                channels = dev.get('channels', [0])
+                if len(channels) == 1:
+                    self._all_ids.append(f"B{dev['serial']}")
+                else:
+                    for ch in channels:
+                        self._all_ids.append(f"{ch}B{dev['serial']}")
         for ax in self.axes.values():
-            ax._all_ids = list(ids)
+            ax._all_ids = list(self._all_ids)
             if ax.is_thorlabs():
                 ax._on_type_changed(ax.type_combo.currentText())
         self._refresh_all()

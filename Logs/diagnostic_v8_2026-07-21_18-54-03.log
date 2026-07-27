@@ -1,0 +1,164 @@
+18:54:03 
+============================================================
+  DIAGNOSTIC BSM v8 — ch=2 confirmation — 2026-07-21 18:54:03
+============================================================
+18:54:03   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v8_2026-07-21_18-54-03.log
+18:54:03 
+--- STEP 0: Init ch=2 ---
+18:54:05 
+--- StopImmediate ---
+18:54:05 
+--- SetVelParams(1000,250) ---
+18:54:05 
+--- SetBacklash(0) ---
+18:54:05 
+--- SetPositionCounter(0) ---
+18:54:05   -> err=0
+18:54:05   [ch=2 INIT] Status=0x80101000=ERROR Pos=0(0.0000mm) Vel=1000/250 SoftLim=6372
+18:54:07 
+============================================================
+  STEP 1: Single roundtrip 40um
+============================================================
+18:54:08   Before: raw=0
+18:54:08 
+--- Move +40um ---
+18:54:08   move 40.0um = 20 steps
+18:54:09   MoveRelative err=39
+18:54:09   delta=0 expected=20 -> FAIL
+18:54:09 
+--- Move -40um ---
+18:54:09   move -40.0um = -20 steps
+18:54:09   MoveRelative err=39
+18:54:10   delta=0 expected=-20 -> FAIL
+18:54:12 
+============================================================
+  STEP 2: Multiple roundtrips 40um x5
+============================================================
+18:54:12 
+--- Roundtrip 1/5 ---
+18:54:13   move 40.0um = 20 steps
+18:54:14   MoveRelative err=39
+18:54:14   move -40.0um = -20 steps
+18:54:14   MoveRelative err=39
+18:54:17   +40um: delta=0 expected=20 -> FAIL
+18:54:17   -40um: delta=0 expected=-20 -> FAIL
+18:54:18 
+--- Roundtrip 2/5 ---
+18:54:19   move 40.0um = 20 steps
+18:54:19   MoveRelative err=0
+18:54:24   move -40.0um = -20 steps
+18:54:24   MoveRelative err=0
+18:54:31   +40um: delta=20 expected=20 -> PASS
+18:54:31   -40um: delta=-20 expected=-20 -> PASS
+18:54:31 
+--- Roundtrip 3/5 ---
+18:54:33   move 40.0um = 20 steps
+18:54:33   MoveRelative err=0
+18:54:37   move -40.0um = -20 steps
+18:54:37   MoveRelative err=0
+18:54:44   +40um: delta=20 expected=20 -> PASS
+18:54:44   -40um: delta=-20 expected=-20 -> PASS
+18:54:45 
+--- Roundtrip 4/5 ---
+18:54:46   move 40.0um = 20 steps
+18:54:46   MoveRelative err=39
+18:54:47   move -40.0um = -20 steps
+18:54:47   MoveRelative err=39
+18:54:50   +40um: delta=0 expected=20 -> FAIL
+18:54:50   -40um: delta=0 expected=-20 -> FAIL
+18:54:50 
+--- Roundtrip 5/5 ---
+18:54:52   move 40.0um = 20 steps
+18:54:52   MoveRelative err=39
+18:54:52   move -40.0um = -20 steps
+18:54:52   MoveRelative err=39
+18:54:55   +40um: delta=0 expected=20 -> FAIL
+18:54:55   -40um: delta=0 expected=-20 -> FAIL
+18:54:56 
+============================================================
+  STEP 3: Different distances
+============================================================
+18:54:56 
+--- Roundtrip 10.0um ---
+18:54:57   move 10.0um = 5 steps
+18:54:57   MoveRelative err=39
+18:54:58   move -10.0um = -5 steps
+18:54:58   MoveRelative err=39
+18:55:01   +10.0um: delta=0 expected=5 -> PASS
+18:55:01   -10.0um: delta=0 expected=-5 -> PASS
+18:55:01 
+--- Roundtrip 20.0um ---
+18:55:02   move 20.0um = 10 steps
+18:55:03   MoveRelative err=39
+18:55:03   move -20.0um = -10 steps
+18:55:03   MoveRelative err=39
+18:55:06   +20.0um: delta=0 expected=10 -> FAIL
+18:55:06   -20.0um: delta=0 expected=-10 -> FAIL
+18:55:07 
+--- Roundtrip 100.0um ---
+18:55:08   move 100.0um = 50 steps
+18:55:08   MoveRelative err=39
+18:55:09   move -100.0um = -50 steps
+18:55:09   MoveRelative err=39
+18:55:12   +100.0um: delta=0 expected=50 -> FAIL
+18:55:12   -100.0um: delta=0 expected=-50 -> FAIL
+18:55:12 
+--- Roundtrip 200.0um ---
+18:55:13   move 200.0um = 100 steps
+18:55:14   MoveRelative err=39
+18:55:14   move -200.0um = -100 steps
+18:55:14   MoveRelative err=39
+18:55:17   +200.0um: delta=0 expected=100 -> FAIL
+18:55:17   -200.0um: delta=0 expected=-100 -> FAIL
+18:55:18 
+============================================================
+  STEP 4: Position stability test (10s)
+============================================================
+18:55:19   Start pos: 0
+18:55:20   t=1s: pos=0 OK
+18:55:21   t=2s: pos=0 OK
+18:55:22   t=3s: pos=0 OK
+18:55:23   t=4s: pos=0 OK
+18:55:24   t=5s: pos=0 OK
+18:55:25   t=6s: pos=0 OK
+18:55:26   t=7s: pos=0 OK
+18:55:27   t=8s: pos=0 OK
+18:55:28   t=9s: pos=0 OK
+18:55:29   t=10s: pos=0 OK
+18:55:29   Stability: PASS (drift=0)
+18:55:31 
+============================================================
+  STEP 5: Re-open and verify position persists
+============================================================
+18:55:35   Position after reopen: 0
+18:55:35   Position persists: PASS
+18:55:37 
+============================================================
+  SUMMARY
+============================================================
+18:55:37   Test                           Exp      Got   Result
+18:55:37   ------------------------- -------- -------- --------
+18:55:37   40um +                          20        0     FAIL
+18:55:37   40um -                         -20        0     FAIL
+18:55:37   RT1 +                           20        0     FAIL
+18:55:37   RT1 -                          -20        0     FAIL
+18:55:37   RT2 +                           20       20     PASS
+18:55:37   RT2 -                          -20      -20     PASS
+18:55:37   RT3 +                           20       20     PASS
+18:55:37   RT3 -                          -20      -20     PASS
+18:55:37   RT4 +                           20        0     FAIL
+18:55:37   RT4 -                          -20        0     FAIL
+18:55:37   RT5 +                           20        0     FAIL
+18:55:37   RT5 -                          -20        0     FAIL
+18:55:37   10.0um +                         5        0     PASS
+18:55:37   10.0um -                        -5        0     PASS
+18:55:37   20.0um +                        10        0     FAIL
+18:55:37   20.0um -                       -10        0     FAIL
+18:55:37   100.0um +                       50        0     FAIL
+18:55:37   100.0um -                      -50        0     FAIL
+18:55:37   200.0um +                      100        0     FAIL
+18:55:37   200.0um -                     -100        0     FAIL
+18:55:37   stability 10s                    0        0     PASS
+18:55:37   reopen pos                       0        0     PASS
+18:55:37 
+  8/22 PASSED

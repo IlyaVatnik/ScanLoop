@@ -1,0 +1,39 @@
+; Thorlabs PM100D WinUSB driver
+; Install: pnputil /add-driver thorlabs_pm100d_winusb.inf /install
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = USBDevice
+ClassGuid   = {88BAE032-5A31-4682-82F5-3328CAF26B83}
+Provider    = %ManufacturerName%
+DriverVer   = 07/27/2026,1.0.0.0
+
+[Manufacturer]
+%ManufacturerName% = DeviceList,NTamd64
+
+[DeviceList.NTamd64]
+%DeviceName% = USB_Install, USB\VID_1313&PID_8078
+
+[USB_Install.NT]
+Include = winusb.inf
+Needs   = WINUSB.NT
+
+[USB_Install.NT.HW]
+AddReg = CustomAddReg
+
+[CustomAddReg]
+HKR,,DeviceInterfaceGUIDs,0x10000,"{60820CF0-E8F0-4D24-A4D0-1C2BE12A207E}"
+
+[USB_Install.NT.Services]
+AddService = WinUSB,0x00000002,WinUSB_Service
+
+[WinUSB_Service]
+DisplayName   = WinUSB
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %12%\WinUSB.sys
+
+[Strings]
+ManufacturerName = "Thorlabs"
+DeviceName       = "Thorlabs PM100D"

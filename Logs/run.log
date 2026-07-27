@@ -1,0 +1,6 @@
+21.07.2026 17:47:13,26 START 
+21.07.2026 17:47:13,31 Found python in PATH: Python 3.12.10 
+21.07.2026 17:47:13,37 Python: python 
+21.07.2026 17:47:13,45 Kinesis: C:\Program Files\Thorlabs\Kinesis 
+21.07.2026 17:47:13,46 Running diagnostic_bsm.py 
+21.07.2026 17:48:48,15 Script finished with code 0 

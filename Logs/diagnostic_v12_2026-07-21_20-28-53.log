@@ -1,0 +1,319 @@
+20:28:53 
+============================================================
+  DIAGNOSTIC BSM v12 — restPercentage recovery — 2026-07-21 20:28:53
+============================================================
+20:28:53   Log: C:\Users\Adm\Desktop\Новая папка\Logs\diagnostic_v12_2026-07-21_20-28-53.log
+20:28:53 
+============================================================
+  OPEN + STOP IMMEDIATE
+============================================================
+20:28:55   [initial] Status=0x80101000=ERROR Pos=0(0.0000mm)
+20:28:55 
+============================================================
+  PHASE 1: SWEEP restPercentage
+============================================================
+20:28:55 
+--- Try rest=0% ---
+20:28:55   SetPowerParams(0%/0%) -> err=0
+20:28:56   PersistSettings OK (attempt 1)
+20:28:57   [after rest=0%] rest=128% move=6%
+20:28:57   -> MISMATCH (wrote 0, read 128)
+20:28:57 
+--- Try rest=6% ---
+20:28:57   SetPowerParams(6%/6%) -> err=0
+20:28:58   PersistSettings OK (attempt 1)
+20:28:59   [after rest=6%] rest=129% move=6%
+20:28:59   -> MISMATCH (wrote 6, read 129)
+20:28:59 
+--- Try rest=10% ---
+20:28:59   SetPowerParams(10%/10%) -> err=0
+20:29:00   PersistSettings OK (attempt 1)
+20:29:00   [after rest=10%] rest=129% move=6%
+20:29:00   -> MISMATCH (wrote 10, read 129)
+20:29:00 
+--- Try rest=20% ---
+20:29:00   SetPowerParams(20%/20%) -> err=0
+20:29:01   PersistSettings OK (attempt 1)
+20:29:02   [after rest=20%] rest=131% move=6%
+20:29:02   -> MISMATCH (wrote 20, read 131)
+20:29:02 
+--- Try rest=50% ---
+20:29:02   SetPowerParams(50%/50%) -> err=0
+20:29:03   PersistSettings OK (attempt 1)
+20:29:03   [after rest=50%] rest=136% move=6%
+20:29:03   -> MISMATCH (wrote 50, read 136)
+20:29:03 
+--- Try rest=100% ---
+20:29:03   SetPowerParams(100%/100%) -> err=0
+20:29:05   PersistSettings OK (attempt 1)
+20:29:05   [after rest=100%] rest=144% move=6%
+20:29:05   -> MISMATCH (wrote 100, read 144)
+20:29:05 
+============================================================
+  SWEEP RESULTS
+============================================================
+20:29:05     Target   Actual    Match
+20:29:05   -------- -------- --------
+20:29:05          0      128       NO
+20:29:05          6      129       NO
+20:29:05         10      129       NO
+20:29:05         20      131       NO
+20:29:05         50      136       NO
+20:29:05        100      144       NO
+20:29:05   NO VALUE MATCHED — EEPROM corruption irrecoverable via API
+20:29:05   Using rest=6% anyway (firmware default)
+20:29:05 
+============================================================
+  PHASE 2: SET FINAL PowerParams
+============================================================
+20:29:05 
+--- Set PowerParams(6%/6%) ---
+20:29:05   SetPowerParams(6%/6%) -> err=0
+20:29:06   PersistSettings OK (attempt 1)
+20:29:07   [FINAL] rest=129% move=6%
+20:29:07   Final: rest=129% move=6%
+20:29:07 
+--- SetBacklash(0) ---
+20:29:07 
+--- SetPositionCounter(0) ---
+20:29:07   -> err=0
+20:29:08   [ready for moves] Status=0x80101000=ERROR Pos=0(0.0000mm)
+20:29:08 
+============================================================
+  PHASE 3: MOVES
+============================================================
+20:29:08 
+============================================================
+  STEP 1: Single roundtrip 40um
+============================================================
+20:29:08 
+--- Move +40.0um ---
+20:29:08   move 40.0um = 20 steps
+20:29:08   MoveRelative err=0
+20:29:13   +40.0um: delta=20 expected=20 -> PASS
+20:29:13 
+--- Move -40.0um ---
+20:29:13   move -40.0um = -20 steps
+20:29:13   MoveRelative err=0
+20:29:18   -40.0um: delta=-20 expected=-20 -> PASS
+20:29:18 
+============================================================
+  STEP 2: 10 roundtrips 40um
+============================================================
+20:29:18 
+--- Move +40.0um RT1 ---
+20:29:18   move 40.0um = 20 steps
+20:29:18   MoveRelative err=0
+20:29:23   +40.0um: delta=20 expected=20 -> PASS
+20:29:23 
+--- Move -40.0um RT1 ---
+20:29:23   move -40.0um = -20 steps
+20:29:23   MoveRelative err=0
+20:29:28   -40.0um: delta=-20 expected=-20 -> PASS
+20:29:28 
+--- Move +40.0um RT2 ---
+20:29:28   move 40.0um = 20 steps
+20:29:28   MoveRelative err=0
+20:29:33   +40.0um: delta=20 expected=20 -> PASS
+20:29:33 
+--- Move -40.0um RT2 ---
+20:29:33   move -40.0um = -20 steps
+20:29:33   MoveRelative err=0
+20:29:38   -40.0um: delta=-20 expected=-20 -> PASS
+20:29:38 
+--- Move +40.0um RT3 ---
+20:29:38   move 40.0um = 20 steps
+20:29:38   MoveRelative err=0
+20:29:43   +40.0um: delta=20 expected=20 -> PASS
+20:29:43 
+--- Move -40.0um RT3 ---
+20:29:43   move -40.0um = -20 steps
+20:29:43   MoveRelative err=0
+20:29:48   -40.0um: delta=-20 expected=-20 -> PASS
+20:29:48 
+--- Move +40.0um RT4 ---
+20:29:48   move 40.0um = 20 steps
+20:29:48   MoveRelative err=0
+20:29:53   +40.0um: delta=20 expected=20 -> PASS
+20:29:53 
+--- Move -40.0um RT4 ---
+20:29:53   move -40.0um = -20 steps
+20:29:53   MoveRelative err=0
+20:29:58   -40.0um: delta=-20 expected=-20 -> PASS
+20:29:58 
+--- Move +40.0um RT5 ---
+20:29:58   move 40.0um = 20 steps
+20:29:58   MoveRelative err=0
+20:30:03   +40.0um: delta=20 expected=20 -> PASS
+20:30:03 
+--- Move -40.0um RT5 ---
+20:30:03   move -40.0um = -20 steps
+20:30:03   MoveRelative err=0
+20:30:08   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:08 
+--- Move +40.0um RT6 ---
+20:30:08   move 40.0um = 20 steps
+20:30:08   MoveRelative err=0
+20:30:13   +40.0um: delta=20 expected=20 -> PASS
+20:30:13 
+--- Move -40.0um RT6 ---
+20:30:13   move -40.0um = -20 steps
+20:30:13   MoveRelative err=0
+20:30:18   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:18 
+--- Move +40.0um RT7 ---
+20:30:18   move 40.0um = 20 steps
+20:30:18   MoveRelative err=0
+20:30:23   +40.0um: delta=20 expected=20 -> PASS
+20:30:23 
+--- Move -40.0um RT7 ---
+20:30:23   move -40.0um = -20 steps
+20:30:23   MoveRelative err=0
+20:30:28   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:28 
+--- Move +40.0um RT8 ---
+20:30:28   move 40.0um = 20 steps
+20:30:28   MoveRelative err=0
+20:30:33   +40.0um: delta=20 expected=20 -> PASS
+20:30:33 
+--- Move -40.0um RT8 ---
+20:30:33   move -40.0um = -20 steps
+20:30:33   MoveRelative err=0
+20:30:38   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:38 
+--- Move +40.0um RT9 ---
+20:30:38   move 40.0um = 20 steps
+20:30:38   MoveRelative err=0
+20:30:43   +40.0um: delta=20 expected=20 -> PASS
+20:30:43 
+--- Move -40.0um RT9 ---
+20:30:43   move -40.0um = -20 steps
+20:30:43   MoveRelative err=0
+20:30:48   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:48 
+--- Move +40.0um RT10 ---
+20:30:48   move 40.0um = 20 steps
+20:30:48   MoveRelative err=0
+20:30:53   +40.0um: delta=20 expected=20 -> PASS
+20:30:53 
+--- Move -40.0um RT10 ---
+20:30:53   move -40.0um = -20 steps
+20:30:53   MoveRelative err=0
+20:30:58   -40.0um: delta=-20 expected=-20 -> PASS
+20:30:58 
+============================================================
+  STEP 3: Different distances
+============================================================
+20:30:58 
+--- Move +10.0um ---
+20:30:58   move 10.0um = 5 steps
+20:30:58   MoveRelative err=0
+20:31:00   +10.0um: delta=5 expected=5 -> PASS
+20:31:00 
+--- Move -10.0um ---
+20:31:00   move -10.0um = -5 steps
+20:31:00   MoveRelative err=0
+20:31:02   -10.0um: delta=-5 expected=-5 -> PASS
+20:31:02 
+--- Move +20.0um ---
+20:31:02   move 20.0um = 10 steps
+20:31:02   MoveRelative err=0
+20:31:05   +20.0um: delta=10 expected=10 -> PASS
+20:31:05 
+--- Move -20.0um ---
+20:31:05   move -20.0um = -10 steps
+20:31:05   MoveRelative err=0
+20:31:07   -20.0um: delta=-10 expected=-10 -> PASS
+20:31:08 
+--- Move +50.0um ---
+20:31:08   move 50.0um = 25 steps
+20:31:08   MoveRelative err=0
+20:31:14   +50.0um: delta=25 expected=25 -> PASS
+20:31:14 
+--- Move -50.0um ---
+20:31:14   move -50.0um = -25 steps
+20:31:14   MoveRelative err=0
+20:31:20   -50.0um: delta=-25 expected=-25 -> PASS
+20:31:20 
+--- Move +100.0um ---
+20:31:20   move 100.0um = 50 steps
+20:31:20   MoveRelative err=0
+20:31:31   +100.0um: delta=50 expected=50 -> PASS
+20:31:31 
+--- Move -100.0um ---
+20:31:31   move -100.0um = -50 steps
+20:31:31   MoveRelative err=0
+20:31:43   -100.0um: delta=-50 expected=-50 -> PASS
+20:31:43 
+--- Move +200.0um ---
+20:31:43   move 200.0um = 100 steps
+20:31:43   MoveRelative err=0
+20:32:05   +200.0um: delta=100 expected=100 -> PASS
+20:32:05 
+--- Move -200.0um ---
+20:32:05   move -200.0um = -100 steps
+20:32:05   MoveRelative err=0
+20:32:27   -200.0um: delta=-100 expected=-100 -> PASS
+20:32:27 
+============================================================
+  STEP 4: Stability 10s (no moves)
+============================================================
+20:32:27   Start: 0
+20:32:28   t=1s: pos=0 drift=0 OK
+20:32:29   t=2s: pos=0 drift=0 OK
+20:32:30   t=3s: pos=0 drift=0 OK
+20:32:31   t=4s: pos=0 drift=0 OK
+20:32:32   t=5s: pos=0 drift=0 OK
+20:32:33   t=6s: pos=0 drift=0 OK
+20:32:34   t=7s: pos=0 drift=0 OK
+20:32:35   t=8s: pos=0 drift=0 OK
+20:32:36   t=9s: pos=0 drift=0 OK
+20:32:37   t=10s: pos=0 drift=0 OK
+20:32:37   Stability: PASS
+20:32:37 
+============================================================
+  STEP 5: Final status + PowerParams check
+============================================================
+20:32:37   [FINAL] Status=0x80101000=ERROR Pos=0(0.0000mm)
+20:32:38   [FINAL] rest=129% move=6%
+20:32:40 
+============================================================
+  SUMMARY
+============================================================
+20:32:40   Test                           Exp      Got   Result
+20:32:40   ------------------------- -------- -------- --------
+20:32:40   +40.0um                         20       20     PASS
+20:32:40   -40.0um                        -20      -20     PASS
+20:32:40   +40.0um RT1                     20       20     PASS
+20:32:40   -40.0um RT1                    -20      -20     PASS
+20:32:40   +40.0um RT2                     20       20     PASS
+20:32:40   -40.0um RT2                    -20      -20     PASS
+20:32:40   +40.0um RT3                     20       20     PASS
+20:32:40   -40.0um RT3                    -20      -20     PASS
+20:32:40   +40.0um RT4                     20       20     PASS
+20:32:40   -40.0um RT4                    -20      -20     PASS
+20:32:40   +40.0um RT5                     20       20     PASS
+20:32:40   -40.0um RT5                    -20      -20     PASS
+20:32:40   +40.0um RT6                     20       20     PASS
+20:32:40   -40.0um RT6                    -20      -20     PASS
+20:32:40   +40.0um RT7                     20       20     PASS
+20:32:40   -40.0um RT7                    -20      -20     PASS
+20:32:40   +40.0um RT8                     20       20     PASS
+20:32:40   -40.0um RT8                    -20      -20     PASS
+20:32:40   +40.0um RT9                     20       20     PASS
+20:32:40   -40.0um RT9                    -20      -20     PASS
+20:32:40   +40.0um RT10                    20       20     PASS
+20:32:40   -40.0um RT10                   -20      -20     PASS
+20:32:40   +10.0um                          5        5     PASS
+20:32:40   -10.0um                         -5       -5     PASS
+20:32:40   +20.0um                         10       10     PASS
+20:32:40   -20.0um                        -10      -10     PASS
+20:32:40   +50.0um                         25       25     PASS
+20:32:40   -50.0um                        -25      -25     PASS
+20:32:40   +100.0um                        50       50     PASS
+20:32:40   -100.0um                       -50      -50     PASS
+20:32:40   +200.0um                       100      100     PASS
+20:32:40   -200.0um                      -100     -100     PASS
+20:32:40   stability                        0        0     PASS
+20:32:40 
+  33/33 PASSED

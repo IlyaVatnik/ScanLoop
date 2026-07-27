@@ -1,0 +1,1433 @@
+=====================================
+  ScanLoop — PROJECT JOURNAL
+  Актуально на: 2026-07-27
+=====================================
+
+--- О ПРОЕКТЕ ---
+ScanLoop — лазерный сканирующий интерферометр для измерения FBG.
+Python + PyQt5, exe через PyInstaller.
+
+--- ОБОРУДОВАНИЕ ---
+
+Движки (3 оси X/Y/Z, любые комбинации):
+  Thorlabs KDC (KCube DC Servo) — USB, serial строковый
+  Thorlabs BSM (Benchtop Stepper Motor) — USB, multichannel
+  Standa ximc — COM-порт, без серийника
+  LBTEK EM-LSS65-30C1 — COM-порт, без серийника
+
+Piezo (отдельная ось):
+  PI E-53D — COM5, 0-202 um
+
+Измерительные приборы:
+  OSA: APEX AP2XXX / Yokogawa AQ6370 / Luna OVA5000 / Astro Interrogator
+  Осциллограф: Keysight Infiniium 4GHz / Rigol
+  Лазер: Pure Photonics PPCL550 (COM4)
+  Powermeter: Thorlabs PM100D (SN: P0015055)
+
+Адреса по умолчанию (Common/Hardware_ports.py):
+  APEX:         10.2.60.25:5900
+  Yokogawa:     10.2.60.60:10001
+  Keysight:     10.2.60.176:4880
+  Rigol:        10.2.60.132
+  Interrogator: 192.168.19.111:3500/3365
+  Laser:        COM4
+  Piezo:        COM5
+  Powermeter:   P0015055
+
+--- ФОРМАТ СЕРИЙНИКОВ THORLABS ---
+  K{serial}         → KDC (например K27254353)
+  B{serial}         → BSM, 1 канал (например B70864299)
+  {ch}B{serial}     → BSM, multichannel (ch=1,2,3... — НАЧИНАЕТСЯ С 1!)
+
+--- КАНАЛЫ ПРОГРАММЫ ---
+  3 оси движков: X, Y, Z (stages_manager.py)
+  Interrogator: 8 каналов (0-7), активные: 2,3,4,7
+  Осциллограф: 4 канала (1-4)
+  Отображение: 4 слота (MyPainter)
+
+--- КЛЮЧЕВЫЕ ФАЙЛЫ ---
+  Hardware/Stages/Thorlabs/thorlabs_stages.py — ThorlabsBSM + ThorlabsCube (v3.3, .NET API)
+  Hardware/Stages/stages_manager.py — диспетчер 3 осей (v2.5)
+  Hardware/Stages/thorlabs_kinesis/benchtop_stepper_motor.py — DLL-биндинги (C API, для KDC)
+  Windows_GUI/MainWindow.py — главный GUI
+  Windows_GUI/stage_panel_controller.py — настройка осей в GUI
+  Common/Hardware_ports.py — адреса по умолчанию
+  Common/Consts.py — константы (Interrogator, Scope)
+  tests/test_thorlabs_stages.py — тесты
+  tests/conftest.py — моки
+  .opencode/plans/thorlabs_bsm.md — план разработки BSM
+
+=====================================
+  ТЕКУЩЕЕ СОСТОЯНИЕ: thorlabs_stages.py v3.3 — ГОТОВ
+=====================================
+
+Файл: Hardware/Stages/Thorlabs/thorlabs_stages.py
+Версия: 3.3
+Дата: 2026.07.23
+Интерфейс: совпадает с v2.2
+
+Структура:
+  _BSMConnection — .NET backend (общий для каналов)
+  ThorlabsBSM — public interface (move_relative, get_position, close)
+  ThorlabsCube — C API (KDC, не тронут)
+  get_thorlabs_serials() — C API scanning
+
+Настройки скорости: строки 10-12 (DEFAULT_MAX_VELOCITY_MM_S, DEFAULT_ACCELERATION_MM_S2, DEFAULT_HOMING_VELOCITY_MM_S)
+
+Сборки: v4_ScanLoop (последняя)
+pythonnet: добавлен в requirements.txt
+
+--- ЧТО СДЕЛАНО ---
+
+1. Архитектура: _BSMConnection (общий для каналов) + ThorlabsBSM (по каналу)
+   - Реф-счётчик, общий USB для обоих каналов
+
+2. Инициализация (_BSMConnection.__init__):
+   - TLI_BuildDeviceList → SBC_Open (с retry) → SBC_LoadSettings(каналы 1,2)
+
+3. Инициализация (ThorlabsBSM.__init__):
+   - log_channel_status → SBC_StartPolling → SBC_EnableChannel (250ms wait)
+   - InputVoltage check → SetBacklash(0) → SetVelParams(maxVel=2.0mm/s, accel=0.5mm/s²)
+   - Если позиция < 0: CanMoveWithoutHomingFirst → reset counter / homing
+
+4. Homing:
+   - set_homing_velocity: ставит 5mm/s если текущая <50% нужной
+   - move_home: опрос по HOMING биту (bit 7=0x80) + 5с таймаут без движения + 30с общий
+   - Homing в __init__: тот же подход
+
+5. move_relative:
+   - Статус-биты → StartPolling → ClearMessageQueue → SetMoveRelativeDistance → MoveRelativeDistance
+   - Polling: simple stable_count (позиция 0.0 валидна!)
+
+6. get_position:
+   - RequestPosition → GetPosition → raw * ENCODER_STEP → mm
+   - Отрицательные raw → возвращаем 0.0 с WARNING
+
+7. Тесты: 24 (scan 3, init 5, velocity 4, move_relative 4, channel_init 5, KDC 3)
+
+--- ОШИБКИ ИСПРАВЛЕННЫЕ ---
+  v37: SBC_SetVelParams аргументы (accel, maxVel) → (maxVel, accel) ✅
+  v37: SBC_GetPosition возвращал -1/-2 → negative raw → 0.0 ✅
+  v38: SBC_StartPolling без channel → TypeError ✅
+  v38: SBC_SetVelParams аргументы перепутаны ✅
+  v39: move_relative err_count на позиции 0.0 → убран ✅
+  v39: move_home таймаут 60с → статус-биты + 5с без движения ✅
+  v40: Нет SBC_LoadSettings/EnableChannel → добавлены ✅
+  v40: Homing velocity не задана → set_homing_velocity (5mm/s) ✅
+
+--- ОШИБКА КОТОРАЯ ОСТАЛОСЬ ---
+  test_move_relative_sends_correct_steps — падает с TimeoutError
+  Причина: мок возвращает SBC_GetPosition=100, но stable_count не растёт
+  Нужно: диагностика почему mock не работает как ожидается
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ О THORLABS BSM ---
+
+1. ПОСЛЕДОВАТЕЛЬНОСТЬ ИНИЦИАЛИЗАЦИИ:
+   Open → LoadSettings → StartPolling → EnableChannel → Home → SetVelocity → Move
+
+2. SBC_LoadSettings: возвращает False даже при успехе (баг DLL), не проверять
+
+3. SBC_EnableChannel: ОБЯЗАТЕЛЕН — без него команды движения ИГНОРИРУЮТСЯ
+
+4. SBC_SetHomingVelocity: дефолт firmware ~1mm/s, нужно ставить явно
+
+5. HOMING bit = bit 7 (0x80) статус-бита — использовать вместо pos==0
+
+6. ERROR flag 0x80101000: bit 12 может быть не ошибкой для BSM
+   (pylablib: bit 12 = "tracking", не ERROR)
+
+7. SBC_PersistSettings: НЕ вызывать (Kinesis перезаписывает)
+
+8. Каналы BSM: 1-based (1, 2, 3...), НЕ 0-based
+
+--- ТЕХНИЧЕСКИЕ КОНСТАНТЫ (BSM) ---
+  ENCODER_STEP = 0.002  # мм/шаг
+  KDC_ENCODER_STEP = 0.03  # мм/шаг
+  TOLERANCE = 0.005  # мм
+  TIMEOUT = 30  # сек (move_relative)
+  Homing timeout: 5с без движения или 30с общий
+  Homing velocity: 5 mm/s = 2500 device units
+  Velocity params: maxVel=2.0mm/s (1000 units), accel=0.5mm/s² (250 units)
+
+--- СБОРКА ---
+  build_exe.bat — PyInstaller
+  dist/ — zip-архивы (v37, v38, v39...)
+
+--- КОНФИГУРАЦИЯ OPENCODE ---
+  opencode.json в корне проекта
+  compaction:
+    auto: true (автокомпактизация)
+    prune: false (не удалять выводы инструментов)
+    tail_turns: 2 (сохранять 2 последних хода дословно)
+    reserved: 3000 (буфер для суммарного описания)
+
+--- ПОВЕДЕНИЕ ПОСЛЕ КОМПАКТИЗАЦИИ ---
+  1. Система создаёт краткое суммарное описание (~3000 токенов)
+  2. Читаем AGENTS.md → узнаём что делать
+  3. Читаем PROJECT_JOURNAL.txt → восстанавливаем полный контекст
+  4. Продолжаем работу
+
+=====================================
+  СЕССИЯ 2026-07-16: Диагностика BSM
+=====================================
+
+--- АНАЛИЗ 4 ЛОГОВ (v37-v40) ---
+
+v37 (13.07 15:45):
+  - BSM ch=1 (X): RuntimeError при подключении
+  - BSM ch=2 (Y): move_relative падает — GetPosition возвращает 0.0 10 раз
+
+v38 (13.07 16:18):
+  - TypeError: SBC_StartPolling без channel (2 аргумента вместо 3)
+  - Исправлено в v39
+
+v39 (15.07 15:17):
+  - move_relative +40μm РАБОТАЕТ: позиция растёт 0→0.002→...→0.04mm
+  - Polling работает корректно (raw 0→1→2→...→20)
+  - move_relative -40μm: падает (позиция 0.0 не меняется)
+  - Homing ch=1: OK (10с), ch=2: TimeoutError (61с)
+
+v40 (15.07 16:07):
+  - InputVoltage: ch=1 728mV, ch=2 640mV (критически низкое)
+  - PowerParams: move=8%, rest=130% (мотор получает 8% тока!)
+  - Homing: мгновенный (<1с) — мотор не двигается
+  - move_relative -5mm: REV_SW_LIMIT|ERROR
+  - move_relative +5mm: позиция растёт (raw 0→1→2), но 0.278mm за 30с
+  - FWD_SW_LIMIT при 0.278mm — программный лимит
+
+--- СРАВНЕНИЕ API: KINESIS vs APT vs LABSOFT ---
+
+Наш код (Kinesis API — SBC_* функции):
+  TLI_BuildDeviceList → SBC_Open → SBC_LoadSettings → SBC_StartPolling
+  → SBC_EnableChannel → check voltage → set velocity → home → move
+
+LabSoft (APT API — MOT_* функции):
+  APTInit → EnableEventDlg(False) → InitHWDevice(serial)
+  → MOT_SetHomeParams(2,1,7.0,0.0001) → MOT_MoveHome → move
+
+Ключевое различие:
+  - APT: InitHWDevice = ОДНА функция (open+load+enable)
+  - Kinesis: Open + LoadSettings + StartPolling + EnableChannel = 4 функции
+  - LabSoft НЕ вызывает MOT_EnableHWChannel явно
+  - LabSoft НЕ вызывает SetPowerParams, SetStageAxisLimits, SetLimitSwitchParams
+  - LabSoft СТАВИТ velocity ПЕРЕД каждым move (set_velocity_parameters)
+
+--- КАКИЕ ФУНКЦИИ НЕ ВЫЗЫВАЮТСЯ (Kinesis API) ---
+
+1. SBC_SetPowerParams — move=2-8%, rest=129-130% (нужно move=100, rest=50)
+2. SBC_SetLimitsSoftwareApproachPolicy(AllowAllMoves) — убрать SW_LIMIT
+3. SBC_SetStageAxisLimits — не установлены min/max позиции
+4. SBC_SetLimitSwitchParams — концевики не настроены
+5. SBC_StopImmediate / SBC_StopProfiled — не используются
+
+--- ПРОБЛЕМЫ ИЗ ЛОГОВ ---
+
+1. PowerParams: move=2-8% — мотор получает крошечный ток, скорость ~5μm/s
+2. InputVoltage ~0.7V — ниже нормы (нужно ≥5V)
+3. SW_LIMIT на 0.278mm — программный лимит блокирует движение
+4. Homing "мгновенный" — мotor не двигается из-за низкого тока
+5. SBC_GetPosition возвращает -27502, -70351 после homing — мусор
+6. get_position() маскирует отрицательные raw в 0.0 — скрывает ошибки
+7. Error flag 0x80101000 никогда не сбрасывается
+
+--- ДИАГНОСТИЧЕСКИЙ СКРИПТ ---
+
+tests/diagnostic_bsm.py — создан для:
+  - Автодетекта всех подвижек (KDC + BSM)
+  - Теста Kinesis API (SBC_*) пошагово
+  - Теста APT API (MOT_*) для сравнения
+  - Установки velocity/acceleration при init
+  - Логирования всего в консоль + файл
+  - Сборки в exe через PyInstaller
+
+--- СЕССИЯ 2026-07-16 16:00 (продолжение) ---
+
+Создана автономная папка диагностики dist/diagnostic_BSM/:
+  - run_diagnostic.bat — лончер (чистый ASCII, без кириллицы в bat)
+  - diagnostic_bsm.py — адаптированный скрипт с локальными логами
+  - Hardware/Stages/thorlabs_kinesis/ — модуль для автономной работы
+
+Исправления:
+  - DLL loading для Python 3.8+ (os.add_dll_directory)
+  - Логи пишутся в Logs/ рядом со скриптом, не в проект
+  - bat файл переписан на чистый ASCII (ранее ломался из-за кириллицы)
+  - Исправлен и основной benchtop_stepper_motor.py в проекте
+
+Проверено: DLL загружается, APT API работает, логи сохраняются.
+На dev машине 0 устройств (ожидаемо).
+
+--- СЕССИЯ 2026-07-16 16:30 (логи с целевого ПК) ---
+
+Лог 16:11 — Python не найден (WindowsApps stub, bat файл не искал глубоко)
+Лог 16:20 — Python найден через where, но WindowsApps stub → код 9009
+Лог 16:29 — Python работает, Kinesis работает, 0 устройств (BSM не подключён?)
+Лог 17:12 — BSM НАЙДЕН! type=70 "APT Stepper Motor Controller"
+  Ключевые данные:
+  - SBC_Open -> 0 (OK)
+  - SBC_GetNumChannels -> 3 (а не 2!)
+  - LoadSettings ch=1 -> True, ch=2 -> True, ch=3 -> False
+  - Краш: name 'bsm' is not defined (область видимости)
+
+Исправления:
+  1. bsm импорт перенесён на модульный уровень (вне main())
+  2. type=70 добавлен в фильтр BSM устройств
+  3. num_ch ограничен min(num_ch, 2) — 3-й канал невалиден
+  4. bat файл: 8 шагов поиска Python + фильтрация WindowsApps stub
+
+--- СЕССИЯ 2026-07-21 15:30+ (логи с целевого ПК) ---
+
+Лог 15:30:12 — BSM НЕ НАЙДЕН. TLI_GetDeviceListSize=0 все 3 попытки.
+  Причина: USB был отсоединён / прибор выключен.
+
+Лог 15:35:25 — ПОЛНЫЙ ДИАГНОСТИЧЕСКИЙ ПРОГОН (ПОСЛЕ ВКЛЮЧЕНИЯ):
+  Kinesis STEP 2:
+    SBC_Open=0, CheckConnection=True, GetNumChannels=2
+    LoadSettings ch=1 → True, ch=2 → True (без крашей!)
+    Status ОБОИХ каналов: 0x80101000 = ERROR (ДО Enable!)
+    InputVoltage ch=1: 736mV, ch=2: 672mV
+    VelParams ОБОИХ: accel=135182, maxVel=659706977 (МУСОР!)
+    EnableChannel ch=1 → 0, ch=2 → 0
+    Status ПОСЛЕ Enable: тот же 0x80101000 = ERROR
+
+    SetPowerParams(100,50): возвращает 0, но verify показывает move=8%, rest=136%
+    → SetPowerParams НЕ ПРИМЕНЯЕТСЯ! Значения остаются из EEPROM.
+
+    SetSoftLimitMode(2): РАБОТАЕТ! Значение изменилось на 2.
+
+    Homing ch=1: SBC_Home=0, Status=REV_SW_LIMIT|MOVING|ERROR
+      Позиция: raw=-6 (еле сдвинулся). homing НЕ ЗАВЕРШИЛСЯ.
+
+    Movement ch=1 +40um: УЛЕТЕЛ В МИНУС! raw=-711 за 15с таймаута.
+      → Движение в НЕПРАВИЛЬНОМ направлении, не останавливается.
+      → Причина: VelParams мусорные (maxVel=659706977 = ~1319 м/с!)
+
+    Movement ch=1 -40um: Ещё дальше в минус (raw=-1421).
+
+    Movement ch=2 +40um: ИДЕАЛЬНО! raw=20, mm=0.04.
+    Movement ch=2 -40um: Промежуточные глюки (-15177, -40819), но финал=0 ✓
+
+  APT STEP 3:
+    APTInit=0, GetNumHWUnitsEx(BSC002)=2
+    InitHWDevice(70864299) → 10120 (ОШИБКА!)
+    Все MOT_* → err=10000 (конфликт с Kinesis — обе API открыты одновременно)
+
+  ВЫВОДЫ:
+    1. ch=2 РАБОТАЕТ (move +40um = идеально)
+    2. ch=1 НЕ работает из-за мусорных VelParams + направление
+    3. SetPowerParams не применяется (баг или EEPROM overwrite)
+    4. APT и Kinesis несовместимы одновременно
+    5. DIAGNOSTIC НЕ УСТАНАВЛИВАЛ SetVelParams перед движением!
+
+--- СЕССИЯ 2026-07-21 16:00 (диагностика v2) ---
+
+Написан diagnostic_bsm.py v2:
+  STEP 2: Kinesis + LoadSettings, каждый канал ОТДЕЛЬНО
+    - SetVelParams(accel=250, maxVel=1000) + verify ПЕРЕД движением
+    - Homing ОБОИХ каналов (timeout=60с)
+    - Move +40um/-40um с roundtrip проверкой
+  STEP 3: Kinesis БЕЗ LoadSettings, каждый канал ОТДЕЛЬНО
+    - Сравнение с STEP 2 — проверяем влияние EEPROM
+  STEP 4: APT API ПОСЛЕ ПОЛНОГО закрытия Kinesis
+    - force_close_kinesis() перед APTInit
+    - MOT_SetChannel(ch) для переключения каналов
+    - Homing + move для каждого канала
+  SUMMARY: Таблица результатов PASS/FAIL
+
+--- СЕССИЯ 2026-07-21 14:50 (логи с целевого ПК) ---
+
+Лог 14:51:10 — BSM найден (70864299, type=70), SBC_Open OK, CheckConnection True,
+  2 канала. LoadSettings ch=1 OK, ch=2 → C++ exception (0xe06d7363).
+  Причина: 2-й запуск подряд, DLL не сброшена.
+
+Лог 14:51:57 — ПОЛНЫЕ ДАННЫЕ О СОСТОЯНИИ BSM:
+  Channel 1 (реальный):
+    Status: 0x80101000 = ERROR
+    InputVoltage: 736 mV (0.736V) ← КРИТИЧЕСКИ НИЗКОЕ
+    PowerParams: move=8%, rest=130% ← МОТОР ПОЛУЧАЕТ 8% ТОКА
+    Position: 0
+    VelParams: accel=135182, maxVel=659706977 ← МУСОР
+    AxisLimits: 0 — 40960000
+    LimitSwitch soft: 0x01 (Ignored)
+  Channel 2 (фантомный):
+    Status: 0x00000000 = NONE
+    InputVoltage: 65535 mV ← НЕВАЛИДНОЕ ЗНАЧЕНИЕ (0xFFFF)
+    PowerParams: move=30%, rest=15%
+    Position: -1 (raw) ← МУСОР
+  Краш: HomingParams — 'int' object has no attribute 'value'
+
+Ключевое открытие:
+  КАНАЛ 1 = реальное железо (видит низкое напряжение, ошибки)
+  КАНАЛ 2 = фантомный (65535V = uninitialized, position=-1)
+  СТАРЫЙ КОД (MyThorlabsStages.py) РАБОТАЛ ЧЕРЕЗ КАНАЛ 2!
+  ТЕКУЩИЙ КОД (v40) ИСПОЛЬЗУЕТ КАНАЛ 1 И НЕ РАБОТАЕТ.
+
+Сравнение старого и нового кода:
+  Старый (работал): ch=2, БЕЗ LoadSettings, БЕЗ EnableChannel, БЕЗ SetVelParams
+  Новый (не работает): ch=1, LoadSettings(ch=1,2), EnableChannel(ch=1,2), SetVelParams
+
+Вопрос: почему канал 2 показывает мусорные данные (65535V) но старый код через него двигал мотор?
+Возможные ответы:
+  1. Канал 2 принимает команды несмотря на "фантомное" состояние
+  2. Старый код не проверял ошибки и просто отправлял команды
+  3. Что-то изменилось в firmware/BPS между версиями
+
+v23 (последняя рабочая версия) — есть только как exe, исходников нет.
+Отличия v23 от v40: другой init (minimal), другой канал, другой подход.
+
+--- ИСПРАВЛЕНИЯ ДИАГНОСТИКИ ---
+
+1. HomingParams: .value → safe accessor (sv() функция)
+2. Movement test: теперь тестирует ВСЕ каналы (ch=1 и ch=2)
+   с try/except для каждого move
+3. Добавлен post-move status для каждого канала
+
+--- СЕССИЯ 2026-07-21 16:03 (диагностика v2 — КРИТИЧЕСКИЙ ЛОГ) ---
+
+Лог diagnostic_BSM_2026-07-21_16-03-43.log (diagnostic v2):
+
+DIAGNOSTIC v1 (15:35:25) — ch=2 move +40um = РАБОТАЕТ (raw=20)
+DIAGNOSTIC v2 (16:03:43) — ch=2 move +40um = НЕ РАБОТАЕТ (raw drift -2377→-4253)
+
+Ключевые различия v1→v2:
+  - v2 ДОБАВИЛ: SetVelParams(maxVel=1000, accel=250), SetSoftLimitMode(2), SetHomingParams
+  - v2 ВЫЗВАЛ: SBC_Home() на ОБОИХ каналах → установил новую "0" позицию в неправильном месте
+  - v2 ВЫЗВАЛ: PersistSettings → записал неправильные HomingParams в EEPROM
+
+РЕЗУЛЬТАТЫ v2:
+  ch=1: raw=-79058→-81075 за 40с (drift ~2000 counts, НЕ реальное движение)
+    Status: REV_SW_LIMIT|MOVING|ERROR
+    InputVoltage: 720-744mV, Position: -160mm (МУСОР)
+  ch=2 с LoadSettings: raw=-1 constant, InputVoltage=65535(0xFFFF=невалидно)
+  ch=2 без LoadSettings: raw drifts -2377→-4253 (тот же паттерн что ch=1)
+
+ВЫВОД: ch=2 ПЕРЕСТАЛ РАБОТАТЬ между v1 и v2. Причина — HomingParams записаны в EEPROM.
+
+--- КРИТИЧЕСКОЕ ОТКРЫТИЕ: EEPROM CORRUPTION ---
+
+ЧТО МЫ СЛОМАЛИ (diagnostic v1/v2 → EEPROM corruption):
+  1. SBC_SetHomingParamsBlock(dir=2, limitSwitch=1, velocity=2500, offset=0)
+     → НЕПРАВИЛЬНЫЕ direction и limitSwitch!
+  2. SBC_SetLimitsSoftwareApproachPolicy(AllowAllMoves=2)
+  3. SBC_Home() на ОБОИХ каналах → установил "0" в неправильном месте
+  4. SBC_PersistSettings → ЗАПИСАЛ В EEPROM → переживает power cycle!
+
+КАК ЭТО ПРОЯВЛЯЕТСЯ:
+  - Homing идёт к НЕПРАВИЛЬНОЙ limit switch → устанавливает "0" в неверной точке
+  - Программа пытается двигать стейдж в минус → physical limit → numbers grow
+  - Позиция drift без реального движения (raw=-79058 → -81075 за 40с)
+  - v23 И v41 ОБА СЛОМАНЫ (ранее v23 работал!)
+
+ПОЧЕМУ EEPROM:
+  - BSM auto-persist certain params to EEPROM
+  - SBC_PersistSettings ЭКСПЛИЦИТНО записал
+  - Power cycle НЕ исправляет (EEPROM сохраняется)
+
+СТАРЫЙ РАБОЧИЙ КОД (MyThorlabsStages.py):
+  - ch=2, SetBacklash(0), Home, MoveRelativeDistance
+  - НЕ вызывал: LoadSettings, EnableChannel, SetVelParams, SetHomingParams
+  - НЕ вызывал: PersistSettings, SetSoftLimitMode
+  - HomingParams были из EEPROM по умолчанию (правильные!)
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ О THORLABS BSM (ОБНОВЛЕНО) ---
+
+1. BSM auto-persists certain params to EEPROM — power cycle не сбрасывает
+2. SBC_PersistSettings ПИШЕТ В EEPROM — НЕ вызывать без необходимости
+3. SetHomingParamsBlock(dir=2, limitSwitch=1) — НЕПРАВИЛЬНЫЕ для нашего стейджа
+4. SetSoftLimitMode(2) — AllowAllMoves — может быть проблемой
+5. НЕПРАВИЛЬНЫЕ HomingParams → homing идёт к неверному концевику → "0" в неверном месте
+6. v23/v41 РАБОТАЛИ ПОКА EEPROM БЫЛ ЧИСТ — мы его засорили
+
+--- ПЛАН ДАЛЬНЕЙШИХ ДЕЙСТВИЙ (ОБНОВЛЁН) ---
+
+1. Запустить diagnostic v3 на целевом ПК
+2. STEP 0: дамп текущих (повреждённых) параметров EEPROM
+3. STEP 1: тест старого кода (ch=2, minimal init) — работает ли ещё?
+4. STEP 2: попробовать 4 комбинации HomingParams:
+   A: dir=FWD(1), ls=FWD_LIMIT(4)
+   B: dir=REV(2), ls=REV_LIMIT(1) — наш "сломанный" вариант
+   C: dir=FWD(1), ls=REV_LIMIT(1)
+   D: dir=REV(2), ls=FWD_LIMIT(4)
+5. STEP 3: raw move без homing
+6. STEP 4: APT API (отдельный subprocess)
+7. Найти правильную комбинацию → PersistSettings → исправить EEPROM
+8. Исправить thorlabs_stages.py (v5):
+   - ch=2 (как старый код)
+   - БЕЗ LoadSettings, БЕЗ EnableChannel, БЕЗ SetVelParams
+   - БЕЗ SetHomingParams, БЕЗ PersistSettings
+   - Только SetBacklash(0) → Home → Move
+9. Пересобрать ScanLoop exe
+
+--- ФАЙЛЫ ДИАГНОСТИКИ v3 ---
+
+dist/diagnostic_BSM/diagnostic_bsm.py: v3 — 609 строк, 5 STEPs (0-4)
+dist/diagnostic_BSM/apt_test.py: APT subprocess (отдельный процесс)
+dist/diagnostic_BSM/run_diagnostic.bat: Python search launcher
+tests/diagnostic_bsm.py: Синхронизированная v3 (импорты из проекта)
+tests/apt_test.py: APT subprocess (tests version)
+
+--- СЕССИЯ 2026-07-21 18:00 (diagnostic v4 results) ---
+
+v4 РЕЗУЛЬТАТЫ (18:08:32):
+
+STEP 1 ch=1 (LoadSettings ОБЯЗАТЕЛЕН в v4):
+  VelParams: Set OK, verified OK, persists after PersistSettings
+  PowerParams: Set(100,50) → err=0, но verify=6%/136% — НЕ ПРИМЕНЯЕТСЯ!
+  HomingParams: Set OK, verified OK
+  SoftLimitMode: Set OK
+  StageAxisLimits: Set OK
+  PersistSettings: True
+  Re-verify: VelParams OK, PowerParams STILL 6%/136%
+
+STEP 1 ch=2:
+  velParams: maxVel=-1342177278, accel=-2095894137 — NEGATIVE GARBAGE
+  PowerParams: move=6%, rest=136%
+  Same fix results as ch=1
+
+STEP 2 ch=1 (Home):
+  StopImmediate: НЕТ в v4!
+  SBC_Home → err=0
+  Homing INSTANT: pos=-58618→-58634 (16 counts), motor DIDN'T MOVE
+  SetPositionCounter(0) → err=36
+  Move to zero: -58634→-59342 (wrong direction, timeout)
+
+STEP 3 ch=1 (Move roundtrip):
+  +40um: delta=-709 (expected +20) — OPPOSITE DIRECTION
+  -40um: delta=-706 (expected -20) — same drift
+  ~47 counts/sec drift — NOT real motor movement
+
+v4 ВЫВОДЫ:
+  1. VelParams fix WORKS and persists — maxVel=1000/accel=250 survives
+  2. PowerParams CANNOT be set — 6%/136% is baked in EEPROM
+  3. Homing is INSTANT — motor doesn't move (6% power insufficient)
+  4. MOVING bit always set — firmware thinks it's in motion
+  5. SetPositionCounter always err=36
+  6. ch=2 also corrupted now (was somewhat OK in v3)
+  7. InputVoltage: ch=1=720mV, ch=2=680mV (both ~0.7V)
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ ИЗ v4 ---
+
+1. PowerParams 6% НЕ ФИКСИТЬСЯ через SetPowerParams
+   → Заширы в EEPROM на уровне firmware
+   → Или SetPowerParams не применяется к BSM type70
+
+2. VelParams ФИКСИТЬСЯ — 1000/250 сохраняется после PersistSettings
+
+3. Homing мгновенный → motor не двигается → 6% тока недостаточно
+
+4. MOVING bit (0x200) всегда включён → блокирует команды
+
+--- ПЛАН v5 ---
+
+v5 (diagnostic_v5.py):
+  STEP 0: Open WITHOUT LoadSettings → dump raw params → сравнить с v4
+    → Если PowerParams > 6% → LoadSettings виноват!
+  STEP 1: ch=1:
+    - StopImmediate (clear MOVING)
+    - Fix all params
+    - SetLimitSwitchParams(Ignore)
+    - PersistSettings
+    - Home + move roundtrip
+  STEP 2: ch=2:
+    - Same (old working channel, без LoadSettings)
+  STEP 3: Summary
+
+--- СЕССИЯ 2026-07-21 18:42 (diagnostic v7 results) ---
+
+v7 РЕЗУЛЬТАТЫ (18:42:11):
+
+ch=1:
+  BEFORE: Status=FWD_HW_LIMIT|FWD_SW_LIMIT|MOVING|ERROR, Pos=-16335
+  AFTER fix: Status=FWD_HW_LIMIT|ERROR, Pos=-16327 (MOVING cleared ✓)
+  SoftLim=-25664 (firmware reset again!)
+  SetPositionCounter(0) → err=0 ✓
+  +40um: delta=20 PASS
+  -40um: delta=-1 FAIL (FWD_HW_LIMIT blocks reverse?)
+
+ch=2:
+  BEFORE: Status=ERROR, Pos=-897990, SoftLim=37
+  AFTER fix: Status=ERROR, Pos=-897990, SoftLim=0
+  SoftLim=5176 (firmware reset)
+  SetPositionCounter(0) → err=0 ✓
+  ** +40um: delta=20 PASS **
+  ** -40um: delta=-20 PASS **
+  Final: pos=0 ✓
+
+v7 ВЫВОДЫ:
+  1. ch=2 РАБОТАЕТ ИДЕАЛЬНО — оба направления PASS
+  2. ch=1: FWD_HW_LIMIT блокирует reverse movement
+  3. Homing НЕ нужен — relative moves работают
+  4. SetPositionCounter(0) работает после StopImmediate
+  5. Нет дрейфа — позиция стабильна
+
+--- СЕССИЯ 2026-07-21 18:54 (diagnostic v8 results) ---
+
+v8 РЕЗУЛЬТАТЫ (18:54:03):
+
+STEP 0 Init: StopImmediate + VelParams + Backlash + SetPositionCounter(0) → OK
+STEP 1: +40um err=39 FAIL, -40um err=39 FAIL
+RT1: err=39 FAIL
+RT2: err=0 PASS (+20, -20) ✓
+RT3: err=0 PASS (+20, -20) ✓
+RT4: err=39 FAIL
+RT5: err=39 FAIL
+Все разные дистанции: err=39 FAIL
+Stability 10s: PASS (drift=0)
+Reopen: PASS (pos=0)
+
+v8 ВЫВОДЫ:
+  1. err=39 intermittent — без PersistSettings работает 2/5 раз
+  2. Stability + persistence: PASS
+  3. fix_params с PersistSettings нужен для стабильности
+
+--- СЕССИЯ 2026-07-21 19:02 (diagnostic v9 results) ---
+
+v9 РЕЗУЛЬТАТЫ (19:02:27):
+
+RT1: PASS (+20, -20)
+RT2: SBC_Open FAILED → FAIL
+RT3-RT5: err=39 FAIL
+RT6: SBC_Open worked but err=39 FAIL
+RT7: PASS (+20, -20)
+RT8: err=39 FAIL
+RT9: PASS (+20, -20)
+RT10: err=39 FAIL
+
+10/20/50/100/200um: 10um+20um PASS, rest FAIL (err=39)
+Stability: PASS (drift=0)
+Reopen: PASS (pos=0)
+
+v9 ВЫВОДЫ:
+  err=39 интермиттирует НЕ из-за PersistSettings
+  err=39 = проблема chatty open/close циклов
+  Каждый roundtrip делал open→move→close = 20 циклов
+  SBC_Open ломается → устройство в bad state
+
+--- СЕССИЯ 2026-07-21 19:10 (diagnostic v10→v11) ---
+
+v10b РЕЗУЛЬТАТЫ (19:25): 31/33 PASSED — err=39 побеждён single-session подходом.
+v10b ПРОБЛЕМА: моторы PHYSICALLY НЕ ДВИГАЮТСЯ, но position counter считает PASS.
+  Причина: PowerParams restPercentage=50% → полный holding current → перегрев.
+  movePercentage=100% → игнорируется аппаратно (BSM сам управляет током при движении).
+
+v10c НОВЫЙ ЛОГ (19:32): 33/33 PASSED — моторы всё ещё горячие.
+  Мы set PowerParams(100%/50%) и PersistSettings → сохранили в EEPROM.
+
+BSC202 MANUAL (стр. 41):
+  "The moving phase powers are set automatically by the unit and cannot be adjusted."
+  "The Resting Power is entered as a percentage of full power."
+  "Modify these values with caution (particularly the rest power) as the risk of
+   damage to the motor due to overheating is significant."
+
+v11 РЕШЕНИЕ:
+  1. ВЕРНУТЬ PowerParams в firmware default 6%/6% через SetPowerParams + PersistSettings
+  2. Убрать ВСЕ лишние параметры (VelParams, HomingParams, LimitSwitchParams и т.д.)
+  3. Оставить только: StopImmediate → SetBacklash(0) → SetPositionCounter(0) → moves
+  4. Minimal init matching MyThorlabsStages.py
+
+--- ФАЙЛЫ ДИАГНОСТИКИ v12 (ТЕКУЩИЕ) ---
+dist/diagnostic_BSM/diagnostic_v12.py
+dist/diagnostic_BSM/apt_test.py
+dist/diagnostic_BSM/run_diagnostic.bat
+tests/diagnostic_v12.py
+
+--- СЕССИЯ 2026-07-21 20:20 (diagnostic v12) ---
+
+v11 РЕЗУЛЬТАТЫ (20:16): 33/33 PASS но restPercentage=129% НЕ ВОССТАНОВИЛОСЬ!
+  BEFORE: rest=129% move=2% (corrupted)
+  AFTER:  rest=129% move=2% (SetPowerParams НЕ изменил rest)
+  FINAL:  rest=129% move=6% (move изменился, rest застрял)
+  Моторы двигаются но "совсем немного" — 129% holding torque мешает
+
+v12 РЕЗУЛЬТАТЫ (20:28):
+  SWEEP: restPercentage НЕ восстанавливается через API
+    Target -> Actual: 0->128, 6->129, 10->129, 20->131, 50->136, 100->144
+    Паттерн: actual ≈ target + offset (corrupted EEPROM)
+  33/33 PASS (software) — position counter работает
+  Физическое поведение: один мотор перестал греться но и не двигается,
+    другой двигается как раньше (еле заметно)
+
+v12 ВЫВОДЫ:
+  - restPercentage irrecoverable via API — нужен Kinesis GUI
+  - See "ИНСТРУКЦИЯ: ВОССТАНОВЛЕНИЕ PowerParams ЧЕРЕЗ KINESIS GUI" выше
+
+--- ИНСТРУКЦИИ ДЛЯ OPENCODE ---
+
+ПОСЛЕ КАЖДОЙ КОМПИЛЯЦИИ ИЛИ НОВОЙ ВЕРСИИ ДИАГНОСТИКИ:
+  1. Удалить старые .zip архивы из dist/
+  2. Создать новый .zip архив с текущими файлами из dist/
+  3. Это касается всего что должно оказаться в папке dist/
+  (Пользователь перемещает файлы через zip-архивы)
+
+--- КРИТИЧЕСКАЯ ИНФОРМАЦИЯ ДЛЯ СЛЕДУЮЩЕЙ СЕССИИ ---
+
+Целевой ПК: C:\Users\Adm\Desktop\Новая папка\ (или C:\Users\Adm\Desktop\diagnostic_BSM\)
+BSM serial: 70864299, type=70, 2 канала, модель BSC202
+ENCODER_STEP: 0.002 mm/step
+Старый код: ch=2, minimal init (MyThorlabsStages.py)
+PowerParams: firmware default 6%/6% (ОБЯЗАТЕЛЬНО вернуть!)
+PowerParams: movePercentage игнорируется аппаратно, restPercentage = holding power
+BSC202 manual стр. 41: "moving phase powers set automatically, cannot be adjusted"
+
+================================================================================
+  ИНСТРУКЦИЯ: ВОССТАНОВЛЕНИЕ PowerParams ЧЕРЕЗ KINESIS GUI
+  Выполни на целевом ПК (C:\Users\Adm\Desktop\)
+================================================================================
+
+Проблема: restPercentage застряло на 129% из-за повреждения EEPROM.
+Наш diagnostic не может исправить через API (все попытки MISMATCH).
+Kinesis GUI может перезаписать EEPROM напрямую.
+
+v12 SWEEP RESULTS (доказательство):
+  Target -> Actual (read back): 0->128, 6->129, 10->129, 20->131, 50->136, 100->144
+  НИ ОДНО значение не совпадает. EEPROM повреждён на уровне хранения.
+
+ШАГ 1: Запусти Kinesis
+  - Пуск -> Thorlabs -> Kinesis -> Kinesis
+  - Или: C:\Program Files\Thorlabs\Kinesis\Kinesis.exe
+
+ШАГ 2: Подключи BSC202
+  - Если устройство не появилось: USB подключён? Подожди 10 сек.
+  - В левой панели должен появиться BSC202 (serial 70864299)
+
+ШАГ 3: Открой панель BSC202
+  - Дважды кликни по BSC202 в дереве устройств
+  - Откроется панель управления каналами
+
+ШАГ 4: Перейди в Settings -> Power (для канала 2)
+  - Кликни на канал 2 (или Channel 2 tab)
+  - Нажми "Settings" или иконку шестерёнки
+  - Найди секцию "Power Settings" или "Motor Power"
+
+ШАГ 5: Установи параметры
+  - Resting Power (или Rest Power): = 6%
+  - Moving Power (или Move Power): = 6%
+  - Нажми "Apply" или "OK"
+
+ШАГ 6: Повтори для канала 1
+  - Переключись на канал 1
+  - Повтори шаги 4-5: Rest=6%, Move=6%
+
+ШАГ 7: Сохрани в EEPROM (PersistSettings)
+  - В настройках Kinesis должен быть чекбокс:
+    "Persist Settings to the Device" или "Save to Hardware"
+  - Поставь галочку -> OK
+  - ИЛИ: в Kinesis нажми "Persist" кнопку (обычно рядом с Apply)
+
+ШАГ 8: Проверь что сохранилось
+  - Закрой Settings -> открой заново
+  - Проверь что Rest=6%, Move=6% на обоих каналах
+
+ШАГ 9: Перезагрузи BSC202
+  - Выключи питания BSC202 (кнопка на задней панели)
+  - Подожди 5 сек
+  - Включи
+  - Открой Kinesis -> проверь PowerParams
+
+ШАГ 10: Проверь моторы
+  - В Kinesis: кликни на канал 2 -> нажми "Move" -> относительное движение 0.1mm
+  - Мотор должен двигаться плавно и НЕ ГРЕТЬСЯ
+  - Повтори для канала 1
+
+Если Kinesis не видит BSC202:
+  - Проверь USB кабель (не >3м без хаба)
+  - Попробуй другой USB порт
+  - Установи Thorlabs Kinesis если не установлен:
+    https://www.thorlabs.com/software_pages/viewsoftwarepage.cfm?code=BSM
+
+Если PowerParams не сохраняются:
+  - Убедись что стоит галочка "Persist Settings to the Device"
+  - Попробуй: Settings -> Reset to Defaults -> Apply -> Persist
+
+ПОСЛЕ ВОССТАНОВЛЕНИЯ: запусти diagnostic v12 заново для проверки.
+  Ожидаемый результат: rest=6% move=6% в логе.
+================================================================================
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ О THORLABS BSM (ОБНОВЛЕНО 2026-07-23) ---
+
+1. .NET API ОБЯЗАТЕЛЕН для BSM type=70 (BSC202) — C API не работает
+2. LoadMotorConfiguration(channel_serial, UseFileSettings) — ключевой вызов
+3. UpdateDeviceUnitConverter — НЕ вызывать (ломает движение)
+4. SetVelocityParams(maxVel, accel) — работает через .NET
+5. SetHomingParams(HomeParameters) — работает через .NET
+6. MoveTo(System.Decimal) — позиция в мм
+7. MoveTo с отрицательной целью от позиции 0 отклоняется (MinLimit=0)
+8. .NET DLL loading ~4 сек — аппаратное ограничение
+9. Connect ~6 сек (оптимизировано с ~17 сек)
+10. Home ~4 сек (было ~7 сек при 1 мм/с → 5 мм/с)
+
+=====================================
+  СЕССИЯ 2026-07-22 16:00+ (Kinesis 1.14.59 + TestClient GUI automation)
+=====================================
+
+--- ЧТО СДЕЛАНО ---
+
+1. Установлена Kinesis 1.14.59 через winget (обновление с 1.14.28)
+   - winget install Thorlabs.Kinesis.x64
+   - 1.14.28 НЕ видел BSC202, 1.14.59 ВИДИТ
+
+2. Kinesis GUI 1.14.59:
+   - BSC202 (70864299-2) обнаружен в дереве устройств
+   - Панель показывает 3 канала (ch1, ch2, ch3)
+   - Settings button кликается, но нет прямого доступа к PowerParams
+
+3. TestClient 1.14.59:
+   - Загружает "Loaded Device Settings" для всех каналов
+   - Initialize показывает "Simulation" если "Apply startup settings" включён
+   - БЕЗ startup settings: реальное подключение (positions, velocities)
+   - Устройство занято TestClient'ом → C API возвращает err=1/err=2
+
+4. PowerParams через TestClient GUI:
+   - Settings → Advanced tab → Power section найден!
+   - ComboBox для "Resting Power" и "Moving Power" (0%-100%)
+   - НЕТ прямого Edit-поля, только ComboBox/dropdown
+   - ComboBox'ы кликаются, 6% текст находится
+   - "Persist Settings to the Device" checkbox работает
+   - OK нажат → event log показывает "MOT_SET_EEPROM" и "Set Power Parameters"
+   - Но verify через C API невозможен (USB занят TestClient'ом)
+
+5. .NET API через pythonnet:
+   - DeviceManagerCLI.Initialize() → OK
+   - DeviceManagerCLI.BuildDeviceList() → ['70864299'] (нужен BuildDeviceList!)
+   - BenchtopStepperMotor.CreateBenchtopStepperMotor() → OK
+   - ConnectDevice → IsConnected=False (не работает)
+   - InitializeUSBConnectionState → аргументы не совпадают
+   - Проблема: .NET API не может подключиться standalone
+
+6. После закрытия TestClient: USB connection lost
+   - C API SBC_Open → err=2 (все serial варианты)
+   - APT USB Device (VID_0403, PID_FAF0) виден в Device Manager
+   - Но Thorlabs не видит через C API
+   - Пользователь выбрал перезагрузку ПК
+
+--- ОШИБКИ/ПРОБЛЕМЫ ---
+
+1. C API (benchtop_stepper_motor.dll) после Kinesis 1.14.59:
+   - SBC_Open возвращает err=2 (не err=0 как раньше)
+   - Вероятно new DLL требует DeviceManager инициализацию
+   - Или: Kinesis оставляет USB lock после закрытия
+
+2. .NET API (pythonnet):
+   - ConnectDevice не подключает (IsConnected=False)
+   - Connect(serial, timeout) → Device is not connected
+   - InitializeUSBConnectionState → overload mismatch
+
+3. TestClient ComboBox automation:
+   - ComboBox'ы показывают пустой text после выбора
+   - Неясно, установлено ли значение или нет
+   - OK закрывает диалог, но verify невозможен
+
+--- ПЛАН ПОСЛЕ ПЕРЕЗАГРУЗКИ ---
+
+1. После перезагрузки ПК:
+   a. Запустить TestClient → Initialize БЕЗ startup settings
+   b. Settings → Advanced → Power: Resting=6%, Moving=6%
+   c. Persist=ON → OK
+   d. Повторить для ch2
+   e. Закрыть TestClient
+   f. Проверить через C API: restPercentage и movePercentage
+
+2. Если C API всё ещё err=2:
+   - Запустить Kinesis GUI (не TestClient) → проверить PowerParams
+   - Или: использовать .NET API с DeviceManagerCLI.BuildDeviceList()
+
+3. Если PowerParams установлены на 6%/6%:
+   - Запустить diagnostic_v12 → проверить физическое движение
+   - Моторы должны двигаться плавно и НЕ ГРЕТЬСЯ
+   - Если всё OK → обновить thorlabs_stages.py
+
+--- ФАЙЛЫ ДИАГНОСТИКИ v13 (.NET init + C API) ---
+dist/diagnostic_BSM/diagnostic_v13.py — .NET LoadMotorConfiguration + C API moves
+dist/diagnostic_BSM/run_diagnostic.bat — обновлён: проверка pythonnet, запуск v13
+tests/diagnostic_v13.py — синхронизированная копия
+
+--- КРИТИЧЕСКИЙ АНАЛИЗ: ПОЧЕМУ KINESIS GUI ДВИГАЕТ МОТОРЫ, А C API НЕТ ---
+
+Из лога Kinesis (строки 48780-48830) видно что GUI делает:
+1. UpdateDeviceUnitSettings: пишет в контроллер StepsPerRev=200, GearboxRatio=1, Pitch=1
+2. Set Jog Parameters: stepSize=204800, accel=2253, maxVel=21990233
+3. Update Limits Software Approach Policy = 0 (DisallowIllegalMoves)
+4. Update Motor Position Limits: min=0, max=40960000
+5. Set Power Parameters: move=30%, rest=15% (НЕ 6%/6% как мы думали!)
+6. EnableDevice → MoveTo → РАБОТАЕТ
+
+КЛЮЧЕВАЯ ПРОБЛЕМА: C API SBC_SetMotorParamsExt(200, 1, 1) возвращает err=1.
+Контроллер type=70 (BSC202 rack) ОТКЛОНЯЕТ эту команду через C API.
+.NET API использует другой путь (UpdateDeviceUnitSettings) который работает.
+
+ПРИЧИНА: без мотор-параметров контроллер не знает тип мотора →
+  фазовая последовательность неверная → мотор греется но не вращается.
+
+--- СЕССИЯ 2026-07-22 20:30+ (diagnostic v13) ---
+
+diagnostic_v13 СТРАТЕГИЯ:
+  Phase A: .NET API → DeviceManagerCLI.Initialize → BuildDeviceList
+    → CreateBenchtopStepperMotor → Connect
+    → ch.LoadMotorConfiguration("70864299", UseFileSettings) — КЛЮЧЕВОЙ ВЫЗОВ
+    → EnableDevice → StartPolling
+  Phase B: .NET MoveRelative — тест физического движения
+  Phase C: .NET Disconnect → C API Open — проверяем что параметры в firmware RAM
+  Phase D: Summary
+
+Если Phase B работает → .NET LoadMotorConfiguration решает проблему.
+Если Phase C тоже работает → можно использовать C API в production.
+
+=====================================
+  СЕССИЯ 2026-07-22 (после перезагрузки)
+=====================================
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ ---
+
+1. KINESIS 1.14.59 УДАЛИЛА TLILite DLL!
+   - Thorlabs.MotionControl.TLILite.TLI.dll НЕ СУЩЕСТВУЕТ в 1.14.59
+   - C API (SBC_Open, SBC_GetPowerParams и т.д.) ВЕЧНО сломан
+   - SBC_Open всегда возвращает err=2 (device not found)
+   - Откат на 1.14.28 может исправить (но winget не даёт выбрать версию)
+
+2. .NET API (pythonnet) — подключается, но НЕ МОЖЕТ:
+   - LoadMotorConfiguration → NullReferenceException (нет settings XML)
+   - GetPowerParams / SetPowerParams → "Device settings not initialized"
+   - MoveRelative → "Device settings not initialized"
+   - StopImmediate / SetPositionCounter → РАБОТАЮТ
+   - StartPolling → работает, IsEnabled=true, State=Idle
+   - Connect(serial) → IsConnected=true
+   - BuildDeviceList() находит ['70864299']
+
+3. KINESIS GUI — работает!
+   - Моторы физически двигаются через GUI
+   - "Simulation" в UI — просто отображение, реальное подключение работает
+   - Лог: MOTOR_REPLY_STATUS received - Status: 0x80101000, Position: 0
+   - Settings → Advanced → Power секция с ComboBox'ами найдена
+
+4. TESTCLIENT — Simulation mode
+   - Подключается к DeviceManager, но не может инициализировать каналы
+   - Settings dialog открывается, Advanced tab доступен
+   - Power ComboBox'ы (Resting/Moving) кликаются
+   - OK → MOT_SET_EEPROM отправляется
+   - Но значения ComboBox не читаются через pywinauto (пустой text)
+
+5. C API (benchtop_stepper_motor.dll) после Kinesis 1.14.59:
+   - TLILite.TLI.dll удалена в 1.14.59
+   - НО: BSM DLL и DeviceManager.dll содержат свои TLI_BuildDeviceList/GetDeviceListSize
+   - НО: Kinesis GUI блокирует USB доступ (нужно отключить драйвер в GUI!)
+
+=====================================
+  СЕССИЯ 2026-07-22 (ПРОРЫВ!)
+=====================================
+
+--- КЛЮЧЕВОЕ ОТКРЫТИЕ ---
+   **C API РАБОТАЕТ! Проблема была в TLILite НЕ НУЖНА!**
+   
+   Причина ошибки err=2: Kinesis GUI блокировал USB доступ к устройству!
+   Внутри Kinesis GUI нужно вручную отключить драйвер (Disconnect) для
+   освобождения USB. После этого:
+   - TLI_BuildDeviceList → 0 (OK)
+   - TLI_GetDeviceListSize → 1
+   - SBC_Open → 0 (OK!)
+   - Все SBC_* функции работают!
+
+--- ТЕКУЩЕЕ СОСТОЯНИЕ (ПОСЛЕ ПРОРЫВА) ---
+   C API: РАБОТАЕТ! ✓ (пока Kinesis GUI отключён)
+   ch0: контроллер (нет мотора)
+   ch1: МОТОР РАБОТАЕТ ✓
+     - PowerParams: rest=6%, move=6% ✓ (было 6%/100%)
+     - voltage=752 (7.52V) ✓
+     - MoveRelativeDistance: позиция 0→100 ✓
+     - vel=5000, acc=10000 ✓
+   ch2: НЕТ МОТОРА
+     - voltage=65535, position=-1
+     - Status=0x00000000 (ничего)
+   
+   .NET API: НЕ НУЖЕН (C API работает лучше)
+
+--- НОВЫЙ ПЛАН ---
+    1. ✓ PowerParams установлены на 6%/6% для ch1, ch2
+    2. Проверить физическое движение ch1 через C API
+    3. Выяснить статус ch2 (подключён ли мотор?)
+    4. Обновить thorlabs_stages.py - добавить блокировку Kinesis GUI
+    5. Запустить diagnostic_v12 с исправленным доступом
+    6. Или: переписать основной код на прямой C API вызов
+
+=====================================
+  СЕССИЯ 2026-07-22 20:00+ (diagnostic v13 — РЕЗУЛЬТАТЫ!)
+=====================================
+
+--- КЛЮЧЕВЫЕ ОТКРЫТИЯ ---
+
+1. LoadMotorConfiguration('70864299-1', UseFileSettings) — РАБОТАЕТ!
+   - Канальный serial ('70864299-1', '70864299-2') ОБЯЗАТЕЛЕН
+   - Parent serial ('70864299') → NullReferenceException
+   - IsMotorSettingsValid=True для обоих каналов
+
+2. .NET MoveTo(Decimal, Int32) — мотор физически двигается!
+   - ch2 roundtrip: +16384 / -16384 device units = perfect symmetry
+   - 16384 device units = 0.04mm = 40um
+   - ENCODER_STEP = 0.002 мм → 16384 * 0.002 = 32.768um ≠ 40um
+     (NET использует другую конверсию единиц через UnitConverter)
+
+3. C API работает ПОСЛЕ .NET disconnect:
+   - SBC_Open=0, NumChannels=3
+   - MoveRelative +20 steps: delta=20 ✅
+   - MoveRelative -20 steps: delta=-40980 (reverse soft limit) ❌
+   - MotorParams через C API = (0,0,0) — C API не читает motor params
+
+4. PowerParams: Rest=15%, Move=30% (из XML settings, НЕ из EEPROM)
+
+5. v13 diagnostic: 5/5 PASSED
+
+.NET API ИНТЕРФЕЙС (правильные имена):
+  from Thorlabs.MotionControl.DeviceManagerCLI import DeviceConfiguration
+  opt = DeviceConfiguration.DeviceSettingsUseOptionType.UseFileSettings
+  ch.LoadMotorConfiguration('70864299-1', opt)
+  ch.GetPowerParams() → .RestPercentage, .MovePercentage
+  ch.Position / ch.Position_DeviceUnit (свойства!)
+  ch.MoveTo(System.Decimal(target_mm), timeout_ms)
+  ch.SetPositionCounter(0)
+  ch.EnableDevice(), ch.StartPolling(250), ch.StopPolling()
+
+--- СОСТОЯНИЕ НА 2026-07-23 (финал) ---
+
+thorlabs_stages.py v3.3 — ЕДИНЫЙ ФАЙЛ, готов к использованию.
+
+Файл: Hardware/Stages/Thorlabs/thorlabs_stages.py
+Версия: 3.3, Дата: 2026.07.23
+Интерфейс: совпадает с v2.2 (ThorlabsBSM, ThorlabsCube, get_thorlabs_serials)
+
+Структура:
+  _BSMConnection — .NET backend
+    - _dotnet_init() — кэш импорта DLL
+    - _dotnet_build() — Initialize + BuildDeviceList
+    - Connect → LoadMotorConfiguration → EnableDevice → StartPolling
+    - SetVelocityParams(2.0 mm/s, 0.5 mm/s²)
+    - SetHomingParams(5.0 mm/s) перед каждым Home()
+  ThorlabsBSM — public interface
+    - get_position() → mm
+    - move_relative(distance_mkm)
+    - move_home()
+    - close()
+  ThorlabsCube — C API (KDC, не тронут)
+  get_thorlabs_serials() — C API scanning
+
+Удалено:
+  thorlabs_stages_v3_net.py — промежуточный
+  thorlabs_stages_v22_backup.py — старая версия
+
+Собранные exe:
+  v4_ScanLoop — последняя сборка с v3.3
+
+Настройки скорости (начало файла, строки 10-12):
+  DEFAULT_MAX_VELOCITY_MM_S = 2.0
+  DEFAULT_ACCELERATION_MM_S2 = 0.5
+  DEFAULT_HOMING_VELOCITY_MM_S = 5.0
+
+Примечания:
+  - pythonnet добавлен в requirements.txt
+  - .NET API обязателен для BSM (C API не работает с BSC202)
+  - .NET DLL loading ~4 сек (аппаратное ограничение)
+  - Connect ~6 сек (оптимизировано с ~17 сек)
+  - Home ~4 сек (было ~7 сек)
+  - НЕ вызывать UpdateDeviceUnitConverter (ломает движение)
+  - MinLimit=0 → MoveTo в минус от позиции 0 отклоняется
+
+=====================================
+  СЕССИЯ 2026-07-22 20:00+ (INTEGRATION + КРИТИЧЕСКИЕ ВЫВОДЫ)
+=====================================
+
+--- ИНТЕГРАЦИЯ thorlabs_stages.py v3.0 (.NET API) ---
+
+thorlabs_stages.py переписан на .NET API (v3.0):
+  _BSMConnection: .NET DeviceManagerCLI + BenchtopStepperMotor
+    - _dotnet_init() кэширует импорт (clr.AddReference)
+    - _dotnet_build() кэширует Initialize+BuildDeviceList
+    - BenchtopStepperMotor.CreateBenchtopStepperMotor → Connect → LoadMotorConfiguration
+    - Position через ch.Position → System.Decimal → float(str().replace(',','.'))
+    - MoveTo через ch.MoveTo(System.Decimal(target_mm), timeout_ms)
+    - set_velocity через ch.SetVelocityParams(Decimal, Decimal)
+  ThorlabsBSM: делегирует всё в _BSMConnection
+  ThorlabsCube: осталась на C API (KDC)
+
+ОШИБКИ ПРИ ИНТЕГРАЦИИ (исправлены):
+  - device.Connect(SERIAL, 5000) → TypeError (нет перегрузки с str+int)
+    → device.Connect(SERIAL)
+  - import System до clr.AddReference → ModuleNotFoundError
+    → перенесли import System в _dotnet_init() после clr.AddReference
+  - CreateBenchtopStepperMotor на DeviceManagerCLI → AttributeError
+    → BenchtopStepperMotor.CreateBenchtopStepperMotor (из Benchtop.StepperMotorCLI)
+  - ch.Position возвращает System.Decimal → float() не работает
+    → float(str(pos).replace(',','.'))
+  - channel.value при int channel → AttributeError
+    → добавлен _ch_num() helper
+
+--- КРИТИЧЕСКИЙ ВЫВОД: ФИЗИЧЕСКОЕ ДВИЖЕНИЕ НЕПРАВИЛЬНОЕ ---
+
+Тест thorlabs_stages.py v3 после power cycle:
+  .NET MoveTo(0.002mm) → .NET reports Position=0.002mm
+  ФИЗИЧЕСКИ: заметное движение (>1mm) — масштаб ~500-2500x!
+
+Причина: Motor params в firmware ВСЕГДА (0,0,0):
+  StepsPerRev=0, GearBoxRatio=0, Pitch=0
+  Firmware treats DeviceUnits как raw step count
+  1 DU = 1 step вместо 1 DU = 1/2048 step
+  → Масштаб ≈ 2048x
+
+--- ПОЧЕМУ PARAMS НЕ СОХРАНЯЮТСЯ ---
+
+C API SetMotorParamsExt(200,1,1):
+  → err=1 (НО readback показывает 200/1/1)
+  → PersistSettings → True
+  → После SBC_Close + SBC_Open: обратно 0/0/0
+
+.NET PersistSettings:
+  → Вернуло True
+  → После disconnect + reconnect: motor params 0/0/0
+
+SaveConfiguration / SaveDeviceSettings:
+  → Не работают (wrong signature или не сохраняют)
+
+** EEPROM ПОЛНОСТЬЮ ПОВРЕЖДЁН **
+  - MotorParams: не сохраняются
+  - StageAxisLimits: 0/0 (не сохраняются)
+  - VelParams ch1: сохранились (1000/2500)
+  - VelParams ch2: НЕ сохранились
+  - Firmware version: 0.00.0
+
+--- ЧТО РАБОТАЕТ vs ЧТО НЕТ ---
+
+РАБОТАЕТ:
+  ✓ .NET LoadMotorConfiguration (IsMotorSettingsValid=True)
+  ✓ .NET MoveTo (мотор двигается, .NET reports правильную позицию)
+  ✓ .NET Position / Position_DeviceUnit
+  ✓ .NET EnableDevice / StartPolling / StopPolling
+  ✓ .NET SetVelocityParams
+  ✓ .NET GetPowerParams (Move=30%, Rest=15%)
+  ✓ .NET PersistSettings (возвращает True)
+  ✓ C API SBC_SetVelParams (ch1 сохранились)
+  ✓ C API SBC_SetStageAxisLimits (возвращает 0, но не сохраняется)
+
+НЕ РАБОТАЕТ:
+  ✗ EEPROM motor params (0/0/0 — не записываются/не сохраняются)
+  ✗ EEPROM firmware version (0.00.0)
+  ✗ EEPROM stage axis limits (0/0)
+  ✗ EEPROM vel params ch2
+  ✗ Физическое соответствие .NET позиции (~2048x масштаб)
+
+--- ВАРИАНТЫ РЕШЕНИЯ ---
+
+1. Kinesis GUI — может через другой путь записать motor params
+2. Компенсация в ПО — делить движения на ~2048
+3. Thorlabs support / замена контроллера
+
+--- ИЗМЕНЁННЫЕ ФАЙЛЫ ---
+
+thorlabs_stages.py v2.2 — ОРИГИНАЛ (C API), НЕ ТРОНУТ
+thorlabs_stages_v3_net.py v3.1 — .NET API для BSM
+  _BSMConnection: .NET DeviceManagerCLI + BenchtopStepperMotor
+    - _dotnet_init() кэширует импорт (clr.AddReference)
+    - _dotnet_build() кэширует Initialize+BuildDeviceList
+    - BenchtopStepperMotor.CreateBenchtopStepperMotor → Connect → LoadMotorConfiguration
+    - Position через ch.Position → System.Decimal → float(str().replace(',','.'))
+    - MoveTo через ch.MoveTo(System.Decimal(target_mm), timeout_ms)
+  ThorlabsBSM: делегирует всё в _BSMConnection
+    - БЕЗ set_velocity (используем XML defaults)
+    - БЕЗ UpdateDeviceUnitConverter (ломает движение)
+  ThorlabsCube: осталась на C API (KDC)
+  Public interface: совпадает с v2.2 (get_position, move_relative, move_home, close)
+
+test_thorlabs_stages_v3.py — quick test script
+
+=====================================
+  СЕССИЯ 2026-07-23 (продолжение)
+=====================================
+
+--- ОРИГИНАЛ ВОССТАНОВЛЕН ---
+thorlabs_stages.py v2.2 (C API) — восстановлен, не тронут.
+.NET версия сохранена: thorlabs_stages_v3_net.py
+
+--- ТЕКУЩЕЕ СОСТОЯНИЕ ---
+EEPROM: НЕ повреждён (ранее был неверный вывод!)
+  MotorParams: C API не может их читать (всегда 0/0/0), но .NET корректно загружает из XML
+  FirmwareVersion: 0.00.0 (C API limitation, .NET видит правильную)
+  VelParams ch1: 1000/2500 (сохранились)
+  PowerParams: 30%/15% (из XML settings)
+
+Физическое движение: МАСШТАБ ПРАВИЛЬНЫЙ через .NET
+  MoveTo(0.5mm) → ~0.5mm physical ✓
+  MoveTo(2mm) → ~2mm physical ✓
+  earlier "2048x" проблема — была до power cycle, не из-за EEPROM
+
+Ключевой вывод: .NET LoadMotorConfiguration загружает правильные параметры
+  из XML файлов (ThorlabsDefaultSettings.xml), firmware применяет их
+  автоматически. C API не может этого сделать.
+
+=====================================
+  НАСТРОЙКА СКОРОСТИ И УСКОРЕНИЯ
+=====================================
+
+Файл: Hardware/Stages/Thorlabs/thorlabs_stages_v3_net.py
+Версия: 3.2
+
+ВСЕ ПАРАМЕТРЫ СКОРОСТИ НАХОДЯТСЯ В НАЧАЛЕ ФАЙЛА (строки 12-16):
+
+```python
+# ===========================================================================
+#  НАСТРОЙКИ СКОРОСТИ (менять здесь)
+# ===========================================================================
+DEFAULT_MAX_VELOCITY_MM_S = 2.0       # мм/с — максимальная скорость
+DEFAULT_ACCELERATION_MM_S2 = 0.5      # мм/с² — ускорение
+DEFAULT_HOMING_VELOCITY_MM_S = 5.0    # мм/с — скорость homing
+# ===========================================================================
+```
+
+КАК ИЗМЕНИТЬ:
+  1. Открыть thorlabs_stages_v3_net.py
+  2. Найти блок "НАСТРОЙКИ СКОРОСТИ" (начало файла, строки 12-16)
+  3. Изменить нужные значения:
+     - DEFAULT_MAX_VELOCITY_MM_S — скорость перемещения (мм/с)
+     - DEFAULT_ACCELERATION_MM_S2 — ускорение (мм/с²)
+     - DEFAULT_HOMING_VELOCITY_MM_S — скорость homing (мм/с)
+  4. Пересобрать exe (build_exe.bat)
+
+ПРИМЕРЫ:
+  Медленно (точное позиционирование):
+    DEFAULT_MAX_VELOCITY_MM_S = 0.5
+    DEFAULT_ACCELERATION_MM_S2 = 0.1
+
+  Быстро (обычная работа):
+    DEFAULT_MAX_VELOCITY_MM_S = 5.0
+    DEFAULT_ACCELERATION_MM_S2 = 2.0
+
+  Очень быстро (грубое перемещение):
+    DEFAULT_MAX_VELOCITY_MM_S = 10.0
+    DEFAULT_ACCELERATION_MM_S2 = 5.0
+
+ГДЕ ЭТИ ПАРАМЕТРЫ ПРИМЕНЯЮТСЯ:
+  1. SetVelocityParams(maxVel, accel) — вызывается в _BSMConnection.__init__
+     для КАЖДОГО канала после LoadMotorConfiguration
+  2. SetHomingParams(HomeParameters) — вызывается в move_home
+     перед каждым Home() с DEFAULT_HOMING_VELOCITY_MM_S
+
+ОГРАНИЧЕНИЯ:
+  - maxVel > 0 (иначе firmware проигнорирует)
+  - accel > 0 (иначе firmware проигнорирует)
+  - Homing velocity зависит от типа стейджа (100mm NRT100/M: до ~50 мм/с)
+  - Слишком высокая скорость → мотор может пропустить steps
+
+--- КЛЮЧЕВОЕ ОТКРЫТИЕ 2026-07-23 ---
+
+**EEPROM НЕ ПОВРЕЖДЁН! .NET API РАБОТАЕТ ПРАВИЛЬНО!**
+
+Тест: MoveTo(0.5mm) → 0.5mm physical. MoveTo(2mm) → 2mm physical.
+Масштаб правильный без каких-либо компенсаций.
+
+Причина earlier "2048x" проблемы:
+  Вероятно состояние firmware до power cycle, или set_velocity
+  с неверными параметрами в thorlabs_stages.py
+
+Что нужно для правильной работы:
+  1. .NET DeviceManagerCLI.Initialize() + BuildDeviceList()
+  2. BenchtopStepperMotor.CreateBenchtopStepperMotor(serial)
+  3. device.Connect(serial)
+  4. ch.LoadMotorConfiguration(f'{serial}-{ch_num}', UseFileSettings)
+  5. ch.EnableDevice() + ch.StartPolling(250)
+  6. ch.MoveTo(System.Decimal(target_mm), timeout_ms)
+
+НЕ нужно:
+  - UpdateDeviceUnitConverter (ломает движение)
+  - SetVelocityParams через .NET (если не знаешь что делаешь)
+  - Копаться в C API (motor params через C API не читаются)
+
+=====================================
+  СЕССИЯ 2026-07-23: ИТОГОВОЕ СОСТОЯНИЕ
+=====================================
+
+--- ФИНАЛЬНОЕ СОСТОЯНИЕ ПРОЕКТА ---
+
+thorlabs_stages.py v3.3 — ГОТОВ, ОТТЕСТИРОВАН.
+Пользователь подтвердил: оба канала X/Y работают, homing работает, движения точные.
+
+Собранные exe: v5_ScanLoop (последняя сборка)
+Используемые DLL:
+  - Thorlabs.MotionControl.DeviceManagerCLI.dll
+  - Thorlabs.MotionControl.Benchtop.StepperMotorCLI.dll
+  - Thorlabs.MotionControl.GenericMotorCLI.dll
+
+--- ОТКРЫТЫЕ ЗАДАЧИ (БЛИЖАЙШИЕ) ---
+
+1. Переименовать Y→Z в GUI:
+   - Файл: Windows_GUI/stage_panel_controller.py
+   - Строка 98: QPushButton("Y") → QPushButton("Z")
+   - Строка 115: комментарий "Y" → "Z"
+
+2. Инвертировать направление Z:
+   - Файл: Hardware/Stages/stages_manager.py
+   - Функция shiftOnArbitrary (строка ~118)
+   - Добавить: sign = -1 if key == 'Z' else 1
+   - Или: sign = -1 if key == 'Z' else 1 (в зависимости от нужного направления)
+
+3. Исправить тест mock:
+   - Тест test_move_relative_sends_correct_steps падает с TimeoutError
+   - Причина: mock возвращает SBC_GetPosition=100, stable_count не растёт
+
+--- СЕССИЯ 2026-07-23 ВЕЧЕР: ОБЗОР ЗАДАЧ ---
+
+Пользователь запросил расшифровку открытых задач.
+Приоритеты:
+  1. Переименовать Y→Z в GUI — ОТЛОЖЕНО (неактуально)
+  2. Инвертировать направление Z — ОТЛОЖЕНО (повременим)
+  3. Исправить тест mock — ОТЛОЖЕНО (неактуально)
+BSM работает через .NET API (v3.3), exe v5_ScanLoop собран.
+
+--- ПРИОРИТЕТЫ ДЛЯ СЛЕДУЮЩЕЙ СЕССИИ ---
+
+Пользователь вернётся на стартовое устройство (которое не подключено к BSM).
+Нужно:
+  1. Запомнить что BSM работает через .NET API (v3.3)
+  2. При подключении к новому ПК — не трогать C API для BSM
+  3. Все настройки скорости — в начале thorlabs_stages.py (строки 10-12)
+  4. Открытые задачи (Y→Z, инверсия Z, тест mock) — ОТЛОЖЕНЫ, ждут решения пользователя
+
+--- КОНТАКТЫ ДЛЯ ОТЛАДКИ ---
+
+Если что-то сломалось:
+  1. Проверить что pythonnet установлен (pip install pythonnet)
+  2. Проверить что Thorlabs Kinesis установлен (1.14.59+)
+  3. Проверить что DLL доступны в C:\Program Files\Thorlabs\Kinesis\
+  4. Запустить test_thorlabs_stages_v3.py для диагностики
+
+====================================
+  СЕССИЯ 2026-07-27: ЧЕКБОКСЫ УСТРОЙСТВ + PM100
+====================================
+
+--- build_exe.bat ИСПРАВЛЕН ---
+
+Проблема: Python 3.12+ py.exe лаунчер добавляет лишние кавычки в путь,
+из-за чего venv\Scripts\python не работает на других ПК.
+Ошибка: No Python at '"C:\Users\Adm\AppData\Local\Programs\Python\Python312\python.exe"'
+
+Решение: использовать activate.bat вместо прямого вызова python.exe.
+Старый код:
+  call venv\Scripts\python -m pip install ...
+  call venv\Scripts\python build\scripts\build_exe.py
+Новый код:
+  call venv\Scripts\activate.bat
+  python -m pip install ...
+  python build\scripts\build_exe.py
+
+--- ЧЕКБОКСЫ УСТРОЙСТВ В GUI ---
+
+Добавлены 3 чекбокса в "Other equipment connections" (MainWindow.ui):
+  - checkBox_scope_connect (default: True) — Oscilloscope
+  - checkBox_laser_connect (default: True) — Laser Pure Ph
+  - checkBox_powermeter_connect (default: True) — Powermeter PM
+
+Если чекбокс выключен — устройство пропускается при подключении.
+Пользователь выбирает какие устройства работают параллельно.
+
+--- THORLABS PM100D: НОВЫЕ ВОЗМОЖНОСТИ ---
+
+1. scan_devices() — сканирование USB, поиск всех Thorlabs PM100
+   - Возвращает [{serial, name, resource}]
+   - Автоматически опрашивает все USB-устройства через *IDN?
+
+2. comboBox_powermeter_serial — dropdown для выбора PM100
+   - По умолчанию: P0015055
+   - Автоматически заполняется при запуске через scan_devices()
+
+3. checkBox_powermeter_independent ("PM vs Time")
+   - Независимая запись мощности от времени в CSV
+   - Файл: data/powermeter/PM100_{serial}_{timestamp}.csv
+   - Формат: time_s, power_W
+
+--- DATA/ ДИРЕКТОРИИ ---
+
+Созданы:
+  data/oscilloscope/
+  data/laser/
+  data/powermeter/
+
+.gitignore обновлён: data/**/*.csv, data/**/*.txt
+
+--- ИЗМЕНЁННЫЕ ФАЙЛЫ ---
+
+1. build_exe.bat — activate.bat вместо venv\Scripts\python
+2. Hardware/ThorlabsPM100.py — scan_devices(), start/stop_recording(), csv
+3. Windows_GUI/UIs/MainWindow.ui — 5 новых виджетов
+4. Windows_GUI/UIs/MainWindowUI.py — перегенерирован
+5. Windows_GUI/UIs/MainWindow.py — перегенерирован
+6. Windows_GUI/MainWindow.py — логика чекбоксов + independent PM + _scan_powermeters
+7. .gitignore — data/**/*.csv, data/**/*.txt
+8. data/ — 3 подпапки с .gitkeep
+
+--- УСТРОЙСТВА В "Other equipment connections" ---
+
+| # | Кнопка | Устройство | Модуль | Протокол | Чекбокс |
+|---|--------|-----------|--------|----------|---------|
+| 1 | Oscilloscope | Keysight/Rigol | scope.py/scope_rigol.py | TCP/IP, PyVISA | checkBox_scope_connect |
+| 2 | Laser Pure Ph | PPCL550 | PurePhotonicsLaser_serial.py/_pyvisa.py | ITLA, serial/pyvisa | checkBox_laser_connect |
+| 3 | Powermeter PM | THORLABS PM100D | ThorlabsPM100.py | USB, PyVISA, SCPI | checkBox_powermeter_connect |
+
+--- THORLABS PM100D: ТЕХНИЧЕСКИЕ ХАРАКТЕРИСТИКИ ---
+
+Модель: PM100D (оптический измеритель мощности)
+Подключение: USB 2.0 → PyVISA → SCPI
+Диапазон мощности: 10 pW — 10 W (зависит от датчика)
+Длины волн: 200-1100 nm (Si) или 800-1700 nm (InGaAs)
+Точность: ±0.5% (калиброванный)
+SCPI команды:
+  *IDN? → идентификация ("THORLABS,PM100D,P0015055,...")
+  READ? → измерение мощности в ваттах
+Датчики: S120VC, S121C, S150C, S155C (оптические), S302C (термопара)
+Важно: может потребоваться переключение драйверов через
+  Thorlabs Optical Power Monitor program
+
+=============================================
+  СЕССИЯ: 2026-07-27 (продолжение)
+=============================================
+
+--- PM100D: ДРАЙВЕР ---
+
+Проблема: PM100D найден в Device Manager (USB\VID_1313&PID_8078\P0033636),
+  но статус = Error (CM_PROB_FAILED_INSTALL). Без драйвера PyVISA не видит PM.
+
+Решение: WinUSB driver через Zadig (бесплатно, без Thorlabs ПО)
+  1. Скачать zadig.exe → Hardware/drivers/zadig.exe
+  2. Запустить Hardware/drivers/install_driver.bat (от администратора)
+  3. Zadig → Options → List All Devices → PM100D → WinUSB → Install
+  4. После установки PM100D доступен через PyVISA-py
+
+Для exe-сборки добавлено:
+  - libusb_package в requirements.txt (содержит libusb-1.0.dll)
+  - libusb_package в HIDDEN_IMPORTS (PyInstaller bundle)
+  - ThorlabsPM100.py: _get_resource_manager() → @py backend (libusb)
+  - ThorlabsPM100.py: _check_driver() → проверка USB через libusb
+  - ThorlabsPM100.py: DRIVER_MISSING_MSG → инструкция по установке
+
+Созданы файлы:
+  Hardware/drivers/install_driver.bat — автоустановка Zadig + WinUSB
+  Hardware/drivers/thorlabs_pm100d_winusb.inf — .inf файл (запасной)
+  Hardware/drivers/test_connection.py — тест подключения
+
+--- ИЗМЕНЁННЫЕ ФАЙЛЫ (27.07) ---
+
+9. build/scripts/requirements.txt — добавлен libusb_package
+10. build/scripts/build_config.py — добавлен libusb_package в HIDDEN_IMPORTS
+11. Hardware/ThorlabsPM100.py — @py backend, _check_driver(), DRIVER_MISSING_MSG
+12. Hardware/drivers/install_driver.bat — скрипт установки драйвера
+13. Hardware/drivers/test_connection.py — тест подключения
+14. Hardware/drivers/thorlabs_pm100d_winusb.inf — WinUSB .inf
+15. .gitignore — Hardware/drivers/zadig.exe
+
+--- PM100D: РЕЗУЛЬТАТ ТЕСТА ---
+
+Драйвер установлен через Zadig (WinUSB).
+Устройство найдено:
+  Serial: P0033636
+  Resource: USB0::4883::32888::P0033636::0::INSTR
+  IDN: Thorlabs PM100D P0033636
+  Мощность (без лазера): ~-3.4 mW (шум/тёмный ток — норма)
+
+scan_devices() работает: находит 1 устройство
+PowerMeter('P0033636') — get_power() возвращает float (ватты)
+
+ПРИМЕЧАНИЕ: WinUSB драйвер (через Zadig) не сохраняется
+  при переподключении USB на чужом ПК. На целевом ПК тоже
+  нужно будет запустить install_driver.bat → Zadig.

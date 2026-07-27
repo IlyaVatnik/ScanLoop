@@ -469,7 +469,8 @@ def post_build(dist_dir, app_name):
     size_mb = os.path.getsize(exe_path) / 1024 / 1024
     ok(f"EXE: {size_mb:.2f} MB")
 
-    for folder in ['ProcessedData', 'SpectralData', 'SpectralBinData', 'TimeDomainData']:
+    for folder in ['data/oscilloscope', 'data/laser', 'data/powermeter',
+                    'data/processed', 'data/spectral', 'data/spectral-bin', 'data/time-domain']:
         os.makedirs(os.path.join(dist_dir, folder), exist_ok=True)
 
     for name in cfg.CONFIG_FILES:
@@ -490,8 +491,8 @@ def post_build(dist_dir, app_name):
                 shutil.copy2(s, d)
 
     # .pkl3d / .pkl
-    pkl_src = os.path.join(cfg.PROJECT_DIR, 'ProcessedData')
-    pkl_dst = os.path.join(dist_dir, 'ProcessedData')
+    pkl_src = os.path.join(cfg.PROJECT_DIR, 'data', 'processed')
+    pkl_dst = os.path.join(dist_dir, 'data', 'processed')
     if os.path.exists(pkl_src):
         for item in os.listdir(pkl_src):
             s = os.path.join(pkl_src, item)

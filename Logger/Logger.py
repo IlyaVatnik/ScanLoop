@@ -27,9 +27,9 @@ class Logger(Loggable, QObject):
         # ✅ ПУТИ — вычисляем при создании экземпляра
         self.path = os.getcwd()
         self.ZeroPositionFileName = self.path + '\\ZeroPosition.txt'
-        self.SpectralDataFolder = self.path + '\\SpectralData\\'
-        self.SpectralBinaryDataFolder = self.path + '\\SpectralBinData\\'
-        self.TDFolder = self.path + '\\TimeDomainData\\'
+        self.SpectralDataFolder = self.path + '\\data\\spectral\\'
+        self.SpectralBinaryDataFolder = self.path + '\\data\\spectral-bin\\'
+        self.TDFolder = self.path + '\\data\\time-domain\\'
         self.ParametersFileName = self.path + '\\Parameters.txt'
 
         self.counter = 0

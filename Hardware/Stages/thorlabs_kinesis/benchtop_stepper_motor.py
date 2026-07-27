@@ -1,20 +1,45 @@
 # Hardware/Stages/thorlabs_kinesis/benchtop_stepper_motor.py
 
 from ctypes import cdll
+import os
 import logging
 
 logger = logging.getLogger(__name__)
 
+_KINESIS_PATHS = [
+    os.path.join(os.environ.get("PROGRAMFILES", r"C:\Program Files"), "Thorlabs", "Kinesis"),
+    os.path.join(os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)"), "Thorlabs", "Kinesis"),
+]
+
+_BSM_DLL = "Thorlabs.MotionControl.Benchtop.StepperMotor.dll"
+lib = None
+DLL_AVAILABLE = False
+
 try:
-    lib = cdll.LoadLibrary("Thorlabs.MotionControl.Benchtop.StepperMotor.dll")
+    lib = cdll.LoadLibrary(_BSM_DLL)
     DLL_AVAILABLE = True
 except Exception:
-    logger.warning("[Thorlabs.BSM] DLL не найдена — модуль будет недоступен")
-    lib = None
-    DLL_AVAILABLE = False
+    pass
 
-# ... остальной код ...
-# Все функции, которые используют lib, должны проверять DLL_AVAILABLE
+if not DLL_AVAILABLE:
+    for kpath in _KINESIS_PATHS:
+        full = os.path.join(kpath, _BSM_DLL)
+        if os.path.exists(full):
+            try:
+                os.add_dll_directory(kpath)
+                lib = cdll.LoadLibrary(_BSM_DLL)
+                DLL_AVAILABLE = True
+                break
+            except Exception:
+                try:
+                    lib = cdll.LoadLibrary(full)
+                    DLL_AVAILABLE = True
+                    break
+                except Exception:
+                    pass
+
+if not DLL_AVAILABLE:
+    logger.warning("[Thorlabs.BSM] DLL не найдена — модуль будет недоступен")
 
 "Bindings for Thorlabs Benchtop Stepper Motor DLL"
 # flake8: noqa

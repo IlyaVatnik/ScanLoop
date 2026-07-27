@@ -1,0 +1,115 @@
+18:42:11 
+============================================================
+  DIAGNOSTIC BSM v7 — NO homing — 2026-07-21 18:42:11
+============================================================
+18:42:11   Log: C:\Users\Adm\Desktop\diagnostic_BSM\Logs\diagnostic_v7_2026-07-21_18-42-11.log
+18:42:11 
+============================================================
+  FIX ch=1
+============================================================
+18:42:12   [ch=1 BEFORE] Status=0x80101211=FWD_HW_LIMIT | FWD_SW_LIMIT | MOVING | ERROR Pos=-16335(-32.6700mm)
+18:42:12   [ch=1 BEFORE] Vel=1000/250 Power=6%/136% SoftLim=0
+18:42:12 
+--- StopImmediate ---
+18:42:12   StopImmediate -> 0
+18:42:13 
+--- VelParams ---
+18:42:13 
+--- PowerParams ---
+18:42:13 
+--- HomingParams ---
+18:42:13 
+--- LimitSwitchParams (MakeOnContact) ---
+18:42:13 
+--- SoftLimitMode=0 ---
+18:42:13 
+--- StageAxisLimits ---
+18:42:13 
+--- PersistSettings ---
+18:42:14 
+--- Re-verify ---
+18:42:14   [ch=1 AFTER] Status=0x80101001=FWD_HW_LIMIT | ERROR Pos=-16327(-32.6540mm)
+18:42:14   [ch=1 AFTER] Vel=1000/250 Power=6%/136% SoftLim=0
+18:42:18 
+============================================================
+  TEST ch=1 (NO homing)
+============================================================
+18:42:20   [ch=1 pre-move] Status=0x80101001=FWD_HW_LIMIT | ERROR Pos=-16327(-32.6540mm)
+18:42:20   [ch=1 pre-move] Vel=1000/250 Power=6%/136% SoftLim=-25664
+18:42:20 
+--- SetPositionCounter(0) ---
+18:42:20   SetPositionCounter(0) -> err=0
+18:42:20   Pos after: 0
+18:42:21   Pos after 1s wait: 0
+18:42:21 
+--- Move +40.0um ---
+18:42:21   move 40.0um = 20 steps
+18:42:21   MoveRelative err=0
+18:42:26   delta=20 expected=20 -> PASS
+18:42:26 
+--- Move -40.0um ---
+18:42:26   move -40.0um = -20 steps
+18:42:26   MoveRelative err=0
+18:42:26   delta=-1 expected=-20 -> FAIL
+18:42:27   [ch=1 FINAL] Status=0x80101001=FWD_HW_LIMIT | ERROR Pos=19(0.0380mm)
+18:42:27   [ch=1 FINAL] Vel=1000/250 Power=6%/136% SoftLim=-25664
+18:42:32 
+============================================================
+  FIX ch=2
+============================================================
+18:42:33   [ch=2 BEFORE] Status=0x80101000=ERROR Pos=-897990(-1795.9800mm)
+18:42:33   [ch=2 BEFORE] Vel=1000/250 Power=6%/136% SoftLim=37
+18:42:33 
+--- StopImmediate ---
+18:42:33   StopImmediate -> 0
+18:42:33 
+--- VelParams ---
+18:42:33 
+--- PowerParams ---
+18:42:33 
+--- HomingParams ---
+18:42:34 
+--- LimitSwitchParams (MakeOnContact) ---
+18:42:34 
+--- SoftLimitMode=0 ---
+18:42:34 
+--- StageAxisLimits ---
+18:42:34 
+--- PersistSettings ---
+18:42:35 
+--- Re-verify ---
+18:42:35   [ch=2 AFTER] Status=0x80101000=ERROR Pos=-897990(-1795.9800mm)
+18:42:35   [ch=2 AFTER] Vel=1000/250 Power=6%/136% SoftLim=0
+18:42:39 
+============================================================
+  TEST ch=2 (NO homing)
+============================================================
+18:42:40   [ch=2 pre-move] Status=0x80101000=ERROR Pos=-897990(-1795.9800mm)
+18:42:40   [ch=2 pre-move] Vel=1000/250 Power=6%/136% SoftLim=5176
+18:42:40 
+--- SetPositionCounter(0) ---
+18:42:40   SetPositionCounter(0) -> err=0
+18:42:40   Pos after: 0
+18:42:41   Pos after 1s wait: 0
+18:42:41 
+--- Move +40.0um ---
+18:42:41   move 40.0um = 20 steps
+18:42:41   MoveRelative err=0
+18:42:46   delta=20 expected=20 -> PASS
+18:42:46 
+--- Move -40.0um ---
+18:42:46   move -40.0um = -20 steps
+18:42:46   MoveRelative err=0
+18:42:51   delta=-20 expected=-20 -> PASS
+18:42:51   [ch=2 FINAL] Status=0x80101000=ERROR Pos=0(0.0000mm)
+18:42:51   [ch=2 FINAL] Vel=1000/250 Power=6%/136% SoftLim=5176
+18:42:53 
+============================================================
+  SUMMARY
+============================================================
+18:42:53   Test                                     Exp      Got   Result
+18:42:53   ----------------------------------- -------- -------- --------
+18:42:53   ch=1 +40.0um                              20       20     PASS
+18:42:53   ch=1 -40.0um                             -20       -1     FAIL
+18:42:53   ch=2 +40.0um                              20       20     PASS
+18:42:53   ch=2 -40.0um                             -20      -20     PASS

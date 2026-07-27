@@ -101,7 +101,7 @@ echo ========================================
 echo.
 
 :: --- Virtual environment ---
-if not exist "venv\Scripts\python.exe" (
+if not exist "venv\Scripts\activate.bat" (
     echo [SETUP] Creating virtual environment...
     python -m venv venv
 )
@@ -111,11 +111,12 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+call venv\Scripts\activate.bat
 echo [OK] Virtual environment ready.
 
 :: --- Dependencies ---
 echo [SETUP] Installing/updating dependencies...
-call venv\Scripts\python -m pip install -r build\scripts\requirements.txt
+python -m pip install -r build\scripts\requirements.txt
 if errorlevel 1 (
     echo [WARN] pip install had issues. Attempting build anyway...
 ) else (
@@ -126,7 +127,7 @@ if errorlevel 1 (
 echo [BUILD] Starting build...
 echo [BUILD] Script: build\scripts\build_exe.py
 echo.
-call venv\Scripts\python build\scripts\build_exe.py
+python build\scripts\build_exe.py
 set BUILD_EXIT=%ERRORLEVEL%
 
 echo.
