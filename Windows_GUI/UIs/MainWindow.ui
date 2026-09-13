@@ -547,44 +547,6 @@
                 </property>
                </item>
               </widget>
-              <widget class="QComboBox" name="comboBox_Type_of_Stages">
-               <property name="geometry">
-                <rect>
-                 <x>170</x>
-                 <y>115</y>
-                 <width>91</width>
-                 <height>21</height>
-                </rect>
-               </property>
-               <property name="sizeAdjustPolicy">
-                <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-               </property>
-               <item>
-                <property name="text">
-                 <string>3x Standa</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>2x Standa + LBTEK</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>2x Thorlabs (Cube+NRT100)</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>2x Thorlabs (2 Cubes)</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>3x Physik Instrumente</string>
-                </property>
-               </item>
-              </widget>
               <widget class="QComboBox" name="comboBox_SourceY">
                <property name="geometry">
                 <rect>
@@ -892,22 +854,6 @@
                  <bool>true</bool>
                 </property>
                </widget>
-               <widget class="QCheckBox" name="checkBox_powermeter_independent">
-                <property name="geometry">
-                 <rect>
-                  <x>110</x>
-                  <y>133</y>
-                  <width>161</width>
-                  <height>20</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string>PM vs Time</string>
-                </property>
-                <property name="checked">
-                 <bool>false</bool>
-                </property>
-               </widget>
                <widget class="QComboBox" name="comboBox_laser_protocol_type">
                <property name="geometry">
                 <rect>
@@ -964,54 +910,6 @@
                  <string>Ports and IP</string>
                 </property>
                </widget>
-               <widget class="QCheckBox" name="checkBox_scope_connect">
-                <property name="geometry">
-                 <rect>
-                  <x>210</x>
-                  <y>50</y>
-                  <width>20</width>
-                  <height>23</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-               <widget class="QCheckBox" name="checkBox_laser_connect">
-                <property name="geometry">
-                 <rect>
-                  <x>210</x>
-                  <y>81</y>
-                  <width>20</width>
-                  <height>23</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-               <widget class="QCheckBox" name="checkBox_powermeter_connect">
-                <property name="geometry">
-                 <rect>
-                  <x>210</x>
-                  <y>110</y>
-                  <width>20</width>
-                  <height>23</height>
-                 </rect>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
                <widget class="QComboBox" name="comboBox_powermeter_serial">
                 <property name="geometry">
                  <rect>
@@ -1043,22 +941,108 @@
              <x>0</x>
              <y>0</y>
              <width>83</width>
-             <height>700</height>
+             <height>910</height>
             </rect>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>700</height>
+             <height>910</height>
             </size>
            </property>
            <attribute name="label">
             <string>Experiment's flow</string>
            </attribute>
-           <widget class="QTabWidget" name="tabWidget_instruments">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+             <widget class="QGroupBox" name="groupBox_paired_record">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>480</y>
+                <width>281</width>
+                <height>100</height>
+               </rect>
+              </property>
+             <property name="title">
+              <string>OSA + Oscilloscope paired record</string>
+             </property>
+             <widget class="QLabel" name="label_paired_status">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>20</y>
+                <width>261</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Idle</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_paired_single">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>50</y>
+                <width>81</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Single</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_paired_repeat">
+              <property name="geometry">
+               <rect>
+                <x>100</x>
+                <y>50</y>
+                <width>81</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Repeat</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_paired_stop">
+              <property name="geometry">
+               <rect>
+                <x>190</x>
+                <y>50</y>
+                <width>81</width>
+                <height>28</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stop</string>
+              </property>
+             </widget>
+            </widget>
+            <widget class="QTabWidget" name="tabWidget_instruments">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
             <property name="geometry">
              <rect>
               <x>0</x>
@@ -1602,15 +1586,15 @@
              </widget>
             </widget>
            </widget>
-           <widget class="QGroupBox" name="groupBox_save_data">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>650</y>
-              <width>281</width>
-              <height>141</height>
-             </rect>
-            </property>
+            <widget class="QGroupBox" name="groupBox_save_data">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>760</y>
+               <width>281</width>
+               <height>141</height>
+              </rect>
+             </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -1750,18 +1734,18 @@
              </property>
             </widget>
            </widget>
-           <widget class="QGroupBox" name="groupBox_Scanning">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>480</y>
-              <width>281</width>
-              <height>161</height>
-             </rect>
-            </property>
+            <widget class="QGroupBox" name="groupBox_Scanning">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>590</y>
+               <width>281</width>
+               <height>161</height>
+              </rect>
+             </property>
             <property name="title">
              <string>Scanning</string>
             </property>
@@ -2050,18 +2034,18 @@
            <attribute name="label">
             <string>Laser control</string>
            </attribute>
-           <widget class="QGroupBox" name="groupBox_laser_scanning">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>150</y>
-              <width>281</width>
-              <height>161</height>
-             </rect>
-            </property>
+            <widget class="QGroupBox" name="groupBox_laser_scanning">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>150</y>
+               <width>281</width>
+               <height>216</height>
+              </rect>
+             </property>
             <property name="title">
              <string>Scanning wavelength and save data </string>
             </property>
@@ -2183,26 +2167,93 @@
               <bool>false</bool>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_hold_laser_wavelength">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="geometry">
-              <rect>
-               <x>200</x>
-               <y>130</y>
-               <width>75</width>
-               <height>23</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Hold</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
+             <widget class="QPushButton" name="pushButton_hold_laser_wavelength">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="geometry">
+               <rect>
+                <x>200</x>
+                <y>130</y>
+                <width>75</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Hold</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_start_laser_off">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>155</y>
+                <width>131</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Start laser off</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="pushButton_stop_laser_off">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="geometry">
+               <rect>
+                <x>150</x>
+                <y>155</y>
+                <width>121</width>
+                <height>23</height>
+               </rect>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Stop laser off</string>
+              </property>
+             </widget>
+             <widget class="QCheckBox" name="checkBox_OSA_for_laser_off_scanning">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>175</y>
+                <width>261</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>save OSA (laser off)</string>
+              </property>
+             </widget>
+             <widget class="QCheckBox" name="checkBox_powermeter_for_laser_off_scanning">
+              <property name="geometry">
+               <rect>
+                <x>10</x>
+                <y>195</y>
+                <width>261</width>
+                <height>20</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>save powermeter (laser off)</string>
+              </property>
+             </widget>
             </widget>
-           </widget>
            <widget class="QGroupBox" name="groupBox_laser_operation">
             <property name="enabled">
              <bool>true</bool>
@@ -2413,18 +2464,18 @@
              </property>
             </widget>
            </widget>
-           <widget class="QGroupBox" name="groupBox_laser_sweeping">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>320</y>
-              <width>281</width>
-              <height>121</height>
-             </rect>
-            </property>
+            <widget class="QGroupBox" name="groupBox_laser_sweeping">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>370</y>
+               <width>281</width>
+               <height>121</height>
+              </rect>
+             </property>
             <property name="title">
              <string>Sweeping wavelength fast</string>
             </property>

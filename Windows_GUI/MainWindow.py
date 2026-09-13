@@ -42,6 +42,7 @@ from Utils.Loggable import Loggable
 
 from Scripts import Analyzer
 from Scripts import Spectral_processor
+from Scripts.PairedRecorder import PairedRecorder
 
 
 
@@ -105,13 +106,14 @@ class MainWindow(ThreadedMainWindow, Loggable):
     force_scanning_process=pyqtSignal()
     force_laser_scanning_process=pyqtSignal()
     force_laser_sweeping_process=pyqtSignal()
+    force_laser_off_scanning_process=pyqtSignal()
     
     update_powermeter_graph=pyqtSignal(float)
     
     '''
     Initialization
     '''
-    def __init__(self, parent=None,version='0.0',date='0.0.0'):
+    def __init__(self, parent=None,version='0.0',date='0.0.0',demo_mode=False):
         super().__init__(parent)
         self.path_to_main=os.getcwd()
         # GUI
@@ -134,13 +136,14 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.hardware_ports=Hardware_ports()
         from Scripts.ScanningProcessOSA import ScanningProcess
         self.scanningProcess=ScanningProcess()
+        self.paired_recorder = PairedRecorder()
         # from Visualization.Powermeter_painter import Powermeter_painter
         # self.powermeter_graph=Powermeter_painter()
         # self.add_thread([self.powermeter_graph])
         # БЫЛО:
         # self.add_thread([self.painter, self.logger, self.analyzer, self.spectral_processor, self.scanningProcess])
         # СТАЛО:
-        self.add_thread([self.analyzer, self.spectral_processor, self.scanningProcess])
+        self.add_thread([self.analyzer, self.spectral_processor, self.scanningProcess, self.paired_recorder])
         self._plot_windows = []
         
         self.ui.tabWidget_instruments.currentChanged.connect(self.on_TabChanged_instruments_changed)
@@ -154,6 +157,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.init_processing_interface()
         self.init_scanning_interface()
         self.init_scope_interface()
+        self.init_paired_interface()
         self.stage_panel = StagePanelController(self.ui)
         self.init_stages_interface()
         self.rescan_com_ports(_initial=True)
@@ -163,6 +167,15 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self._scan_powermeters()
         
         self.load_parameters_from_file()
+    
+    def _to_float(self, text, default=0.0):
+        '''
+        безопасное приведение строки к float (запятая -> точка)
+        '''
+        try:
+            return float(str(text).replace(',', '.'))
+        except (ValueError, TypeError):
+            return default
         
     def logText(self, text):
         self.ui.LogField.append(">" + text)
@@ -255,6 +268,30 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.ui.pushButton_scope_repeat.clicked[bool].connect(
             self.on_pushButton_scope_repeat__pressed)
         
+# =============================================================================
+#         # paired OSA + scope recorder interface
+# =============================================================================
+    def init_paired_interface(self):
+        self.paired_recorder.S_print.connect(self.logText)
+        self.paired_recorder.S_print_error.connect(self.logWarningText)
+        self.paired_recorder.S_finished.connect(self.on_paired_finished)
+        self.paired_recorder.S_running.connect(self.on_paired_running_changed)
+        self.paired_recorder.S_status.connect(self.ui.label_paired_status.setText)
+        self.paired_recorder.S_start_osa.connect(self.force_OSA_acquire)
+        self.ui.pushButton_paired_single.pressed.connect(self.paired_recorder.start_single)
+        self.ui.pushButton_paired_repeat.clicked[bool].connect(self.paired_recorder.start_repeat)
+        self.ui.pushButton_paired_stop.pressed.connect(self.paired_recorder.stop)
+        self.on_paired_running_changed(False)
+
+    def on_paired_running_changed(self, running):
+        ready = self.paired_recorder.devices_ready()
+        self.ui.pushButton_paired_single.setEnabled(ready and not running)
+        self.ui.pushButton_paired_repeat.setEnabled(ready and not running)
+        self.ui.pushButton_paired_stop.setEnabled(running)
+        self.ui.groupBox_paired_record.setEnabled(True)
+
+    def on_paired_finished(self):
+        self.ui.pushButton_paired_repeat.setChecked(False)
 # =============================================================================
 #         powermeter interface
 # =============================================================================
@@ -420,6 +457,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
         self.ui.pushButton_scan_laser_wavelength.clicked[bool].connect(self.laser_scanning)
         self.ui.pushButton_hold_laser_wavelength.clicked[bool].connect(self.laser_scaning_hold_wavelength)
         self.ui.pushButton_sweep_laser_wavelength.clicked[bool].connect(self.laser_sweeping)
+        self.ui.pushButton_start_laser_off.pressed.connect(self.laser_off_scanning_start)
+        self.ui.pushButton_stop_laser_off.pressed.connect(self.laser_off_scanning_stop)
 
 # =============================================================================
 #   interface methods
@@ -449,10 +488,6 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
-        if not self.ui.checkBox_scope_connect.isChecked():
-            self.logText('Oscilloscope skipped (disabled by user)')
-            return
-        
         importlib.reload(Common.Consts)
         
         interface='new'
@@ -479,6 +514,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
                 widget.setChecked(self.scope.channels_states[i])
                 widget.stateChanged.connect(self.update_scope_channel_state)
             self.painter.TypeOfData='FromScope'
+            self.paired_recorder.set_devices(self.scope, self.OSA)
+            self.on_paired_running_changed(self.paired_recorder.is_running)
             self.logText('Connected to scope')
         
         except Exception as e:
@@ -575,6 +612,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.OSA.received_spectrum.connect(self.painter.set_data)
     
             self.force_OSA_acquire.connect(self.OSA.acquire_spectrum)
+            self.paired_recorder.set_devices(self.scope, self.OSA)
+            self.on_paired_running_changed(self.paired_recorder.is_running)
             self.ui.tabWidget_instruments.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
             self.ui.lineEdit_StartWavelength.setText(str(self.OSA._StartWavelength))
@@ -582,6 +621,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
     
             self.ui.groupBox_OSA_control.setEnabled(True)
             self.ui.checkBox_OSA_for_laser_scanning.setEnabled(True)
+            self.ui.checkBox_OSA_for_laser_off_scanning.setEnabled(True)
             self.logText('Connected with OSA')
             self.on_pushButton_acquireSpectrum_pressed()
             self.enable_scanning_process()
@@ -721,9 +761,6 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
-        if not self.ui.checkBox_powermeter_connect.isChecked():
-            self.logText('Powermeter skipped (disabled by user)')
-            return
         try:
             from Hardware import ThorlabsPM100
             serial = self.ui.comboBox_powermeter_serial.currentText()
@@ -731,6 +768,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
             if self.powermeter is not None and self.powermeter.is_connected():
                 self.ui.checkBox_powermeter_for_laser_scanning.setEnabled(True)
                 self.ui.pushButton_powermeter_graph.setEnabled(True)
+                self.ui.checkBox_powermeter_for_laser_off_scanning.setEnabled(True)
                 self.logText(f'Connected to powermeter {serial}')
             else:
                 self.logWarningText(f'Powermeter {serial} not found')
@@ -747,9 +785,6 @@ class MainWindow(ThreadedMainWindow, Loggable):
         None.
 
         '''
-        if not self.ui.checkBox_laser_connect.isChecked():
-            self.logText('Laser skipped (disabled by user)')
-            return
         interface='serial'
         COMPort=self.hardware_ports.laser_Pure_Photonics
         try:
@@ -796,8 +831,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
     def run_powermeter_graph(self,pressed:bool):
         '''
         plot live graph with data from powermeter.
-        If "PM vs Time" checkbox is checked, also records to CSV file.
-        
+        Recording of time+power is done during scanning (in .laserdata).
+
         Parameters
         ----------
         pressed : bool
@@ -809,15 +844,9 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.powermeter.power_received.connect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.connect(self.powermeter.get_power)
             self.painter.powermeter_canvas_updated.emit()
-            if self.ui.checkBox_powermeter_independent.isChecked():
-                self.powermeter.start_recording()
-                self.logText('PM recording started (PM vs Time)')
         else:
             self.powermeter.power_received.disconnect(self.painter.update_powermeter_plot)
             self.painter.powermeter_canvas_updated.disconnect(self.powermeter.get_power)
-            if self.powermeter._recording:
-                self.powermeter.stop_recording()
-                self.logText('PM recording stopped')
             
 
     def on_pushButton_laser_On(self,pressed:bool):
@@ -838,8 +867,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
             # self.ui.pushButton_texscan_laser_wavelength.setEnabled(True)
             self.ui.pushButton_scan_laser_wavelength.setEnabled(True)
             self.ui.groupBox_laser_sweeping.setEnabled(True)
-            self.laser.setPower(float(self.ui.lineEdit_laser_power.text()))
-            self.laser.setWavelength(float(self.ui.lineEdit_laser_lambda.text()))
+            self.laser.setPower(self._to_float(self.ui.lineEdit_laser_power.text()))
+            self.laser.setWavelength(self._to_float(self.ui.lineEdit_laser_lambda.text()))
             self.laser.setOn()
             self.ui.comboBox_laser_mode.setEnabled(True)
 
@@ -886,7 +915,7 @@ class MainWindow(ThreadedMainWindow, Loggable):
 
         '''
         try:
-            tuning=float(self.ui.lineEdit_laser_fine_tune.text())
+            tuning=self._to_float(self.ui.lineEdit_laser_fine_tune.text())
             self.laser.fineTuning(tuning)
             self.ui.label_current_laser_wavelength.setText('{:.5f}'.format(self.laser.main_wavelength+tuning*1e-3))
         except AttributeError as e:
@@ -922,10 +951,10 @@ class MainWindow(ThreadedMainWindow, Loggable):
             
             self.laser_scanning_process.powermeter_for_laser_scanning=self.ui.checkBox_powermeter_for_laser_scanning.isChecked()
             self.laser_scanning_process.OSA_for_laser_scanning=self.ui.checkBox_OSA_for_laser_scanning.isChecked()
-            self.laser_scanning_process.step=float(self.ui.lineEdit_laser_lambda_scanning_step.text())
-            self.laser_scanning_process.wavelength_start=float(self.ui.lineEdit_laser_lambda.text())
-            self.laser_scanning_process.tuning=float(self.ui.lineEdit_laser_fine_tune.text())
-            self.laser_scanning_process.max_detuning=float(self.ui.lineEdit_laser_scanning_max_detuning.text())
+            self.laser_scanning_process.step=self._to_float(self.ui.lineEdit_laser_lambda_scanning_step.text(), 1.0)
+            self.laser_scanning_process.wavelength_start=self._to_float(self.ui.lineEdit_laser_lambda.text(), 1550.0)
+            self.laser_scanning_process.tuning=self._to_float(self.ui.lineEdit_laser_fine_tune.text(), 0.0)
+            self.laser_scanning_process.max_detuning=self._to_float(self.ui.lineEdit_laser_scanning_max_detuning.text(), 100.0)
 
             self.force_laser_scanning_process.emit()
             self.logText('Start laser scanning')
@@ -976,12 +1005,12 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.ui.pushButton_laser_On.setEnabled(False)
             from Scripts.ScanningProcessLaser import LaserSweepingProcess
             self.laser_sweeping_process=LaserSweepingProcess(laser=self.laser,
-                laser_power=float(self.ui.lineEdit_laser_power.text()),
-                scanstep=float(self.ui.lineEdit_laser_lambda_sweeping_step.text()),
-                wavelength_central=float(self.ui.lineEdit_laser_lambda_sweeping_central.text()),
-                max_detuning=float(self.ui.lineEdit_laser_sweeping_max_detuning.text()),
-                delay=float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
-            self.logText(float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
+                laser_power=self._to_float(self.ui.lineEdit_laser_power.text()),
+                scanstep=self._to_float(self.ui.lineEdit_laser_lambda_sweeping_step.text()),
+                wavelength_central=self._to_float(self.ui.lineEdit_laser_lambda_sweeping_central.text()),
+                max_detuning=self._to_float(self.ui.lineEdit_laser_sweeping_max_detuning.text()),
+                delay=self._to_float(self.ui.lineEdit_laser_lambda_sweeping_delay.text()))
+            self.logText(self.ui.lineEdit_laser_lambda_sweeping_delay.text())
             self.add_thread([self.laser_sweeping_process])
             self.laser_sweeping_process.S_updateCurrentWavelength.connect(
                 lambda S:self.ui.label_current_scanning_laser_wavelength.setText(S))
@@ -999,7 +1028,81 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.laser_sweeping_process.is_running=False
             del self.laser_sweeping_process
 
- 
+# =============================================================================
+#         # laser off scanning (scanning wavelength without touching the laser)
+# =============================================================================
+    def _ensure_laser_off_process(self):
+        if getattr(self, 'laser_off_scanning_process', None) is None:
+            from Scripts.ScanningProcessLaser import LaserScanningProcess
+            self.laser_off_scanning_process = LaserScanningProcess(
+                OSA=self.OSA,
+                laser=None,
+                powermeter=self.powermeter,
+                step=self._to_float(self.ui.lineEdit_laser_lambda_scanning_step.text(), 100.0),
+                wavelength_start=self._to_float(self.ui.lineEdit_laser_lambda.text(), 1550.0),
+                detuning=0,
+                max_detuning=self._to_float(self.ui.lineEdit_laser_scanning_max_detuning.text(), 100.0),
+                file_to_save='data\\processed\\S_Power_from_powermeter_VS_laser_wavelength.laserdata',
+                laser_off=True)
+            self.add_thread([self.laser_off_scanning_process])
+            self.laser_off_scanning_process.S_saveData.connect(
+                lambda Data, prefix: self.logger.save_data(Data, prefix, 0, 0, 0, 0, 'FromOSA'))
+            self.laser_off_scanning_process.S_finished.connect(self.on_laser_off_scanning_finished)
+            self.force_laser_off_scanning_process.connect(self.laser_off_scanning_process.run)
+            self.laser_off_scanning_process.S_print[str].connect(self.logText)
+            self.laser_off_scanning_process.S_print_error[str].connect(self.logWarningText)
+
+    def laser_off_scanning_start(self):
+        '''
+        run scanning over detuning values WITHOUT touching the laser:
+        OSA/powermeter data is saved with the constant wavelength from
+        'lineEdit_laser_lambda'; spectrum names get 'S_' prefix.
+        '''
+        if getattr(self, 'laser_off_scanning_process', None) is not None \
+                and self.laser_off_scanning_process.is_running:
+            self.logWarningText('Laser off scanning is already running')
+            return
+        osa_active = (self.ui.checkBox_OSA_for_laser_off_scanning.isChecked()
+                      and self.OSA is not None)
+        pm_active = (self.ui.checkBox_powermeter_for_laser_off_scanning.isChecked()
+                     and self.powermeter is not None)
+        if not (osa_active or pm_active):
+            self.logWarningText('Laser off scanning: не выбран ни один источник данных '
+                                '(OSA/powermeter) или прибор не подключён. Запуск отменён.')
+            return
+        self.ui.pushButton_start_laser_off.setEnabled(False)
+        self.ui.pushButton_stop_laser_off.setEnabled(True)
+        try:
+            self._ensure_laser_off_process()
+            p = self.laser_off_scanning_process
+            p.OSA = self.OSA
+            p.powermeter = self.powermeter
+            p.powermeter_for_laser_scanning = self.ui.checkBox_powermeter_for_laser_off_scanning.isChecked()
+            p.OSA_for_laser_scanning = self.ui.checkBox_OSA_for_laser_off_scanning.isChecked()
+            p.step = self._to_float(self.ui.lineEdit_laser_lambda_scanning_step.text(), 100.0)
+            p.wavelength_start = self._to_float(self.ui.lineEdit_laser_lambda.text(), 1550.0)
+            p.tuning = self._to_float(self.ui.lineEdit_laser_fine_tune.text(), 0.0)
+            p.max_detuning = self._to_float(self.ui.lineEdit_laser_scanning_max_detuning.text(), 100.0)
+        except Exception as e:
+            self.log.exception(e)
+            self.logWarningText('Laser off scanning: failed to start: {}'.format(e))
+            self.ui.pushButton_start_laser_off.setEnabled(True)
+            self.ui.pushButton_stop_laser_off.setEnabled(False)
+            return
+        self.force_laser_off_scanning_process.emit()
+        self.logText('Start laser off scanning')
+
+    def laser_off_scanning_stop(self):
+        if getattr(self, 'laser_off_scanning_process', None) is not None:
+            self.laser_off_scanning_process.is_running = False
+        self.ui.pushButton_start_laser_off.setEnabled(True)
+        self.ui.pushButton_stop_laser_off.setEnabled(False)
+        self.logText('Laser off scanning stopped')
+
+    def on_laser_off_scanning_finished(self):
+        self.ui.pushButton_start_laser_off.setEnabled(True)
+        self.ui.pushButton_stop_laser_off.setEnabled(False)
+
 
     @pyqtSlotWExceptions()
     def on_equipment_ready(self, is_ready):
@@ -1031,15 +1134,15 @@ class MainWindow(ThreadedMainWindow, Loggable):
         except:
             piezoZ_abs,piezoZ_rel=0,0
 
-        self.ui.label_PositionX.setText(str(X_rel))
-        self.ui.label_PositionY.setText(str(Y_rel))
-        self.ui.label_PositionZ.setText(str(Z_rel))
-        self.ui.label_piezo_rel_position.setText('{:.4f}'.format(piezoZ_rel))
+        self.ui.label_PositionX.setText(f"{float(X_rel):.2f}")
+        self.ui.label_PositionY.setText(f"{float(Y_rel):.2f}")
+        self.ui.label_PositionZ.setText(f"{float(Z_rel):.2f}")
+        self.ui.label_piezo_rel_position.setText('{:.4f}'.format(float(piezoZ_rel)))
 
-        self.ui.label_AbsPositionX.setText(str(X_abs))
-        self.ui.label_AbsPositionY.setText(str(Y_abs))
-        self.ui.label_AbsPositionZ.setText(str(Z_abs))
-        self.ui.label_piezo_abs_position.setText('{:.4f}'.format(piezoZ_abs))
+        self.ui.label_AbsPositionX.setText(f"{float(X_abs):.2f}")
+        self.ui.label_AbsPositionY.setText(f"{float(Y_abs):.2f}")
+        self.ui.label_AbsPositionZ.setText(f"{float(Z_abs):.2f}")
+        self.ui.label_piezo_abs_position.setText('{:.4f}'.format(float(piezoZ_abs)))
 
 
 
@@ -1159,6 +1262,18 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.scanningProcess.piezo_stage=self.piezo_stage
             self.ui.groupBox_Scanning.setEnabled(True)
             self.ui.tabWidget_instruments.setCurrentIndex(0)
+
+            # Отключаем старые слоты, чтобы не плодить дубликаты при повторном вызове
+            for sig in (self.scanningProcess.S_saveData,
+                        self.scanningProcess.S_finished,
+                        self.scanningProcess.S_update_status,
+                        self.scanningProcess.S_print,
+                        self.scanningProcess.S_print_error):
+                try:
+                    sig.disconnect()
+                except (TypeError, RuntimeError):
+                    pass
+
             if self.piezo_stage!=None and self.stages!=None:
                 self.scanningProcess.S_saveData.connect(
                             lambda Data,prefix: self.logger.save_data(Data,prefix,

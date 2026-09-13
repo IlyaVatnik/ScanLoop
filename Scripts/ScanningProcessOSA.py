@@ -215,21 +215,25 @@ class ScanningProcess(QObject, Loggable):
         else:
             return False
 
-    def move_along_scan_axis(self,step):
+    def move_along_scan_axis(self, step):
+        step = round(float(step), 2)
         if self.axis_to_scan == 'Piezo':
             self.piezo_stage.move_by(step)
         elif self.axis_to_scan == 'None':
             return
         else:
-            self.stages.shiftOnArbitrary(self.axis_to_scan,step)
+            self.stages.shiftOnArbitrary(self.axis_to_scan, step)
+        time.sleep(0.05)
     
-    def move_along_contact_axis(self,step):
+    def move_along_contact_axis(self, step):
+        step = round(float(step), 2)
         if self.axis_to_get_contact == 'Piezo':
             self.piezo_stage.move_by(step)
         elif self.axis_to_get_contact == 'None':
             return
         else:
-            self.stages.shiftOnArbitrary(self.axis_to_get_contact,step)
+            self.stages.shiftOnArbitrary(self.axis_to_get_contact, step)
+        time.sleep(0.05)
         
 
     """

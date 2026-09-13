@@ -40,7 +40,9 @@ class Logger(Loggable, QObject):
         self.saving_file_type = 'bin'
 
     def save_data(self, Data, name, X, Y, Z, piezo_Z, SourceOfData: str):
-        name = name + '_X={}_Y={}_Z={}_piezoZ={:.4f}_'.format(X, Y, Z, piezo_Z)
+        name = name + '_X={:.2f}_Y={:.2f}_Z={:.2f}_piezoZ={:.4f}_'.format(
+            round(float(X), 2), round(float(Y), 2), round(float(Z), 2), float(piezo_Z)
+        )
         if SourceOfData == 'FromScope':
             FileName = self.TDFolder + 'TD_' + name + '.osc_pkl'
         elif SourceOfData == 'FromOSA':
@@ -86,12 +88,12 @@ class Logger(Loggable, QObject):
             self.S_print_error.emit('Error while load parameters: file has wrong format')
             return None
     
-    def save_zero_position(self, X: int, Y: int, Z: int, piezoZ: float):
+    def save_zero_position(self, X, Y, Z, piezoZ: float):
         Dict = {}
-        Dict['X_0'] = str(X)
-        Dict['Y_0'] = str(Y)
-        Dict['Z_0'] = str(Z)
-        Dict['piezoZ'] = str(piezoZ)
+        Dict['X_0'] = f"{round(float(X), 2):.2f}"
+        Dict['Y_0'] = f"{round(float(Y), 2):.2f}"
+        Dict['Z_0'] = f"{round(float(Z), 2):.2f}"
+        Dict['piezoZ'] = f"{round(float(piezoZ), 4):.4f}"
         f = open(self.ZeroPositionFileName, 'w')
         json.dump(Dict, f)
         f.close()
@@ -101,10 +103,13 @@ class Logger(Loggable, QObject):
         try:
             f = open(self.ZeroPositionFileName)
         except FileNotFoundError:
-            return 0, 0, 0, 0
+            return 0.0, 0.0, 0.0, 0.0
         try:
             dictionary = json.load(f)
             f.close()
-            return float(dictionary['X_0']), float(dictionary['Y_0']), float(dictionary['Z_0']), float(dictionary['piezoZ'])
-        except:
-            return 0, 0, 0, 0
+            return (round(float(dictionary['X_0']), 2),
+                    round(float(dictionary['Y_0']), 2),
+                    round(float(dictionary['Z_0']), 2),
+                    round(float(dictionary['piezoZ']), 4))
+        except Exception:
+            return 0.0, 0.0, 0.0, 0.0

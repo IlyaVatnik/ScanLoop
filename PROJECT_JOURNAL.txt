@@ -1431,3 +1431,648 @@ PowerMeter('P0033636') — get_power() возвращает float (ватты)
 ПРИМЕЧАНИЕ: WinUSB драйвер (через Zadig) не сохраняется
   при переподключении USB на чужом ПК. На целевом ПК тоже
   нужно будет запустить install_driver.bat → Zadig.
+
+=====================================
+  ПЛАН НА СЕССИЮ: 3 ЗАДАЧИ (утверждён)
+  Дата плана: 2026-08-06
+=====================================
+
+ЗАДАЧА 1. ПАРНЫЕ ИЗМЕРЕНИЯ OSA + ОСЦИЛЛОГРАФ («Single»/«Repeat»)
+
+Суть: две кнопки «Single» и «Repeat» для синхронных парных измерений
+OSA + осциллограф. Запись кортежей (примерно 5 scope : 1 OSA) в папку
+data/osa_scope/experiment_<дата>/tuple_NNN/.
+
+СОГЛАСОВАННЫЕ ПАРАМЕТРЫ:
+  1. Retry осциллографа: 3 попытки × 1 сек пауза. При провале — ошибка
+     (RuntimeError), НЕ зависание. Паттерн — как Rigol scope_rigol.py.
+  2. Repeat: новый цикл СРАЗУ после готовности предыдущего (без QTimer).
+  3. Ошибка OSA или scope в Repeat: сохранить то, что удалось считать,
+     продолжить работу. Писать о потере соединения в GUI-лог (LogField
+     через logText/logWarningText) И в файл Logs/<timestamp>/scanloop_*.log.
+  4. Запуск Single/Repeat: ТОЛЬКО если подключены оба прибора (OSA + scope),
+     иначе кнопки disabled.
+  5. Граница кортежа — по циклу OSA: кортеж открывается при старте OSA,
+     закрывается по готовности OSA (received_spectrum). Scope-данные
+     буферизуются в последний открытый кортеж (не теряются).
+  6. Single = 1+1 (одно scope + одно OSA) → один кортеж.
+  7. Формат: pickle И CSV одновременно. Файлы внутри кортежа:
+       scope_k.osc_pkl / scope_k.csv
+       osa_k.pkl / osa_k.csv
+       times.txt (wall-clock timestamp)
+  8. Панель: 2 кнопки + label статуса внизу page_experiment_flow
+     (под tabWidget_instruments).
+
+РЕАЛИЗАЦИЯ:
+  A. Scripts/PairedRecorder.py — новый QObject (отдельный поток через
+     add_thread). Слоты на received_data (scope) / received_spectrum (OSA).
+     set_devices(scope, osa). Single/Repeat, буфер кортежей, сохранение
+     pickle+CSV, times.txt, retry 3×1с. Сигналы S_print/S_print_error.
+  B. Windows_GUI/UIs/MainWindow.ui — панель кнопок
+     pushButton_paired_single, pushButton_paired_repeat,
+     label_paired_status. Перегенерировать MainWindowUI.py.
+  C. Windows_GUI/MainWindow.py — init_paired_interface(),
+     создание PairedRecorder + set_devices() при connect_OSA/connect_scope,
+     сигнал force_paired_process, блокировка кнопок пока не оба прибора.
+  D. build/scripts/build_config.py — Scripts.PairedRecorder в HIDDEN_IMPORTS.
+
+ЗАДАЧА 2. УДАЛЕНИЕ 4 ЧЕКБОКСОВ «OTHER EQUIPMENT CONNECTIONS»
+
+Удаляются:
+  1. checkBox_scope_connect (Oscilloscope)
+  2. checkBox_laser_connect (Laser Pure Ph)
+  3. checkBox_powermeter_connect (Powermeter PM)
+  4. checkBox_powermeter_independent (PM vs Time)
+
+РЕАЛИЗАЦИЯ:
+  A. Windows_GUI/UIs/MainWindow.ui — удалить 4 виджета (~строки 967-1014
+     + PM vs Time).
+  B. Перегенерировать MainWindowUI.py (+ синхронизировать неиспользуемый
+     UIs/MainWindow.py).
+  C. Windows_GUI/MainWindow.py — убрать проверки:
+       connect_scope    → ~стр. 452 (checkBox_scope_connect)
+       connect_laser    → ~стр. 750 (checkBox_laser_connect)
+       connect_powermeter → ~стр. 724 (checkBox_powermeter_connect)
+       run_powermeter_graph → ~стр. 812-820 (checkBox_powermeter_independent)
+
+ВАЖНО: Выполняется ОТДЕЛЬНО после отдельного согласования порядка с
+пользователем. План не утверждён на выполнение — ждёт команды.
+
+ЗАДАЧА 3. СКАНИРОВАНИЕ С ВЫКЛЮЧЕННЫМ ЛАЗЕРОМ (Laser control)
+
+Суть: во вкладке Laser control → «Scanning wavelength and save data»
+(groupBox_laser_scanning) добавить 2 кнопки Start/Stop для сканирования
+с выключенным лазером. Сканирование как с лазером, в том же формате,
+но в графу параметров лазера пишется константа из «Laser operation»,
+а к именам добавляется приписка S.
+
+СОГЛАСОВАННЫЕ ПАРАМЕТРЫ:
+  1. Цикл: те же шаги (от wavelength_start = lineEdit_laser_lambda с шагом
+     lineEdit_laser_lambda_scanning_step до start + max_detuning). Лазер
+     НЕ трогать (без fineTuning/setWavelength/setOn/setOff). Между шагами
+     только short_pause (0.1с), без long_pause (45с).
+  2. В .laserdata колонка длины волны = КОНСТАНТА lineEdit_laser_lambda
+     (одинакова во всём столбце).
+  3. Имена спектров OSA: Sp_S_<номер_шага>_W=<lambda>_X=0_Y=0_Z=0_
+     piezoZ=0.0000_.pkl (приписка S + номер шага, т.к. W везде одинаков).
+     Папка: data/spectral.
+  4. Power-файл: data/processed/S_Power_from_powermeter_VS_laser_wavelength
+     .laserdata (приписка S в начале имени).
+  5. Кнопки Start/Stop laser off доступны ВСЕГДА (лазер не обязателен).
+  6. 2 НОВЫХ чекбокса: «save OSA (laser off)» и «save powermeter (laser off)»
+     рядом с кнопками (существующие чекбоксы не используются).
+  7. Приписка S — ТОЛЬКО для laser-off измерений. Обычные сканирования
+     с лазером — без приписки, сохраняются как раньше (data/spectral +
+     data/processed).
+
+РЕАЛИЗАЦИЯ:
+  A. Windows_GUI/UIs/MainWindow.ui — увеличить высоту groupBox_laser_scanning
+     (161 → ~196 px), сдвинуть groupBox_laser_sweeping (y=320 → y=356),
+     добавить кнопки pushButton_start_laser_off, pushButton_stop_laser_off
+     и 2 чекбокса. Перегенерировать MainWindowUI.py.
+  B. Scripts/ScanningProcessLaser.py — параметр laser_off: bool = False
+     в LaserScanningProcess. При laser_off=True: начальная длина волны из
+     wavelength_start (не из лазера), лазер не трогать, константная длина
+     волны в .laserdata, префиксы S_<шаг>_W=, файл
+     S_Power_from_powermeter_VS_laser_wavelength.laserdata.
+  C. Windows_GUI/MainWindow.py — сигнал force_laser_off_scanning_process,
+     подключение кнопок в init_laser_interface (стр. 415), методы
+     laser_off_scanning_start()/laser_off_scanning_stop() по образцу
+     laser_scanning (стр. 896). S_saveData → logger.save_data(...,'FromOSA').
+     S_finished → сброс кнопок.
+
+ОБЩИЕ ПУНКТЫ (задачи 1 и 3):
+  - build/scripts/build_exe.py (стр. 472-473) — добавить 'data/osa_scope'
+    в список папок post_build.
+  - Создать data/osa_scope/ + .gitkeep.
+  - Обновить PROJECT_JOURNAL.txt по итогам выполнения.
+
+ПОРЯДОК ВЫПОЛНЕНИЯ (согласован):
+  1. Сначала записать план в журнал (СДЕЛАНО — этот блок).
+  2. Задача 1 (PairedRecorder) — первая.
+  3. Задача 3 (laser-off) — вторая.
+  4. Задача 2 (чекбоксы) — ОТДЕЛЬНО после отдельного согласования.
+
+--- КОНТЕКСТ ДЛЯ ВЫПОЛНЕНИЯ (восстановлен) ---
+
+GUI — Experiment's flow:
+  - tabWidget_instruments на page_experiment_flow: позиция (0,350) 281×121,
+    disabled по умолчанию.
+  - groupBox_OSA_control: comboBox_interrogatorChannel, Single/Repeat/All,
+    HighRes.
+  - groupBox_scope_control: checkBox_ScopeCh1..Ch4, Single/Repeat.
+  - groupBox_Scanning позиция (0,480) 281×161.
+  - on_TabChanged_instruments_changed (MainWindow.py:1324): переключает
+    painter.TypeOfData FromOSA/FromScope.
+  - Сканирование в пространстве только для OSA; ветка Scope закомментирована
+    (стр. 1208-1225).
+
+Папки data/ (текущие): laser, oscilloscope, powermeter, processed,
+  spectral, spectral-bin, time-domain (+ будет создана osa_scope).
+
+Logger:
+  - Logger/Logger.py — QObject для сохранения/чтения данных (НЕ стандартный
+    logging). save_data(Data,name,X,Y,Z,piezo_Z,SourceOfData):
+      FromScope → data/time-domain/TD_<name>.osc_pkl
+      FromOSA  → data/spectral/Sp_<name>.pkl
+    saving_file_type: 'bin' (pickle) / 'txt'.
+  - Logs/<timestamp>/scanloop_*.log — RotatingFileHandler 50MB×10, DEBUG,
+    из Utils/logging_setup.py (setup_logging, install_exception_hooks,
+    install_qt_message_handler, SafeQApplication).
+  - GUI-лог: MainWindow.logText() → ui.LogField.append(">...");
+    logWarningText() → красный жирный шрифт.
+
+Лазер (Pure Photonics PPCL550):
+  - LaserScanningProcess (Scripts/ScanningProcessLaser.py):
+      run(): цикл while is_running; wavelength растёт по шагам;
+      при OSA_for_laser_scanning: acquire_spectrum → S_saveData('Data',
+      'W='+str(wavelength));
+      при powermeter_for_laser_scanning: file.write(time, wavelength, power);
+      когда tuning > maximum_tuning: setOff→setWavelength→fineTuning(0)→setOn
+      + long_pause(45с).
+  - laser_scanning (MainWindow.py:896): создаёт/конфигурирует процесс,
+    force_laser_scanning_process.emit().
+  - init_laser_interface (MainWindow.py:415): подключение кнопок.
+  - connect_laser (MainWindow.py:741): создаёт laser_scanning_process,
+    S_saveData → logger.save_data(...,'FromOSA'), file_to_save =
+    'data\processed\Power_from_powermeter_VS_laser_wavelength.laserdata'.
+  - groupBox_laser_operation (Laser operation): lineEdit_laser_lambda,
+    lineEdit_laser_power, lineEdit_laser_fine_tune, comboBox_laser_mode,
+    pushButton_laser_On.
+
+Осциллограф:
+  - Keysight scope.py:251 acquire() — :SINGle, poll :ADER? каждые 10 мс,
+    timeout RuntimeError('Acquisition timeout'); query_wave_fast.
+  - Rigol scope_rigol.py:217 acquire() — :Single, poll *OPC? каждые 2 сек;
+    чтение канала: while len(data)<2 с timeout_data=4с (retry-паттерн).
+
+OSA:
+  - APEX APEX_OSA.py:85 — Run('single'); HighRes шаг 20e-6 nm.
+  - Yokogawa — single_scan(), resolution=20, sampling_step=2.
+  - Luna ova5000.py:86 — SCAN + poll SYST:RDY?.
+  - Interrogator — почти мгновенный.
+
+Тайминги: scope ~1 мин, OSA ~5 мин → N:1, N≈5 (в коде не захардкожено).
+
+PM100D (контекст):
+  - Serial: P0033636, resource USB0::4883::32888::P0033636::0::INSTR.
+  - WinUSB драйвер через Zadig (Hardware/drivers/install_driver.bat).
+  - ThorlabsPM100.py: _get_resource_manager() @py backend, _check_driver(),
+    DRIVER_MISSING_MSG; libusb_package в requirements.txt + HIDDEN_IMPORTS.
+
+Устройства «Other equipment connections» (для задачи 2):
+  - Oscilloscope: scope.py/scope_rigol.py, TCP/IP PyVISA.
+  - Laser Pure Ph: PurePhotonicsLaser_serial.py/_pyvisa.py, serial/pyvisa.
+  - Powermeter PM: ThorlabsPM100.py, USB PyVISA SCPI.
+  - checkBox_powermeter_independent — запись PM vs Time в
+    data/powermeter/PM100_<serial>_<timestamp>.csv.
+
+
+# =============================================================================
+# ЗАДАЧА 1 (PairedRecorder) — ВЫПОЛНЕНА (2026-08-06)
+# =============================================================================
+Статус: реализовано, smoke-тесты с мок-приборами пройдены. Железо не проверено.
+
+Создан Scripts/PairedRecorder.py — QObject в своём потоке (ThreadedMainWindow.add_thread).
+Публичный API:
+  - set_devices(scope, osa) — идемпотентно; runner для scope создаётся один раз.
+  - start_single() — 1 кортеж: 1+1 (оба замера обязательны).
+  - start_repeat() — цикл; граница кортежей по циклу OSA (старт -> received_spectrum);
+    scope-замеры копятся в текущий кортеж (N:1).
+  - stop() — остановка, текущий кортеж сохраняется.
+Сигналы: S_print, S_print_error (→ GUI-лог и файл Logs), S_finished, S_running(bool),
+  S_status (→ label_paired_status), S_start_osa, S_start_scope.
+
+Потоки:
+  - OSA.acquire_spectrum вызывается в потоке OSA через force_OSA_acquire
+    (в MainWindow: paired_recorder.S_start_osa → force_OSA_acquire).
+  - scope.acquire с retry выполняется в потоке scope через _ScopeRetryRunner
+    (3 попытки, пауза 1 с, таймаут развёртки 120 с по умолчанию; настраивается в
+    конструкторе PairedRecorder: retry_attempts, retry_pause, scope_timeout).
+  - Watchdog OSA: QTimer osa_timeout=600 с (по умолчанию). Если спектр не пришёл —
+    потеря, кортеж закрывается, в Repeat цикл продолжается.
+  - В Repeat при ошибке любого прибора: сохраняется то, что получено, цикл продолжается
+    (сообщение в GUI-лог и файл-лог).
+  - Single ждёт ОБА замера (гонка исправлена: быстрый Interrogator не теряет scope).
+
+Файлы: data/osa_scope/experiment_<дата>/tuple_NNN/
+  scope_k.osc_pkl (dict X/Y/channels/timestamp/t) + scope_k.csv (X,CH*)
+  osa_1.pkl (dict wavelengths/spectra/channels/timestamp/t) + osa_1.csv (wavelength,spectrum)
+  times.txt — тайминги.
+
+UI (Windows_GUI/UIs/MainWindow.ui, page_experiment_flow y=245..345):
+  groupBox_paired_record: label_paired_status, pushButton_paired_single,
+  pushButton_paired_repeat (checkable), pushButton_paired_stop.
+  MainWindowUI.py перегенерирован через convert_ui.py.
+
+MainWindow.py:
+  - импорт from Scripts.PairedRecorder import PairedRecorder;
+  - self.paired_recorder = PairedRecorder() + add_thread (в __init__);
+  - init_paired_interface() + on_paired_running_changed/on_paired_finished;
+  - set_devices вызывается в connect_scope и connect_OSA; кнопки Single/Repeat
+    доступны только когда подключены оба прибора.
+
+Прочее:
+  - build/scripts/build_exe.py: добавлена папка 'data/osa_scope' в post_build.
+  - build/scripts/build_config.py: 'Scripts.PairedRecorder' в HIDDEN_IMPORTS.
+  - data/osa_scope/.gitkeep создан.
+
+Smoke-тесты (mock-приборы в отдельных потоках, временные каталоги):
+  - Single: 1 кортеж, scope=1/osa=1, все 4 файла на месте.
+  - Repeat: кортежи создаются, в каждом osa_1+scope_1.
+  - Single + мёртвый scope: 3 retry → ошибка, кортеж сохранён, stop.
+  - Repeat + молчащий OSA + мёртвый scope: потеря обоих, цикл продолжается, кортежи сохраняются.
+
+Осталось: проверить на реальном железе; в Repeat число scope-замеров на кортеж = N:1 (N≈5).
+
+
+
+# =============================================================================
+# ЗАДАЧА 3 (laser-off сканирование) — ВЫПОЛНЕНА (2026-08-06)
+# =============================================================================
+Статус: реализовано, smoke-тест с мок-объектами пройден. Железо не проверено.
+
+UI (Windows_GUI/UIs/MainWindow.ui, page_laser_control):
+  - groupBox_laser_scanning: высота 161 → 196 (y=150..346).
+  - Добавлены: pushButton_start_laser_off (10,155,131x23), pushButton_stop_laser_off
+    (150,155,121x23, disabled по умолчанию), checkBox_OSA_for_laser_off_scanning
+    (10,175) «save OSA (laser off)», checkBox_powermeter_for_laser_off_scanning
+    (170,175) «save powermeter (laser off)».
+  - groupBox_laser_sweeping: y 320 → 356 (не перекрывается с расширенной секцией).
+  - MainWindowUI.py перегенерирован.
+
+Scripts/ScanningProcessLaser.py:
+  - LaserScanningProcess.__init__: новый параметр laser_off: bool = False.
+  - run() при laser_off=True:
+    * стартовая длина волны = wavelength_start (лазер НЕ трогается, laser=None ok);
+    * между шагами только short_pause, без long_pause/fineTuning/setOn/setOff;
+    * в .laserdata колонка длины волны = КОНСТАНТА wavelength_start;
+    * имена спектров: 'S_<номер_шага>_W=<wavelength_start>' → файлы
+      Sp_S_<n>_W=<lambda>_X=0_Y=0_Z=0_piezoZ=0.0000_.pkl (номер шага обязателен,
+      иначе файлы перезаписались бы, т.к. W одинаков);
+    * счётчик шагов сбрасывается в начале run().
+  - Обычные сканирования с лазером — без изменений (без приписки S).
+
+Windows_GUI/MainWindow.py:
+  - Новый сигнал force_laser_off_scanning_process (классовый).
+  - init_laser_interface: pushButton_start_laser_off → laser_off_scanning_start,
+    pushButton_stop_laser_off → laser_off_scanning_stop.
+  - _ensure_laser_off_process(): лениво создаёт LaserScanningProcess(laser=None,
+    laser_off=True), file_to_save='data\\processed\\S_Power_from_powermeter_VS_laser_wavelength.laserdata';
+    S_saveData → logger.save_data(...,'FromOSA'); S_finished → on_laser_off_scanning_finished;
+    добавляется в свой поток один раз (reuse, не плодит потоки как laser_sweeping).
+  - laser_off_scanning_start(): копирует параметры из UI (шаг/длины/чекбоксы),
+    переключает кнопки Start/Stop, force_laser_off_scanning_process.emit().
+  - laser_off_scanning_stop(): is_running=False, возврат кнопок.
+  - on_laser_off_scanning_finished(): возврат кнопок.
+  - Кнопки работают БЕЗ подключённого лазера (доступны всегда).
+
+Smoke-тест (mock OSA+PM, без лазера, 1550.0 nm, шаг 0.1 pm, max_detuning 1 pm):
+  - 11 шагов, osa=11/pm=11; имена S_1..S_11_W=1550.0 (все уникальны);
+  - колонка длины волны в .laserdata = только '1550.0' (константа);
+  - S_finished эмитится, цикл завершается. PASSED.
+
+Осталось: проверить на реальном железе.
+
+
+# =============================================================================
+# РЕГРЕССИИ — ИСПРАВЛЕНЫ (2026-08-10)
+# =============================================================================
+Статус: Задача 2 выполнена; 4 жалобы пользователя закрыты. Smoke-тест stop пройден.
+
+## ЗАДАЧА 2 (удаление 4 чекбоксов) — ВЫПОЛНЕНА
+Удалены из MainWindow.ui (вкладка Hardware, группа "Other equipment connections"):
+  - checkBox_scope_connect, checkBox_laser_connect, checkBox_powermeter_connect,
+    checkBox_powermeter_independent ("PM vs Time").
+Убраны проверки в Windows_GUI/MainWindow.py:
+  - connect_scope (было ~стр. 482), connect_powermeter (~758), connect_laser (~784):
+    удалены ветки `if not ...isChecked(): return`.
+  - run_powermeter_graph: удалена ветка записи PM vs Time (start/stop_recording).
+    Запись времени+мощности остаётся при сканировании в ScanningProcessLaser.run()
+    (.laserdata) — и с лазером, и без (по решению пользователя).
+Перегенерированы: MainWindowUI.py (convert_ui.py) + синхронизирован неиспользуемый
+дубликат Windows_GUI/UIs/MainWindow.py.
+
+## ЖАЛОБА 1: наслоение во 2-й вкладке (Experiment's flow)
+Причина: панель groupBox_paired_record (0,245,281,100) была вставлена ПОВЕРХ
+существующей группы groupBox_piezo (10,240,251,101).
+Исправлено в MainWindow.ui:
+  - groupBox_paired_record: y 245 → 480 (под tabWidget_instruments, который 350..471).
+  - groupBox_Scanning: y 480 → 590.
+  - groupBox_save_data: y 650 → 760.
+  - page_experiment_flow: высота 700 → 910 (geometry + minimumSize).
+Проверка парсером: наложений нет (bottom панели 580 < 590 Scanning; save_data 901 < 910).
+Остался единственный pre-existing OVERLAP stand↔piezo на 1px (0..241 / 240..341) — не трогали.
+
+## ЖАЛОБА 2: буквы вышли за GUI в 3-й вкладке (Laser control)
+Причина: checkBox_powermeter_for_laser_off_scanning шириной 111px — текст
+"save powermeter (laser off)" не помещался; плюс на 3px наезжал на кнопку Stop.
+Исправлено в MainWindow.ui:
+  - чекбоксы laser-off в столбик на всю ширину: OSA (10,175,261,20), PM (10,195,261,20);
+  - groupBox_laser_scanning: высота 196 → 216;
+  - groupBox_laser_sweeping: y 356 → 370 (491 < 500 — влезает).
+
+## ЖАЛОБА 3: Stop laser off не работает (кнопка неактивна)
+Причины (обе исправлены):
+  1. ScanningProcessLaser.run(): is_running НЕ сбрасывался после завершения цикла →
+     повторный запуск блокировался guard'ом "already running". Добавлено
+     `self.is_running=False` перед S_finished.emit().
+  2. laser_off_scanning_start: setEnabled(True) для Stop стоял ПОСЛЕ хрупкой
+     конфигурации (float(...)); исключение (например "0,1" с запятой) оставляло
+     Stop навсегда disabled. Теперь кнопки переключаются СРАЗУ, конфигурация
+     обёрнута в try/except с записью в GUI-лог и возвратом кнопок.
+Примечание: если кнопка неактивна в exe — пересобрать (build_exe.bat), exe мог
+содержать старый MainWindow.py без обработчика laser_off_scanning_start.
+
+## Smoke-тест (temp-скрипт test_laser_off_stop.py)
+  - stop-during-run: 3 шага → остановка, S_finished, is_running=False. PASS.
+  - restart-after-stop: повторный запуск снова работает (не "already running"). PASS.
+Проверка UI: сборка Ui_MainWindow без ошибок; все laser-off/paired виджеты на месте;
+удалённых чекбоксов нет; панель paired на y=480.
+
+## ПЕРЕСБОРКА EXE — ВЫПОЛНЕНА (2026-08-10)
+  - Сборка: build_exe.bat (build/scripts/build_exe.py + build_config.py).
+  - Артефакт: dist/v47_ScanLoop_Aleksandr_DESKTOP-6OPTJ05/
+    v47_ScanLoop_Aleksandr_DESKTOP-6OPTJ05.exe (17,71 MB, собрано 16:26).
+  - Все исправления 4 регрессий (чекбоксы, наслоение, буквы, Stop laser off)
+    вошли в эту сборку; в data/ присутствует папка osa_scope.
+  - Сборка заняла ~96с, без ошибок PyInstaller.
+
+Осталось: проверить на реальном железе (Stop laser off, сетка 2-й и 3-й вкладок,
+отсутствие PM vs Time).
+
+## ДИАГНОСТИКА ЖАЛОБЫ «STOP LASER OFF СЕРАЯ» (2026-08-10)
+  Пользователь: после Start кнопка Stop остаётся неактивной; сканирование
+  стартует и мгновенно завершается.
+  Причина (по логу dist/v47.../Logs/2026-08-10_16-30-47/scanloop_*.log):
+    - события laser-off пишутся ТОЛЬКО в GUI-лог (LogField), в файл не попадают;
+    - Thorlabs KDC/BSM: «Найдено устройств: 0»;
+    - оба чекбокса лазер-off выключены, устройств нет →
+      LaserScanningProcess.run() (laser_off=True) проходит 2000 итераций БЕЗ пауз
+      (нет OSA/PM → нет sleep), мгновенно вызывает S_finished;
+    - Stop активировалась на долю секунды и гасла через on_laser_off_scanning_finished.
+    - .laserdata (S_Power_from_powermeter_VS_laser_wavelength.laserdata) создан
+      16:31:12 и пуст (0 байт) — подтверждение мгновенного прохода.
+  Вывод: предыдущие исправления stop (is_running=False перед S_finished,
+  try/except в laser_off_scanning_start) корректны, но не закрывают сценарий
+  «запуск без источников данных».
+
+## КРАСНЫЙ ЛОГ ПРИ ОТСУТСТВИИ ИСТОЧНИКОВ — СДЕЛАНО
+  MainWindow.laser_off_scanning_start: перед переключением кнопок проверяются
+  osa_active (чекбокс OSA + self.OSA is not None) и pm_active (чекбокс PM +
+  self.powermeter is not None). Если оба ложны — красный лог logWarningText
+  «Laser off scanning: не выбран ни один источник данных (OSA/powermeter) или
+  прибор не подключён. Запуск отменён.» и return БЕЗ изменения кнопок
+  (Stop остаётся корректно неактивной, без «мигания»).
+  Также добавлен _to_float() (запятая→точка, с дефолтами) — заменён float() во
+  всех лазерных функциях (laser_off_scanning_start, _ensure_laser_off_process,
+  on_pushButton_laser_On, laser_fine_tuning, laser_scanning, laser_sweeping).
+  Smoke-тест (offscreen): чекбоксы off + OSA=None/PM=None → в лог пишется
+  предупреждение, кнопки не меняются (start=True, stop=False). PASS.
+
+## ДЕМО-ВЕРСИЯ ScanLoop (--demo) — СДЕЛАНО
+  Суть: отдельный exe с программными эмуляторами приборов, на котором
+  laser-off сканирование, кнопка Stop, подвижки, пьезо, лазер и т.д.
+  работают без реального железа.
+  НОВЫЙ ФАЙЛ Utils/demo_devices.py — эмуляторы (все QObject):
+    DemoOSA (acquire_spectrum, change_range, received_spectrum, S_print_error,
+             tls, IsHighRes, GetMode/SetMode, WavelengthCalib, save_binary),
+    DemoScope (channels_states, set_channel_state, acquire, received_data),
+    DemoLaser (main_wavelength/maximum_tuning/tuning, setOn/Off, setPower,
+               setMode, setWavelength, fineTuning, S_print(S)),
+    DemoPowerMeter (is_connected→True, get_power, power_received),
+    DemoStages (axes/abs/rel/zero_position, shiftOnArbitrary, move_home,
+                set_zero_positions, update_relative_positions, close_all),
+    DemoPiezoStage (abs/rel/zero_position, move_by, A18_SetChannelOpenOrClose,
+                    update_position, stopped),
+    все с time.sleep для реалистичных задержек.
+  MainWindow.__init__: параметр demo_mode=False; в конце __init__ при
+  demo_mode=True вызывается _init_demo_mode(): создаёт все Demo-устройства,
+  подключает сигналы как в connect_* (received_spectrum→painter,
+  force_OSA_acquire, S_print*, stopped, force_stage_move, force_piezo_stage_move,
+  paired_recorder.set_devices), включает группы (OSA_control, scope_control,
+  stand, piezo, features), чекбоксы laser-off/scanning, лазерные элементы,
+  создаёт laser_scanning_process. В начало лога пишется красная строка
+  «ДЕМО-РЕЖИМ: все приборы эмулируются…».
+  НОВЫЙ ФАЙЛ main_demo.py — копия main.py, но MainWindow(demo_mode=True).
+  Сборка: build_exe.py --demo (build_demo.bat) → имя v{ver}_ScanLoop_*_Demo.
+  build_config.py: добавлены DEMO_ENTRY и DEMO_APP_PREFIX.
+
+## СБОРКИ v48 — ВЫПОЛНЕНЫ (2026-08-10)
+  - python build\scripts\build_exe.py           → v48 (обычная)
+  - python build\scripts\build_exe.py --demo    → v48_Demo
+  - Артефакты (продублированы в build/releases/):
+    dist/v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05/
+      v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05.exe (17,72 MB, ~97с)
+    dist/v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05_Demo/
+      v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05_Demo.exe (17,72 MB, ~95с)
+  - ВАЖНО: venv/ в корне БИТЫЙ (указывает на Python из чужого профиля
+    C:\Users\Adm\...Python312). Сборку запускать НАПРЯМУЮ системным
+    python (C:\Python314, PyInstaller 6.20):
+Осталось: проверить на реальном железе.
+
+
+# =============================================================================
+# РЕГРЕССИИ — ИСПРАВЛЕНЫ (2026-08-10)
+# =============================================================================
+Статус: Задача 2 выполнена; 4 жалобы пользователя закрыты. Smoke-тест stop пройден.
+
+## ЗАДАЧА 2 (удаление 4 чекбоксов) — ВЫПОЛНЕНА
+Удалены из MainWindow.ui (вкладка Hardware, группа "Other equipment connections"):
+  - checkBox_scope_connect, checkBox_laser_connect, checkBox_powermeter_connect,
+    checkBox_powermeter_independent ("PM vs Time").
+Убраны проверки в Windows_GUI/MainWindow.py:
+  - connect_scope (было ~стр. 482), connect_powermeter (~758), connect_laser (~784):
+    удалены ветки `if not ...isChecked(): return`.
+  - run_powermeter_graph: удалена ветка записи PM vs Time (start/stop_recording).
+    Запись времени+мощности остаётся при сканировании в ScanningProcessLaser.run()
+    (.laserdata) — и с лазером, и без (по решению пользователя).
+Перегенерированы: MainWindowUI.py (convert_ui.py) + синхронизирован неиспользуемый
+дубликат Windows_GUI/UIs/MainWindow.py.
+
+## ЖАЛОБА 1: наслоение во 2-й вкладке (Experiment's flow)
+Причина: панель groupBox_paired_record (0,245,281,100) была вставлена ПОВЕРХ
+существующей группы groupBox_piezo (10,240,251,101).
+Исправлено в MainWindow.ui:
+  - groupBox_paired_record: y 245 → 480 (под tabWidget_instruments, который 350..471).
+  - groupBox_Scanning: y 480 → 590.
+  - groupBox_save_data: y 650 → 760.
+  - page_experiment_flow: высота 700 → 910 (geometry + minimumSize).
+Проверка парсером: наложений нет (bottom панели 580 < 590 Scanning; save_data 901 < 910).
+Остался единственный pre-existing OVERLAP stand↔piezo на 1px (0..241 / 240..341) — не трогали.
+
+## ЖАЛОБА 2: буквы вышли за GUI в 3-й вкладке (Laser control)
+Причина: checkBox_powermeter_for_laser_off_scanning шириной 111px — текст
+"save powermeter (laser off)" не помещался; плюс на 3px наезжал на кнопку Stop.
+Исправлено в MainWindow.ui:
+  - чекбоксы laser-off в столбик на всю ширину: OSA (10,175,261,20), PM (10,195,261,20);
+  - groupBox_laser_scanning: высота 196 → 216;
+  - groupBox_laser_sweeping: y 356 → 370 (491 < 500 — влезает).
+
+## ЖАЛОБА 3: Stop laser off не работает (кнопка неактивна)
+Причины (обе исправлены):
+  1. ScanningProcessLaser.run(): is_running НЕ сбрасывался после завершения цикла →
+     повторный запуск блокировался guard'ом "already running". Добавлено
+     `self.is_running=False` перед S_finished.emit().
+  2. laser_off_scanning_start: setEnabled(True) для Stop стоял ПОСЛЕ хрупкой
+     конфигурации (float(...)); исключение (например "0,1" с запятой) оставляло
+     Stop навсегда disabled. Теперь кнопки переключаются СРАЗУ, конфигурация
+     обёрнута в try/except с записью в GUI-лог и возвратом кнопок.
+Примечание: если кнопка неактивна в exe — пересобрать (build_exe.bat), exe мог
+содержать старый MainWindow.py без обработчика laser_off_scanning_start.
+
+## Smoke-тест (temp-скрипт test_laser_off_stop.py)
+  - stop-during-run: 3 шага → остановка, S_finished, is_running=False. PASS.
+  - restart-after-stop: повторный запуск снова работает (не "already running"). PASS.
+Проверка UI: сборка Ui_MainWindow без ошибок; все laser-off/paired виджеты на месте;
+удалённых чекбоксов нет; панель paired на y=480.
+
+## ПЕРЕСБОРКА EXE — ВЫПОЛНЕНА (2026-08-10)
+  - Сборка: build_exe.bat (build/scripts/build_exe.py + build_config.py).
+  - Артефакт: dist/v47_ScanLoop_Aleksandr_DESKTOP-6OPTJ05/
+    v47_ScanLoop_Aleksandr_DESKTOP-6OPTJ05.exe (17,71 MB, собрано 16:26).
+  - Все исправления 4 регрессий (чекбоксы, наслоение, буквы, Stop laser off)
+    вошли в эту сборку; в data/ присутствует папка osa_scope.
+  - Сборка заняла ~96с, без ошибок PyInstaller.
+
+Осталось: проверить на реальном железе (Stop laser off, сетка 2-й и 3-й вкладок,
+отсутствие PM vs Time).
+
+## ДИАГНОСТИКА ЖАЛОБЫ «STOP LASER OFF СЕРАЯ» (2026-08-10)
+  Пользователь: после Start кнопка Stop остаётся неактивной; сканирование
+  стартует и мгновенно завершается.
+  Причина (по логу dist/v47.../Logs/2026-08-10_16-30-47/scanloop_*.log):
+    - события laser-off пишутся ТОЛЬКО в GUI-лог (LogField), в файл не попадают;
+    - Thorlabs KDC/BSM: «Найдено устройств: 0»;
+    - оба чекбокса лазер-off выключены, устройств нет →
+      LaserScanningProcess.run() (laser_off=True) проходит 2000 итераций БЕЗ пауз
+      (нет OSA/PM → нет sleep), мгновенно вызывает S_finished;
+    - Stop активировалась на долю секунды и гасла через on_laser_off_scanning_finished.
+    - .laserdata (S_Power_from_powermeter_VS_laser_wavelength.laserdata) создан
+      16:31:12 и пуст (0 байт) — подтверждение мгновенного прохода.
+  Вывод: предыдущие исправления stop (is_running=False перед S_finished,
+  try/except в laser_off_scanning_start) корректны, но не закрывают сценарий
+  «запуск без источников данных».
+
+## КРАСНЫЙ ЛОГ ПРИ ОТСУТСТВИИ ИСТОЧНИКОВ — СДЕЛАНО
+  MainWindow.laser_off_scanning_start: перед переключением кнопок проверяются
+  osa_active (чекбокс OSA + self.OSA is not None) и pm_active (чекбокс PM +
+  self.powermeter is not None). Если оба ложны — красный лог logWarningText
+  «Laser off scanning: не выбран ни один источник данных (OSA/powermeter) или
+  прибор не подключён. Запуск отменён.» и return БЕЗ изменения кнопок
+  (Stop остаётся корректно неактивной, без «мигания»).
+  Также добавлен _to_float() (запятая→точка, с дефолтами) — заменён float() во
+  всех лазерных функциях (laser_off_scanning_start, _ensure_laser_off_process,
+  on_pushButton_laser_On, laser_fine_tuning, laser_scanning, laser_sweeping).
+  Smoke-тест (offscreen): чекбоксы off + OSA=None/PM=None → в лог пишется
+  предупреждение, кнопки не меняются (start=True, stop=False). PASS.
+
+## ДЕМО-ВЕРСИЯ ScanLoop (--demo) — СДЕЛАНО
+  Суть: отдельный exe с программными эмуляторами приборов, на котором
+  laser-off сканирование, кнопка Stop, подвижки, пьезо, лазер и т.д.
+  работают без реального железа.
+  НОВЫЙ ФАЙЛ Utils/demo_devices.py — эмуляторы (все QObject):
+    DemoOSA (acquire_spectrum, change_range, received_spectrum, S_print_error,
+             tls, IsHighRes, GetMode/SetMode, WavelengthCalib, save_binary),
+    DemoScope (channels_states, set_channel_state, acquire, received_data),
+    DemoLaser (main_wavelength/maximum_tuning/tuning, setOn/Off, setPower,
+               setMode, setWavelength, fineTuning, S_print(S)),
+    DemoPowerMeter (is_connected→True, get_power, power_received),
+    DemoStages (axes/abs/rel/zero_position, shiftOnArbitrary, move_home,
+                set_zero_positions, update_relative_positions, close_all),
+    DemoPiezoStage (abs/rel/zero_position, move_by, A18_SetChannelOpenOrClose,
+                    update_position, stopped),
+    все с time.sleep для реалистичных задержек.
+  MainWindow.__init__: параметр demo_mode=False; в конце __init__ при
+  demo_mode=True вызывается _init_demo_mode(): создаёт все Demo-устройства,
+  подключает сигналы как в connect_* (received_spectrum→painter,
+  force_OSA_acquire, S_print*, stopped, force_stage_move, force_piezo_stage_move,
+  paired_recorder.set_devices), включает группы (OSA_control, scope_control,
+  stand, piezo, features), чекбоксы laser-off/scanning, лазерные элементы,
+  создаёт laser_scanning_process. В начало лога пишется красная строка
+  «ДЕМО-РЕЖИМ: все приборы эмулируются…».
+  НОВЫЙ ФАЙЛ main_demo.py — копия main.py, но MainWindow(demo_mode=True).
+  Сборка: build_exe.py --demo (build_demo.bat) → имя v{ver}_ScanLoop_*_Demo.
+  build_config.py: добавлены DEMO_ENTRY и DEMO_APP_PREFIX.
+
+## СБОРКИ v48 — ВЫПОЛНЕНЫ (2026-08-10)
+  - python build\scripts\build_exe.py           → v48 (обычная)
+  - python build\scripts\build_exe.py --demo    → v48_Demo
+  - Артефакты (продублированы в build/releases/):
+    dist/v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05/
+      v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05.exe (17,72 MB, ~97с)
+    dist/v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05_Demo/
+      v48_ScanLoop_Aleksandr_DESKTOP-6OPTJ05_Demo.exe (17,72 MB, ~95с)
+  - ВАЖНО: venv/ в корне БИТЫЙ (указывает на Python из чужого профиля
+    C:\Users\Adm\...Python312). Сборку запускать НАПРЯМУЮ системным
+    python (C:\Python314, PyInstaller 6.20):
+      python build\scripts\build_exe.py          # обычная
+      python build\scripts\build_exe.py --demo   # демо
+  - Версия для обеих сборок совпадает (v48): перед demo-сборкой файл
+    build_version_*.txt откачен на 47, чтобы next_version() дал 48.
+
+## СЛЕДУЮЩАЯ СЕССИЯ
+  - Протестировать v48_..._Demo.exe: Start laser off (оба чекбокса включены
+    по умолчанию) → Stop должна быть АКТИВНА и останавливать скан; файлы в
+    data/processed/ (S_Power_from_powermeter_VS_laser_wavelength.laserdata,
+    S_* спектры) должны записываться; подвижки/пьезо/лазер — работать.
+  - Обычный v48 exe: с выключенными чекбоксами лазер-off → красный лог
+    «не выбран ни один источник данных», запуска нет; со включённым чекбоксом
+    OSA без устройства → тоже красный лог.
+  - Жалоба «Stop laser off серая» на реальном железе должна исчезнуть:
+    либо стартует эксперимент (Stop активна), либо красный лог.
+
+
+=====================================================================
+  СЕССИЯ 2026-09-10: Устранение дефектов сканирования, координат и демо
+=====================================================================
+
+1. ПРИЧИНА СКАЧКОВ ШАГА СПЕКТРА (1 мкм / 50 мкм / 99 мкм / 300 мкм):
+   - В `Hardware/Stages/LBTEK/lbtek_stages.py`: `wait_until_idle()` опрашивал
+     `dll.getDoingState` немедленно без задержки. Контроллер не успевал
+     выставить флаг движения (state != 0), функция выходила за 0.00с, и
+     измерение спектра начиналось прямо во время движения столика! Последующая
+     команда движения обрывала предыдущий ход на 1 мкм, после чего происходил
+     скачок.
+   - Исправлено: добавлена стартовая задержка 80 мс в `wait_until_idle()`,
+     двойное подтверждение остановки и реализация `wait_for_stop()` в LBTEKAxis.
+   - В `Scripts/ScanningProcessOSA.py`: добавлена пауза 50 мс для механической
+     релаксации и стабилизации после перемещения осей.
+   - В `Hardware/Stages/Standa/standa_stages.py`: расчет шагов приведен к
+     `int(round(distance_mkm / 2.5))` с защитой от нулевого шага.
+
+2. ОКРУГЛЕНИЕ КООРДИНАТ И ЛИКВИДАЦИЯ FLOAT-АРТЕФАКТОВ:
+   - В `Hardware/Stages/LBTEK/lbtek_stages.py`: `get_position()` теперь
+     строго возвращает `round(pos_mm * 1000.0, 2)`.
+   - В `Hardware/Stages/stages_manager.py`: все `abs_position`, `relative_position`,
+     `zero_position` и расчеты перемещений округляются до 0.01 мкм (`round(..., 2)`).
+   - В `Logger/Logger.py`: имена сохраняемых файлов и координаты форматируются строго
+     по маске `_X={:.2f}_Y={:.2f}_Z={:.2f}_piezoZ={:.4f}_`, исключая длинные
+     хвосты single-precision float (`-4149.9998569488525` и т.п.).
+   - В `Windows_GUI/MainWindow.py`: координаты в GUI выводятся с точностью 0.01 мкм.
+
+3. СИНХРОНИЗАЦИЯ ПРИ РУЧНОМ ВРАЩЕНИИ КРУТИЛОК/ВИНТОВ:
+   - Добавлен фоновый таймер `_poll_timer` (300 мс) в `Stages`.
+   - При простое (`not self._is_moving`) таймер опрашивает аппаратные энкодеры
+     столиков. Если обнаружено изменение позиции >= 0.01 мкм, обновляются
+     координаты и генерируется сигнал `stopped`, мгновенно обновляющий
+     значения на экране в реальном времени.
+   - Программные перемещения защищены флагом `_is_moving` во избежание коллизий COM-портов.
+
+4. ВЫЧИСТКА ДЕМО-РЕЖИМА И ПЕРЕНОС ФУНКЦИЙ В РАБОЧИЙ РЕЖИМ:
+   - Чекбоксы `checkBox_OSA_for_laser_off_scanning` и `checkBox_powermeter_for_laser_off_scanning`
+     теперь автоматически активируются при штатном подключении реальных приборов
+     в `connect_OSA()` и `connect_powermeter()`.
+   - Удалены демо-артефакты: `main_demo.py`, `build_demo.bat`, `Utils/demo_devices.py`,
+     демо-сборки и временные zip-архивы.
+   - Очищены флаги демо из `build/scripts/build_config.py` и `build/scripts/build_exe.py`.
+   - Устранено дублирование сигналов в `enable_scanning_process()`.
+
+5. СОХРАНЕНИЕ МНОГОПРИБОРНОЙ ЗАПИСИ (PairedRecorder):
+   - Логика асинхронной одновременной записи OSA + Scope с некратным временем сканирования
+     в `Scripts/PairedRecorder.py` полностью сохранена и проверена.
+
+6. СБОРКА И ТЕСТИРОВАНИЕ:
+   - Проведена компиляция `MainWindow.ui` -> `MainWindowUI.py` (удален рудимент `comboBox_Type_of_Stages`).
+   - Все файлы успешно прошли синтаксическую компиляцию `py_compile`.
+   - Дымовой тест `MainWindow` и unit-тест `Stages` успешно пройдены.

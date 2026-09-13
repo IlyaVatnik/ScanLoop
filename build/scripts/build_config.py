@@ -140,6 +140,7 @@ HIDDEN_IMPORTS = [
     "Scripts.ScanningProcessOSA",
     "Scripts.ScanningProcessLaser",
     "Scripts.ScanningProcessScope",
+    "Scripts.PairedRecorder",
     "Scripts.Analyzer",
     "Scripts.Spectral_processor",
     "Scripts.SNAP_experiment",

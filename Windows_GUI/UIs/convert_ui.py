@@ -1,23 +1,16 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 16 16:31:50 2026
-
-@author: Александр
-"""
 import os
+import sys
 from PyQt5 import uic
 
-# Автоматически получаем полный путь к папке, где лежит этот скрипт
-current_dir = os.path.dirname(os.path.abspath(__file__))
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
-# Собираем абсолютные пути к файлам
+current_dir = os.path.dirname(os.path.abspath(__file__))
 ui_file = os.path.join(current_dir, "MainWindow.ui")
 py_file = os.path.join(current_dir, "MainWindowUI.py")
 
-print(f"Ищем файл: {ui_file}")
-
-# Конвертируем
 with open(py_file, "w", encoding="utf-8") as fout:
     uic.compileUi(ui_file, fout)
 
-print("Ура! Файл успешно сконвертирован!")
+print("MainWindow.ui successfully converted to MainWindowUI.py")

@@ -17,3 +17,5 @@ build_log_*.txt
 data/**/*.csv
 data/**/*.txt
 Hardware/drivers/zadig.exe
+build/releases/
+data/osa_scope/

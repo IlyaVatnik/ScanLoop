@@ -10,7 +10,7 @@ __version__ = '2.5.0'
 
 import logging
 import traceback
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,32 @@ class Stages(QObject):
         self.abs_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
         self.relative_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
         self.zero_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
+        self._is_moving = False
+
+        self._poll_timer = QTimer(self)
+        self._poll_timer.setInterval(300)
+        self._poll_timer.timeout.connect(self._on_poll_timer)
 
         if config:
             self.setup_stages(config)
+
+    def _on_poll_timer(self):
+        """Опрос реального положения столиков при простое (для отслеживания ручного вращения крутилок)"""
+        if self._is_moving:
+            return
+        changed = False
+        for key, axis_obj in self.axes.items():
+            if axis_obj is not None:
+                try:
+                    pos = round(axis_obj.get_position(), 2)
+                    if abs(self.abs_position[key] - pos) >= 0.01:
+                        self.abs_position[key] = pos
+                        changed = True
+                except Exception:
+                    pass
+        if changed:
+            self.update_relative_positions()
+            self.stopped.emit()
 
     def setup_stages(self, config):
         driver_map = {
@@ -110,9 +133,8 @@ class Stages(QObject):
         self.update_all_absolute_positions()
 
         if any(ax is not None for ax in self.axes.values()):
+            self._poll_timer.start()
             self.connected.emit()
-
-    # ... остальные методы без изменений ...
 
     def shiftOnArbitrary(self, key: str, distance: float):
         logger.info(f"[Stages.shiftOnArbitrary] key={key}, distance={distance}")
@@ -122,47 +144,57 @@ class Stages(QObject):
             self.S_print_error.emit(f"Ось {key} не подключена.")
             return
 
+        self._is_moving = True
         try:
-            axis_obj.move_relative(distance)
+            axis_obj.move_relative(round(distance, 2))
+            if hasattr(axis_obj, 'wait_for_stop'):
+                axis_obj.wait_for_stop()
             logger.info(f"[Stages.shiftOnArbitrary] move_relative завершён")
-            self.abs_position[key] = axis_obj.get_position()
+            self.abs_position[key] = round(axis_obj.get_position(), 2)
             self.update_relative_positions()
             self.stopped.emit()
-            logger.info(f"[Stages.shiftOnArbitrary] stopped.emit() отправлен")
+            logger.info(f"[Stages.shiftOnArbitrary] stopped.emit() отправлен, pos={self.abs_position[key]}")
 
         except Exception as e:
             logger.error(f"[Stages.shiftOnArbitrary] ИСКЛЮЧЕНИЕ:\n{traceback.format_exc()}")
             self.S_print_error.emit(f"Ошибка при движении оси {key}: {e}")
+        finally:
+            self._is_moving = False
 
     def move_home(self, key: str):
         axis_obj = self.axes.get(key)
         if axis_obj is None:
             return
+        self._is_moving = True
         try:
             axis_obj.move_home()
+            if hasattr(axis_obj, 'wait_for_stop'):
+                axis_obj.wait_for_stop()
             self.update_all_absolute_positions()
             self.stopped.emit()
         except Exception as e:
             logger.error(f"[Stages.move_home] ИСКЛЮЧЕНИЕ:\n{traceback.format_exc()}")
             self.S_print_error.emit(f"Ошибка move_home оси {key}: {e}")
+        finally:
+            self._is_moving = False
 
     def set_zero_positions(self, zeros_list):
-        self.zero_position['X'] = zeros_list[0]
-        self.zero_position['Y'] = zeros_list[1]
-        self.zero_position['Z'] = zeros_list[2]
+        self.zero_position['X'] = round(float(zeros_list[0]), 2)
+        self.zero_position['Y'] = round(float(zeros_list[1]), 2)
+        self.zero_position['Z'] = round(float(zeros_list[2]), 2)
         self.update_relative_positions()
 
     def update_relative_positions(self):
         for key in ['X', 'Y', 'Z']:
-            self.relative_position[key] = self.abs_position[key] - self.zero_position[key]
+            self.relative_position[key] = round(self.abs_position[key] - self.zero_position[key], 2)
 
     def update_all_absolute_positions(self):
         for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
-                    pos = axis_obj.get_position()
+                    pos = round(axis_obj.get_position(), 2)
                     self.abs_position[key] = pos
-                    logger.debug(f"[Stages] update_position axis={key}: {pos} mm")
+                    logger.debug(f"[Stages] update_position axis={key}: {pos} um")
                 except Exception as e:
                     logger.error(f"Не удалось прочитать позицию оси {key}: {traceback.format_exc()}")
                     self.abs_position[key] = 0.0
@@ -170,6 +202,11 @@ class Stages(QObject):
         logger.debug(f"[Stages] abs_positions: {self.abs_position}")
 
     def close_all(self):
+        try:
+            if hasattr(self, '_poll_timer') and self._poll_timer is not None:
+                self._poll_timer.stop()
+        except (RuntimeError, TypeError):
+            pass
         for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
@@ -178,4 +215,7 @@ class Stages(QObject):
                     logger.error(f"Ошибка закрытия оси {key}: {e}")
 
     def __del__(self):
-        self.close_all()
+        try:
+            self.close_all()
+        except Exception:
+            pass

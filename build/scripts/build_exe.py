@@ -390,7 +390,7 @@ def build_command(app_name):
         if os.path.exists(path):
             cmd += [f"--add-data={path};."]
 
-    cmd += ["main.py"]
+    cmd += [cfg.MAIN_ENTRY]
     return cmd, {}
 
 
@@ -470,7 +470,8 @@ def post_build(dist_dir, app_name):
     ok(f"EXE: {size_mb:.2f} MB")
 
     for folder in ['data/oscilloscope', 'data/laser', 'data/powermeter',
-                    'data/processed', 'data/spectral', 'data/spectral-bin', 'data/time-domain']:
+                    'data/processed', 'data/spectral', 'data/spectral-bin', 'data/time-domain',
+                    'data/osa_scope']:
         os.makedirs(os.path.join(dist_dir, folder), exist_ok=True)
 
     for name in cfg.CONFIG_FILES:

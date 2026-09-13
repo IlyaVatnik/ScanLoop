@@ -47,7 +47,8 @@ class LaserScanningProcess(QObject, Loggable):
                  wavelength_start:float, # in nm
                  detuning:float, # in pm
                  max_detuning:float, # in pm
-                 file_to_save:str):
+                 file_to_save:str,
+                 laser_off:bool=False):
         super().__init__()
         
         self.OSA=OSA
@@ -56,12 +57,14 @@ class LaserScanningProcess(QObject, Loggable):
         self.step=step
         self.wavelength=wavelength_start
         self.max_detuning=max_detuning
+        self.wavelength_start=wavelength_start
         self.wavelength_stop=wavelength_start+self.max_detuning*1e-3
         self.short_pause=0.1
         self.long_pause=45
         self.tuning=detuning
         self.hold_wavelength=False
         self.file_to_save=file_to_save
+        self.laser_off=laser_off
         
         self.OSA_for_laser_scanning=False
         self.powermeter_for_laser_scanning=False
@@ -77,29 +80,45 @@ class LaserScanningProcess(QObject, Loggable):
         self.is_running=True
         time_start=time.time()
         file=open(self.file_to_save,'a')
-        self.wavelength=self.laser.main_wavelength+self.laser.tuning*1e-3
-        self.wavelength_stop=self.wavelength_start+self.max_detuning*1e-3*np.sign(self.step)
+        if self.laser_off:
+            self.wavelength=self.wavelength_start
+            self.wavelength_stop=self.wavelength_start+self.max_detuning*1e-3*np.sign(self.step)
+        else:
+            self.wavelength=self.laser.main_wavelength+self.laser.tuning*1e-3
+            self.wavelength_stop=self.wavelength_start+self.max_detuning*1e-3*np.sign(self.step)
+        step_counter=0
         
         while self.is_running and (self.wavelength-self.wavelength_stop)*np.sign(self.step)<0:
             
+            step_counter+=1
             if self.OSA_for_laser_scanning and self.OSA is not None:
                 wavelengthdata, spectrum=self.OSA.acquire_spectrum()
                 time.sleep(0.05)
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveData.emit('Data','W='+str(self.wavelength)) # save spectrum to file
+                if self.laser_off:
+                    save_name='S_{}_W={}'.format(step_counter, self.wavelength_start)
+                else:
+                    save_name='W='+str(self.wavelength)
+                self.S_saveData.emit('Data',save_name) # save spectrum to file
             if self.powermeter_for_laser_scanning and self.powermeter is not None:
                 power=self.powermeter.get_power()
-                file.write('{}\t{}\t{}\n'.format(time.time()-time_start,self.wavelength,power))
+                if self.laser_off:
+                    wavelength_to_write=self.wavelength_start
+                else:
+                    wavelength_to_write=self.wavelength
+                file.write('{}\t{}\t{}\n'.format(time.time()-time_start,wavelength_to_write,power))
             # if not self.is_running:
             #     self.S_add_powers_to_file.emit(PowerVSWavelength)
             #     self.laser.setOff()
             #     print('Scanning stopped')
             #     self.S_toggle_button.emit()
             #     break
-            if not self.hold_wavelength:
+            if not self.hold_wavelength or self.laser_off:
                 self.tuning+=self.step
                 self.wavelength+=self.step*1e-3
-                if self.tuning<=self.laser.maximum_tuning:
+                if self.laser_off:
+                    self.S_updateCurrentWavelength.emit('{:.5f}'.format(self.wavelength))
+                elif self.tuning<=self.laser.maximum_tuning:
                     self.laser.fineTuning(self.tuning)
                     time.sleep(self.short_pause)
                 else:
@@ -126,6 +145,7 @@ class LaserScanningProcess(QObject, Loggable):
             
         # self.laser.setOff()
         file.close()
+        self.is_running=False
         self.S_finished.emit()
 
         self.S_print.emit('\nScanning finished\n')

@@ -90,13 +90,14 @@ class _LBTEK_Internal:
 
     def get_position(self):
         pos_mm = dll.GetCurrentPos(self.handle, 1)
-        pos_mkm = pos_mm * 1000.0
+        pos_mkm = round(pos_mm * 1000.0, 2)
         logger.info(f"[LBTEK.get_position] pos_mm={pos_mm}, pos_mkm={pos_mkm}")
         return pos_mkm
 
     def jog_by(self, step_mkm):
+        step_mkm = round(step_mkm, 2)
         current_pos = self.get_position()
-        target = current_pos + step_mkm
+        target = round(current_pos + step_mkm, 2)
         logger.info(f"[LBTEK.jog_by] current={current_pos}, step={step_mkm}, target={target}")
 
         if not (self.min_position < target < self.max_position):
@@ -116,13 +117,18 @@ class _LBTEK_Internal:
         self.wait_until_idle()
 
     def wait_until_idle(self, timeout=15.0):
+        # Обязательная задержка, чтобы контроллер успел принять команду и выставить статус движения
+        time.sleep(0.08)
         start_time = time.time()
         while time.time() - start_time < timeout:
             state = dll.getDoingState(self.handle, 1)
             if state == 0:
-                logger.info(f"[LBTEK.wait_until_idle] Остановка за {time.time()-start_time:.2f}с")
-                return
-            time.sleep(0.05)
+                # Повторная проверка через 30мс для подтверждения полной остановки
+                time.sleep(0.03)
+                if dll.getDoingState(self.handle, 1) == 0:
+                    logger.info(f"[LBTEK.wait_until_idle] Остановка за {time.time()-start_time:.2f}с")
+                    return
+            time.sleep(0.04)
         raise TimeoutError("Ожидание остановки LBTEK превысило таймаут.")
 
     def close(self):
@@ -140,16 +146,16 @@ class LBTEKAxis:
         self.stage = _LBTEK_Internal(serial_no=identifier)
 
     def get_position(self):
-        return self.stage.get_position()
+        return round(self.stage.get_position(), 2)
 
     def move_relative(self, distance_mkm):
-        self.stage.jog_by(distance_mkm)
+        self.stage.jog_by(round(distance_mkm, 2))
 
     def move_home(self):
         self.stage.move_home()
 
     def wait_for_stop(self):
-        pass
+        self.stage.wait_until_idle()
 
     def close(self):
         self.stage.close()

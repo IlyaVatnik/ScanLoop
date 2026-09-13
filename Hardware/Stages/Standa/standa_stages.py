@@ -40,11 +40,14 @@ class StandaAxis:
     def get_position(self):
         x_pos = get_position_t()
         lib.get_position(self.device_id, byref(x_pos))
-        return x_pos.Position * 2.5
+        return round(x_pos.Position * 2.5, 2)
 
     def move_relative(self, distance_mkm):
-        steps = int(distance_mkm / 2.5)
-        logger.info(f"[Standa.move_relative] steps={steps}, device_id={self.device_id}")
+        steps = int(round(distance_mkm / 2.5))
+        logger.info(f"[Standa.move_relative] distance={distance_mkm}, steps={steps}, device_id={self.device_id}")
+        if steps == 0:
+            logger.warning(f"[Standa.move_relative] steps=0 для расстояния {distance_mkm} мкм (шаг Standa 2.5 мкм)")
+            return
         result = lib.command_movr(self.device_id, steps, 0)
         logger.info(f"[Standa.move_relative] command_movr result={result}")
         
