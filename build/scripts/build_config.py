@@ -165,7 +165,7 @@ HIDDEN_IMPORTS = [
     "typing_extensions",
 ]
 
-EXCLUDE_MODULES = ["PyQt6", "PySide6"]
+EXCLUDE_MODULES = ["PyQt6", "PySide6", "torch", "torchvision", "torchaudio", "tensorflow", "tensorboard"]
 
 # ── Version file management ──────────────────────────────────
 

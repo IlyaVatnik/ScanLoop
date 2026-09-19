@@ -6,6 +6,10 @@ logs errors with suggested fixes.
 
 import os
 import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 import re
 import shutil
 import subprocess
@@ -413,6 +417,7 @@ _PHASES = {
 
 def run_pyinstaller(cmd, env_extras=None):
     env = os.environ.copy()
+    env['MPLBACKEND'] = 'Qt5Agg'
     if env_extras:
         env.update(env_extras)
     process = subprocess.Popen(

@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
+set PYTHONIOENCODING=utf-8
+set PYTHONUTF8=1
 
 :: --- Retry guard (prevents winget infinite loop) ---
 if "%_RETRY%"=="" set _RETRY=0

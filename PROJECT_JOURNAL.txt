@@ -2076,3 +2076,41 @@ Smoke-тест (mock OSA+PM, без лазера, 1550.0 nm, шаг 0.1 pm, max_
    - Проведена компиляция `MainWindow.ui` -> `MainWindowUI.py` (удален рудимент `comboBox_Type_of_Stages`).
    - Все файлы успешно прошли синтаксическую компиляцию `py_compile`.
    - Дымовой тест `MainWindow` и unit-тест `Stages` успешно пройдены.
+
+
+================================================================================
+  СЕССИЯ 2026-09-19: ПОДКЛЮЧЕНИЕ THORLABS CUBE + УСТАНОВКА KINESIS + СБОРКА v5
+================================================================================
+
+1. УСТАНОВКА KINESIS И АППАРАТНАЯ ИНИЦИАЛИЗАЦИЯ:
+   - На ПК Dodik_VIRMAYLINPC скачан и установлен пакет Thorlabs Kinesis v1.14.60.0
+     в стандартный каталог `C:\Program Files\Thorlabs\Kinesis`.
+   - Подключены и инициализированы 2 аппаратных кубика Thorlabs K-Cube DC Servo (KDC):
+     * KDC #1: SN 27254353
+     * KDC #2: SN 27255020
+   - Драйверы `USB\VID_0403&PID_FAF0` (APT USB Device) активированы в Windows, статус OK.
+   - Программный опрос `get_thorlabs_serials()` успешно обнаруживает оба контроллера:
+     `[{'serial': '27254353', 'type': 'KDC'}, {'serial': '27255020', 'type': 'KDC'}]`.
+   - Также в системе функционируют 3 столика Standa на портах COM5, COM6, COM7.
+
+2. ИСПРАВЛЕНИЯ В СИСТЕМЕ СБОРКИ (build_exe.bat / build_exe.py / build_config.py):
+   - Пересоздано локальное окружение `venv` взамен битого старого профиля с чужой машины.
+   - Устранена ошибка кодировки `UnicodeEncodeError (cp1252)` на кириллических путях
+     (`Рабочий стол`): добавлены `sys.stdout.reconfigure(encoding='utf-8')` и переменные
+     `PYTHONIOENCODING=utf-8`, `PYTHONUTF8=1`.
+   - Устранено зависание сканирования бэкендов `matplotlib`: принудительно задан `MPLBACKEND=Qt5Agg`.
+   - Устранён критический сбой PyInstaller `Access Violation (0xc0000005)` из-за системного PyTorch:
+     в `EXCLUDE_MODULES` (`build_config.py`) добавлены `torch`, `torchvision`, `torchaudio`, `tensorflow`.
+
+3. УСПЕШНАЯ СБОРКА ДИСТРИБУТИВА:
+   - Сборка через `build_exe.bat` успешно завершена за 255 секунд (Exit code 0).
+   - Каталог сборки: `dist/v5_ScanLoop_Dodik_VIRMAYLINPC/`
+   - Исполняемый файл: `v5_ScanLoop_Dodik_VIRMAYLINPC.exe` (31.16 MB).
+   - В папку `_internal` автоматически вшиты необходимые библиотеки Kinesis:
+     * `Thorlabs.MotionControl.DeviceManager.dll`
+     * `Thorlabs.MotionControl.KCube.DCServo.dll`
+     * `Thorlabs.MotionControl.Benchtop.StepperMotor.dll`
+     * `Thorlabs.MotionControl.PrivateInternal.dll`
+     * `Thorlabs.MotionControl.FTD2xx_Net.dll`
+   - Создан архив дистрибутива: `dist/v5_ScanLoop_Dodik_VIRMAYLINPC.zip` (178.53 MB).
+
