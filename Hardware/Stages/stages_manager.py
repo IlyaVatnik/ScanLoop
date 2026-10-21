@@ -41,6 +41,12 @@ class Stages(QObject):
     def __init__(self, config=None):
         super().__init__()
         self.axes = {'X': None, 'Y': None, 'Z': None}
+        # Координаты в физических шагах энкодера (long int без округления)
+        self.abs_position_steps = {'X': 0, 'Y': 0, 'Z': 0}
+        self.relative_position_steps = {'X': 0, 'Y': 0, 'Z': 0}
+        self.zero_position_steps = {'X': 0, 'Y': 0, 'Z': 0}
+
+        # Координаты в микронах с максимальной точностью float
         self.abs_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
         self.relative_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
         self.zero_position = {'X': 0.0, 'Y': 0.0, 'Z': 0.0}
@@ -54,22 +60,46 @@ class Stages(QObject):
             self.setup_stages(config)
 
     def _on_poll_timer(self):
-        """Опрос реального положения столиков при простое (для отслеживания ручного вращения крутилок)"""
+        """Опрос реального положения столиков при простое (отслеживание ручного вращения крутилок)"""
         if self._is_moving:
             return
         changed = False
         for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
-                    pos = round(axis_obj.get_position(), 2)
-                    if abs(self.abs_position[key] - pos) >= 0.01:
-                        self.abs_position[key] = pos
-                        changed = True
+                    if hasattr(axis_obj, 'get_position_steps'):
+                        steps = int(axis_obj.get_position_steps())
+                        if steps != self.abs_position_steps[key]:
+                            self.abs_position_steps[key] = steps
+                            self.abs_position[key] = float(axis_obj.get_position())
+                            changed = True
+                    else:
+                        pos = float(axis_obj.get_position())
+                        if abs(self.abs_position[key] - pos) >= 0.0001:
+                            self.abs_position[key] = pos
+                            min_step = self.get_min_step(key)
+                            self.abs_position_steps[key] = int(round(pos / min_step)) if min_step else 0
+                            changed = True
                 except Exception:
                     pass
         if changed:
             self.update_relative_positions()
             self.stopped.emit()
+
+    def get_min_step(self, key: str) -> float:
+        """Возвращает минимальный шаг подвижки по заданной оси (мкм)."""
+        axis_obj = self.axes.get(key)
+        if axis_obj and hasattr(axis_obj, 'get_min_step'):
+            return float(axis_obj.get_min_step())
+        if axis_obj and hasattr(axis_obj, 'encoder_step'):
+            return float(axis_obj.encoder_step)
+        return 0.028939403847844007  # Заводской шаг сервопривода Thorlabs Z8
+
+    def set_stage_velocity(self, key: str, max_velocity_mm_s: float, acceleration_mm_s2: float):
+        """Динамическая установка скорости и разгона для оси."""
+        axis_obj = self.axes.get(key)
+        if axis_obj and hasattr(axis_obj, 'set_velocity'):
+            axis_obj.set_velocity(max_velocity_mm_s, acceleration_mm_s2)
 
     def setup_stages(self, config):
         driver_map = {
@@ -88,19 +118,18 @@ class Stages(QObject):
                     raw = serial
                     if not raw:
                         continue
+                    vel = params.get('velocity', 2.0)
+                    acc = params.get('acceleration', 1.5)
+
                     if 'B' in raw and raw[0].isdigit():
                         channel = int(raw[0])
                         serial = raw[2:]
-                        vel = params.get('velocity', 2.0)
-                        acc = params.get('acceleration', 0.5)
                         if ThorlabsBSM:
                             self.axes[axis_key] = ThorlabsBSM(serial, channel, vel, acc)
                         else:
                             continue
                     elif raw.startswith('B'):
                         serial = raw[1:]
-                        vel = params.get('velocity', 2.0)
-                        acc = params.get('acceleration', 0.5)
                         if ThorlabsBSM:
                             self.axes[axis_key] = ThorlabsBSM(serial, 0, vel, acc)
                         else:
@@ -108,12 +137,12 @@ class Stages(QObject):
                     elif raw.startswith('K'):
                         serial = raw[1:]
                         if ThorlabsCube:
-                            self.axes[axis_key] = ThorlabsCube(serial)
+                            self.axes[axis_key] = ThorlabsCube(serial, max_velocity_mm_s=vel, acceleration_mm_s2=acc)
                         else:
                             continue
                     else:
                         if ThorlabsCube:
-                            self.axes[axis_key] = ThorlabsCube(raw)
+                            self.axes[axis_key] = ThorlabsCube(raw, max_velocity_mm_s=vel, acceleration_mm_s2=acc)
                         else:
                             continue
                 else:
@@ -146,14 +175,21 @@ class Stages(QObject):
 
         self._is_moving = True
         try:
-            axis_obj.move_relative(round(distance, 2))
+            axis_obj.move_relative(float(distance))
             if hasattr(axis_obj, 'wait_for_stop'):
                 axis_obj.wait_for_stop()
             logger.info(f"[Stages.shiftOnArbitrary] move_relative завершён")
-            self.abs_position[key] = round(axis_obj.get_position(), 2)
+            
+            if hasattr(axis_obj, 'get_position_steps'):
+                self.abs_position_steps[key] = int(axis_obj.get_position_steps())
+            else:
+                min_step = self.get_min_step(key)
+                self.abs_position_steps[key] = int(round(float(axis_obj.get_position()) / min_step)) if min_step else 0
+
+            self.abs_position[key] = float(axis_obj.get_position())
             self.update_relative_positions()
             self.stopped.emit()
-            logger.info(f"[Stages.shiftOnArbitrary] stopped.emit() отправлен, pos={self.abs_position[key]}")
+            logger.info(f"[Stages.shiftOnArbitrary] stopped.emit() отправлен, pos={self.abs_position[key]:.5f} мкм ({self.abs_position_steps[key]} шагов)")
 
         except Exception as e:
             logger.error(f"[Stages.shiftOnArbitrary] ИСКЛЮЧЕНИЕ:\n{traceback.format_exc()}")
@@ -179,25 +215,34 @@ class Stages(QObject):
             self._is_moving = False
 
     def set_zero_positions(self, zeros_list):
-        self.zero_position['X'] = round(float(zeros_list[0]), 2)
-        self.zero_position['Y'] = round(float(zeros_list[1]), 2)
-        self.zero_position['Z'] = round(float(zeros_list[2]), 2)
+        for i, key in enumerate(['X', 'Y', 'Z']):
+            if i < len(zeros_list):
+                val = float(zeros_list[i])
+                self.zero_position[key] = val
+                min_step = self.get_min_step(key)
+                self.zero_position_steps[key] = int(round(val / min_step)) if min_step else 0
         self.update_relative_positions()
 
     def update_relative_positions(self):
         for key in ['X', 'Y', 'Z']:
-            self.relative_position[key] = round(self.abs_position[key] - self.zero_position[key], 2)
+            self.relative_position_steps[key] = int(self.abs_position_steps[key] - self.zero_position_steps[key])
+            self.relative_position[key] = float(self.abs_position[key] - self.zero_position[key])
 
     def update_all_absolute_positions(self):
         for key, axis_obj in self.axes.items():
             if axis_obj is not None:
                 try:
-                    pos = round(axis_obj.get_position(), 2)
-                    self.abs_position[key] = pos
-                    logger.debug(f"[Stages] update_position axis={key}: {pos} um")
+                    if hasattr(axis_obj, 'get_position_steps'):
+                        self.abs_position_steps[key] = int(axis_obj.get_position_steps())
+                    else:
+                        min_step = self.get_min_step(key)
+                        self.abs_position_steps[key] = int(round(float(axis_obj.get_position()) / min_step)) if min_step else 0
+                    self.abs_position[key] = float(axis_obj.get_position())
+                    logger.debug(f"[Stages] update_position axis={key}: {self.abs_position[key]:.5f} um ({self.abs_position_steps[key]} steps)")
                 except Exception as e:
                     logger.error(f"Не удалось прочитать позицию оси {key}: {traceback.format_exc()}")
                     self.abs_position[key] = 0.0
+                    self.abs_position_steps[key] = 0
         self.update_relative_positions()
         logger.debug(f"[Stages] abs_positions: {self.abs_position}")
 

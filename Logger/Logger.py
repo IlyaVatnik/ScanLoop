@@ -53,6 +53,14 @@ class Logger(Loggable, QObject):
             f = open(FileName, "wb")
             pickle.dump(Data, f)
             f.close()
+        try:
+            folder = self.SpectralDataFolder if SourceOfData == 'FromOSA' else self.TDFolder
+            os.makedirs(folder, exist_ok=True)
+            from datetime import datetime
+            with open(os.path.join(folder, 'timestamps.txt'), 'a', encoding='utf-8') as ts_f:
+                ts_f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}\t{name}\n")
+        except Exception:
+            pass
         self.S_print.emit('\nData saved\n')
     
     def save_parameters(self, list_dictionaries):

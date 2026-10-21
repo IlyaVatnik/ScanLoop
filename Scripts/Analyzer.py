@@ -172,8 +172,13 @@ class Analyzer(QObject, Loggable):
                     self.SNAP.type_of_signal = 'insertion losses'
                     self.SNAP.jones_matrix_used = False
                     self.SNAP.signal = self.SNAP.transmission
+                if hasattr(self.SNAP, 'positions') and self.SNAP.positions is not None:
+                    if self.SNAP.positions.ndim == 1:
+                        self.SNAP.positions = self.SNAP.positions.reshape(-1, 1)
+                    if self.SNAP.positions.shape[1] < 6:
+                        pad_cols = 6 - self.SNAP.positions.shape[1]
+                        self.SNAP.positions = np.pad(self.SNAP.positions, ((0, 0), (0, pad_cols)), mode='constant')
                 self.S_print.emit('File has been loaded to SNAP object')
-
             elif isinstance(loaded_object, dict):
                 self.S_print.emit(
                     'loading old style SNAP data for analyzer from ' + self.spectrogram_file_path)
@@ -189,6 +194,9 @@ class Analyzer(QObject, Loggable):
                 if Positions.ndim == 1:
                     self.S_print.emit('Positions is 1D, reshaping to 2D')
                     Positions = Positions.reshape(-1, 1)
+                if Positions.shape[1] < 6:
+                    pad_cols = 6 - Positions.shape[1]
+                    Positions = np.pad(Positions, ((0, 0), (0, pad_cols)), mode='constant')
                 if wavelengths.ndim == 0:
                     wavelengths = np.array([wavelengths])
 
@@ -588,7 +596,7 @@ class Analyzer(QObject, Loggable):
         '''
             legacy code
             '''
-        if p['position_in_steps_axis']:
+        if p['position_in_steps_axis'] and self.SNAP.axis_key not in ['t', 'p', 'W']:
             ax_steps = ax_Wavelengths.twiny()
             ax_steps.set_xlim([np.min(x)/2.5, np.max(x)/2.5])
             try:
@@ -614,6 +622,8 @@ class Analyzer(QObject, Loggable):
                     ax_Wavelengths.set_xlabel(r'Wavelength $\lambda$, nm')
                 elif self.SNAP.axis_key == 'p':
                     ax_Wavelengths.set_xlabel('Position, number')
+                elif self.SNAP.axis_key == 't':
+                    ax_Wavelengths.set_xlabel('Time, s')
                 else:
                     ax_Wavelengths.set_xlabel(r'Position $z_0$, $\mu$m')
                 ax_Wavelengths.set_ylabel(r'Wavelength $\lambda$, nm')
@@ -622,11 +632,12 @@ class Analyzer(QObject, Loggable):
                 except:
                     pass
                 if self.SNAP.signal_scale == 'log':
-                    if p['colorbar_title_position'] == 'right':
+                    c_text = p.get('colorbar_text', 'dB')
+                    if p.get('colorbar_title_position', 'right') == 'right':
                         clb.ax.set_ylabel(
-                            p['colorbar_text'], rotation=p['colorbar_title_rotation'], labelpad=5)
+                            c_text, rotation=p.get('colorbar_title_rotation', 0), labelpad=5)
                     else:
-                        clb.ax.set_title(p['colorbar_text'])
+                        clb.ax.set_title(c_text)
                 if p['title']:
                     plt.title(self.SNAP.type_of_signal)
                 try:
@@ -641,6 +652,8 @@ class Analyzer(QObject, Loggable):
                 ax_Wavelengths.set_xlabel('Длина волны, нм')
             elif self.SNAP.axis_key == 'p':
                 ax_Wavelengths.set_xlabel('Позиция, #')
+            elif self.SNAP.axis_key == 't':
+                ax_Wavelengths.set_xlabel('Время, с')
             else:
                 ax_Wavelengths.set_xlabel('Расстояние, мкм')
             ax_Wavelengths.set_ylabel('Длина волны, нм')
@@ -650,12 +663,12 @@ class Analyzer(QObject, Loggable):
                 pass
             try:
                 if self.SNAP.signal_scale == 'log':
-                    if p['colorbar_title_position'] == 'right':
+                    c_text = p.get('colorbar_text', 'дБ')
+                    if p.get('colorbar_title_position', 'right') == 'right':
                         clb.ax.set_ylabel(
-                            p['colorbar_text'], rotation=p['colorbar_title_rotation'])
+                            c_text, rotation=p.get('colorbar_title_rotation', 0))
                     else:
-                        clb.ax.set_title(p['colorbar_text'])
-                if p['title']:
+                        clb.ax.set_title(c_text)
                     plt.title(self.SNAP.type_of_signal)
                 try:
                     ax_steps.set_xlabel('Расстояние, шаги')

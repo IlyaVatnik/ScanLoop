@@ -19,3 +19,5 @@ data/**/*.txt
 Hardware/drivers/zadig.exe
 build/releases/
 data/osa_scope/
+Logs/
+*.lnk

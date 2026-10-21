@@ -219,7 +219,9 @@ class ScanningProcess(QObject, Loggable):
         step = round(float(step), 2)
         if self.axis_to_scan == 'Piezo':
             self.piezo_stage.move_by(step)
-        elif self.axis_to_scan == 'None':
+        elif self.axis_to_scan in ['None', 'Time']:
+            if step > 0:
+                time.sleep(step)
             return
         else:
             self.stages.shiftOnArbitrary(self.axis_to_scan, step)
@@ -229,7 +231,7 @@ class ScanningProcess(QObject, Loggable):
         step = round(float(step), 2)
         if self.axis_to_get_contact == 'Piezo':
             self.piezo_stage.move_by(step)
-        elif self.axis_to_get_contact == 'None':
+        elif self.axis_to_get_contact in ['None', 'Time']:
             return
         else:
             self.stages.shiftOnArbitrary(self.axis_to_get_contact, step)
@@ -241,6 +243,7 @@ class ScanningProcess(QObject, Loggable):
     """
     def run(self):
         time.sleep(0.05)
+        self.start_time = time.time()
         ### main loop
         
         self.update_OSA_parameters()
@@ -253,7 +256,8 @@ class ScanningProcess(QObject, Loggable):
                 if background_signal is None:
                     self.S_print_error.emit('Failed to acquire background spectrum, skipping')
                 else:
-                    self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),'p='+str(self.current_file_index)+'_out_of_contact') # save Jones matrixes to Luna for out of contact
+                    t_elapsed = round(time.time() - self.start_time, 2)
+                    self.S_saveData.emit(np.stack((wavelengths_background, background_signal),axis=1),f'p={self.current_file_index}_out_of_contact_t={t_elapsed:.2f}') # save Jones matrixes to Luna for out of contact
    
             time0=time.time()
        
@@ -279,7 +283,8 @@ class ScanningProcess(QObject, Loggable):
                 time.sleep(0.05)
                 
                 Data=np.stack((wavelengthdata, spectrum),axis=1)
-                self.S_saveData.emit(Data,'p='+str(self.current_file_index)+'_j='+str(jj)) # save spectrum to file
+                t_elapsed = round(time.time() - self.start_time, 2)
+                self.S_saveData.emit(Data,f'p={self.current_file_index}_j={jj}_t={t_elapsed:.2f}') # save spectrum to file
                 if not self.is_running: break
 
             #update indexes in MainWindow and save positions into "Positions.txt"

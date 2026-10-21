@@ -1,17 +1,44 @@
-# Hardware/Stages/thorlabs_kinesis/KCube_DC_Servo.py
-
+import os
 from ctypes import cdll
 import logging
 
 logger = logging.getLogger(__name__)
 
+_KINESIS_PATHS = [
+    os.path.join(os.environ.get("PROGRAMFILES", r"C:\Program Files"), "Thorlabs", "Kinesis"),
+    os.path.join(os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)"), "Thorlabs", "Kinesis"),
+]
+
+_KDC_DLL = "Thorlabs.MotionControl.KCube.DCServo.dll"
+lib = None
+DLL_AVAILABLE = False
+
 try:
-    lib = cdll.LoadLibrary("Thorlabs.MotionControl.KCube.DCServo.dll")
+    lib = cdll.LoadLibrary(_KDC_DLL)
     DLL_AVAILABLE = True
 except Exception:
+    pass
+
+if not DLL_AVAILABLE:
+    for kpath in _KINESIS_PATHS:
+        full = os.path.join(kpath, _KDC_DLL)
+        if os.path.exists(full):
+            try:
+                if hasattr(os, "add_dll_directory"):
+                    os.add_dll_directory(kpath)
+                lib = cdll.LoadLibrary(_KDC_DLL)
+                DLL_AVAILABLE = True
+                break
+            except Exception:
+                try:
+                    lib = cdll.LoadLibrary(full)
+                    DLL_AVAILABLE = True
+                    break
+                except Exception:
+                    pass
+
+if not DLL_AVAILABLE:
     logger.warning("[Thorlabs.KDC] DLL не найдена — модуль будет недоступен")
-    lib = None
-    DLL_AVAILABLE = False
 
 "Bindings for Thorlabs Benchtop Brushless Motor DLL"
 # flake8: noqa
@@ -336,7 +363,7 @@ CC_SetJogVelParams = bind(lib, "CC_SetJogVelParams", [POINTER(c_char), c_int, c_
 CC_MoveJog = bind(lib, "CC_MoveJog", [POINTER(c_char), MOT_TravelDirection], c_short)
 CC_RequestVelParams = bind(lib, "CC_RequestVelParams", [POINTER(c_char)], c_short)
 CC_GetVelParams = bind(lib, "CC_GetVelParams", [POINTER(c_char), POINTER(c_int), POINTER(c_int)], c_short)
-CC_SetVelParams = bind(lib, "CC_SetVelParams", [POINTER(c_char), c_int, c_int, c_int], c_short)
+CC_SetVelParams = bind(lib, "CC_SetVelParams", [POINTER(c_char), c_int, c_int], c_short)
 CC_MoveAtVelocity = bind(lib, "CC_MoveAtVelocity", [POINTER(c_char), MOT_TravelDirection], c_short)
 CC_SetDirection = bind(lib, "CC_SetDirection", [POINTER(c_char), c_bool])
 CC_StopImmediate = bind(lib, "CC_StopImmediate", [POINTER(c_char)], c_short)
@@ -389,6 +416,7 @@ CC_SetMoveRelativeDistance = bind(lib, "CC_SetMoveRelativeDistance", [POINTER(c_
 CC_RequestMoveRelativeDistance = bind(lib, "CC_RequestMoveRelativeDistance", [POINTER(c_char)], c_short)
 CC_GetMoveRelativeDistance = bind(lib, "CC_GetMoveRelativeDistance", [POINTER(c_char)], c_int)
 CC_MoveRelativeDistance = bind(lib, "CC_MoveRelativeDistance", [POINTER(c_char)], c_short)
+CC_MoveRelative = bind(lib, "CC_MoveRelative", [POINTER(c_char), c_int], c_short)
 CC_GetHomingParamsBlock = bind(lib, "CC_GetHomingParamsBlock", [POINTER(c_char), POINTER(MOT_HomingParameters)], c_short)
 CC_SetHomingParamsBlock = bind(lib, "CC_SetHomingParamsBlock", [POINTER(c_char), POINTER(MOT_HomingParameters)], c_short)
 CC_GetJogParamsBlock = bind(lib, "CC_GetJogParamsBlock", [POINTER(c_char), POINTER(MOT_JogParameters)], c_short)

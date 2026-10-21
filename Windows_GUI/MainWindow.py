@@ -199,23 +199,50 @@ class MainWindow(ThreadedMainWindow, Loggable):
 # =============================================================================
     def init_stages_interface(self):
         self.ui.pushButton_StagesConnect.pressed.connect(self.connect_stages)
-        self.X_0,self.Y_0,self.Z_0=[0,0,0]
+        self.X_0, self.Y_0, self.Z_0 = [0, 0, 0]
+        self.precision_mode = {'X': False, 'Y': False, 'Z': False}
+        self._last_logged_pos = {'X': None, 'Y': None, 'Z': None}
+
+        # Ручное перемещение
         self.ui.pushButton_MovePlusX.pressed.connect(
-            lambda :self.setStageMoving('X',float(self.ui.lineEdit_StepX.text())))
+            lambda: self.setStageMoving('X', float(self.ui.lineEdit_StepX.text())))
         self.ui.pushButton_MoveMinusX.pressed.connect(
-            lambda :self.setStageMoving('X',-1*float(self.ui.lineEdit_StepX.text())))
+            lambda: self.setStageMoving('X', -1 * float(self.ui.lineEdit_StepX.text())))
         self.ui.pushButton_MovePlusY.pressed.connect(
-            lambda :self.setStageMoving('Y',float(self.ui.lineEdit_StepY.text())))
+            lambda: self.setStageMoving('Y', float(self.ui.lineEdit_StepY.text())))
         self.ui.pushButton_MoveMinusY.pressed.connect(
-            lambda :self.setStageMoving('Y',-1*float(self.ui.lineEdit_StepY.text())))
+            lambda: self.setStageMoving('Y', -1 * float(self.ui.lineEdit_StepY.text())))
         self.ui.pushButton_MovePlusZ.pressed.connect(
-            lambda :self.setStageMoving('Z',float(self.ui.lineEdit_StepZ.text())))
+            lambda: self.setStageMoving('Z', float(self.ui.lineEdit_StepZ.text())))
         self.ui.pushButton_MoveMinusZ.pressed.connect(
-            lambda :self.setStageMoving('Z',-1*float(self.ui.lineEdit_StepZ.text())))
+            lambda: self.setStageMoving('Z', -1 * float(self.ui.lineEdit_StepZ.text())))
+
+        # Обнуление
         self.ui.pushButton_zero_position_X.pressed.connect(lambda: self.on_pushButton_zeroingPositions('X'))
         self.ui.pushButton_zero_position_Y.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Y'))
         self.ui.pushButton_zero_position_Z.pressed.connect(lambda: self.on_pushButton_zeroingPositions('Z'))
         self.ui.pushButton_zeroing_stages.pressed.connect(self.zeroing_stages)
+
+        # Подключение кнопок минимального шага и кнопок позиций высокой точности
+        for ax in ('X', 'Y', 'Z'):
+            btn_prec = getattr(self.ui, f'pushButton_Precision{ax}', None)
+            if btn_prec:
+                btn_prec.toggled.connect(lambda checked, a=ax: self.on_precision_toggled(a, checked))
+
+            btn_rel = getattr(self.ui, f'pushButton_Position{ax}', getattr(self.ui, f'label_Position{ax}', None))
+            if btn_rel and hasattr(btn_rel, 'clicked'):
+                btn_rel.clicked.connect(lambda _, a=ax: self.log_exact_position(a, 'Rel'))
+
+            btn_abs = getattr(self.ui, f'pushButton_AbsPosition{ax}', getattr(self.ui, f'label_AbsPosition{ax}', None))
+            if btn_abs and hasattr(btn_abs, 'clicked'):
+                btn_abs.clicked.connect(lambda _, a=ax: self.log_exact_position(a, 'Abs'))
+
+            edt_vel = getattr(self.ui, f'lineEdit_vel_{ax}', None)
+            edt_acc = getattr(self.ui, f'lineEdit_acc_{ax}', None)
+            if edt_vel:
+                edt_vel.editingFinished.connect(lambda a=ax: self._on_speed_params_changed(a))
+            if edt_acc:
+                edt_acc.editingFinished.connect(lambda a=ax: self._on_speed_params_changed(a))
 # =============================================================================
 #         Piezo Stage interface
 # =============================================================================
@@ -685,6 +712,15 @@ class MainWindow(ThreadedMainWindow, Loggable):
             zero_pos = self.logger.load_zero_position()
             if len(zero_pos) >= 3: self.stages.set_zero_positions(zero_pos[0:3])
             self.update_indicated_positions()
+
+            # Обновление минимального шага на кнопках осей
+            for ax in ('X', 'Y', 'Z'):
+                if self.stages.axes.get(ax) is not None:
+                    min_step = self.stages.get_min_step(ax)
+                    btn_prec = getattr(self.ui, f'pushButton_Precision{ax}', None)
+                    if btn_prec:
+                        btn_prec.setText(f"{min_step:.4f} мкм" if min_step < 0.1 else f"{min_step:.2f} мкм")
+
             self.ui.groupBox_stand.setEnabled(True)
             self.enable_scanning_process()
 
@@ -692,6 +728,46 @@ class MainWindow(ThreadedMainWindow, Loggable):
             import traceback
             self.logWarningText(f'КРИТИЧЕСКАЯ ОШИБКА в connect_stages: {e}')
             self.log.exception(e)
+
+    def _on_speed_params_changed(self, axis: str):
+        """Применяет измененные пользователем скорость и ускорение для Thorlabs Cube."""
+        if hasattr(self, 'stages') and self.stages is not None and hasattr(self, 'stage_panel'):
+            sel = self.stage_panel.axes.get(axis)
+            if sel and sel.is_thorlabs_cube():
+                vel = sel.get_velocity()
+                acc = sel.get_acceleration()
+                self.stages.set_stage_velocity(axis, vel, acc)
+                self.logText(f"[{axis}] Применены параметры: макс. скорость = {vel} мм/с, разгон = {acc} мм/с²")
+
+    def log_exact_position(self, axis: str, mode: str = 'Rel'):
+        """Выводит в нижнее окно логов максимально точное значение позиции (в микронах и физических шагах)."""
+        if not hasattr(self, 'stages') or self.stages is None:
+            self.logText(f"[{axis}] Подвижка не подключена.")
+            return
+
+        if mode == 'Rel':
+            pos_um = self.stages.relative_position.get(axis, 0.0)
+            pos_steps = self.stages.relative_position_steps.get(axis, 0)
+        else:
+            pos_um = self.stages.abs_position.get(axis, 0.0)
+            pos_steps = self.stages.abs_position_steps.get(axis, 0)
+
+        min_step = self.stages.get_min_step(axis)
+        self.logText(f"[{axis}] Точная {mode}-позиция: {pos_um:.6f} мкм ({pos_steps} шагов энкодера, 1 шаг = {min_step:.5f} мкм)")
+
+    def on_precision_toggled(self, axis: str, checked: bool):
+        """Переключает режим максимальной точности для оси."""
+        self.precision_mode[axis] = checked
+        btn = getattr(self.ui, f'pushButton_Precision{axis}', None)
+        if btn:
+            if checked:
+                btn.setStyleSheet("background-color: #a8f0a8; font-weight: bold;")
+                self.logText(f"[{axis}] Включен режим максимальной точности (кнопки и логирование при каждом шаге):")
+                self.log_exact_position(axis, 'Rel')
+            else:
+                btn.setStyleSheet("")
+                self.logText(f"[{axis}] Режим максимальной точности выключен (стандартное отображение до 2 знаков).")
+        self.update_indicated_positions()
     def zeroing_stages(self):
         '''
         move all connected stages to their home position
@@ -1118,58 +1194,86 @@ class MainWindow(ThreadedMainWindow, Loggable):
     @pyqtSlotWExceptions("PyQt_PyObject")
     def update_indicated_positions(self):
         try:
-            X_abs=(self.stages.abs_position['X'])
-            Y_abs=(self.stages.abs_position['Y'])
-            Z_abs=(self.stages.abs_position['Z'])
+            X_abs = float(self.stages.abs_position['X'])
+            Y_abs = float(self.stages.abs_position['Y'])
+            Z_abs = float(self.stages.abs_position['Z'])
         
-            X_rel=(self.stages.relative_position['X'])
-            Y_rel=(self.stages.relative_position['Y'])
-            Z_rel=(self.stages.relative_position['Z'])
-        except:
-            X_abs,Y_abs,Z_abs=0,0,0
-            X_rel,Y_rel,Z_rel=0,0,0
+            X_rel = float(self.stages.relative_position['X'])
+            Y_rel = float(self.stages.relative_position['Y'])
+            Z_rel = float(self.stages.relative_position['Z'])
+        except Exception:
+            X_abs, Y_abs, Z_abs = 0.0, 0.0, 0.0
+            X_rel, Y_rel, Z_rel = 0.0, 0.0, 0.0
+
         try:
-            piezoZ_abs=self.piezo_stage.abs_position
-            piezoZ_rel=self.piezo_stage.relative_position
-        except:
-            piezoZ_abs,piezoZ_rel=0,0
+            piezoZ_abs = self.piezo_stage.abs_position
+            piezoZ_rel = self.piezo_stage.relative_position
+        except Exception:
+            piezoZ_abs, piezoZ_rel = 0.0, 0.0
 
-        self.ui.label_PositionX.setText(f"{float(X_rel):.2f}")
-        self.ui.label_PositionY.setText(f"{float(Y_rel):.2f}")
-        self.ui.label_PositionZ.setText(f"{float(Z_rel):.2f}")
+        axes_coords = [
+            ('X', X_rel, X_abs),
+            ('Y', Y_rel, Y_abs),
+            ('Z', Z_rel, Z_abs),
+        ]
+
+        for ax, rel_val, abs_val in axes_coords:
+            is_precise = getattr(self, 'precision_mode', {}).get(ax, False)
+            if is_precise:
+                txt_rel = f"{rel_val:.5f}"
+                txt_abs = f"{abs_val:.5f}"
+            else:
+                txt_rel = f"{rel_val:.2f}"
+                txt_abs = f"{abs_val:.2f}"
+
+            # Обновление кнопки / лейбла относительной позиции
+            btn_rel = getattr(self.ui, f'pushButton_Position{ax}', getattr(self.ui, f'label_Position{ax}', None))
+            if btn_rel is not None and hasattr(btn_rel, 'setText'):
+                btn_rel.setText(txt_rel)
+
+            # Обновление кнопки / лейбла абсолютной позиции
+            btn_abs = getattr(self.ui, f'pushButton_AbsPosition{ax}', getattr(self.ui, f'label_AbsPosition{ax}', None))
+            if btn_abs is not None and hasattr(btn_abs, 'setText'):
+                btn_abs.setText(txt_abs)
+
+            # Если включен режим точности — автоматически логировать точную позицию при перемещении
+            if is_precise and hasattr(self, 'stages') and self.stages is not None:
+                cur_steps = self.stages.abs_position_steps.get(ax, 0)
+                last_steps = getattr(self, '_last_logged_pos', {}).get(ax)
+                if last_steps != cur_steps:
+                    self._last_logged_pos[ax] = cur_steps
+                    min_step = self.stages.get_min_step(ax)
+                    self.logText(f"[{ax}] Перемещение -> Rel = {rel_val:.6f} мкм ({self.stages.relative_position_steps.get(ax, 0)} шагов), Abs = {abs_val:.6f} мкм (мин. шаг = {min_step:.5f} мкм)")
+
         self.ui.label_piezo_rel_position.setText('{:.4f}'.format(float(piezoZ_rel)))
-
-        self.ui.label_AbsPositionX.setText(f"{float(X_abs):.2f}")
-        self.ui.label_AbsPositionY.setText(f"{float(Y_abs):.2f}")
-        self.ui.label_AbsPositionZ.setText(f"{float(Z_abs):.2f}")
         self.ui.label_piezo_abs_position.setText('{:.4f}'.format(float(piezoZ_abs)))
 
-
-
-    def on_pushButton_zeroingPositions(self,key='X'):
+    def on_pushButton_zeroingPositions(self, key='X'):
         try:
-            X_0=(self.stages.abs_position['X'])
-            Y_0=(self.stages.abs_position['Y'])
-            Z_0=(self.stages.abs_position['Z'])
-        except:
-            X_0,Y_0,Z_0=0,0,0
+            X_0 = float(self.stages.abs_position['X'])
+            Y_0 = float(self.stages.abs_position['Y'])
+            Z_0 = float(self.stages.abs_position['Z'])
+        except Exception:
+            X_0, Y_0, Z_0 = 0.0, 0.0, 0.0
         try:
-            piezoZ_0=self.piezo_stage.abs_position
-        except:
-            piezoZ_0=0
-        if key=='Piezo':
-            self.piezo_stage.zero_position=piezoZ_0
+            piezoZ_0 = self.piezo_stage.abs_position
+        except Exception:
+            piezoZ_0 = 0.0
+
+        if key == 'Piezo':
+            self.piezo_stage.zero_position = piezoZ_0
         else:
-            self.stages.zero_position[key]=self.stages.abs_position[key]
-        try:
-            self.stages.update_relative_positions()
-        except:
-                pass
+            if hasattr(self, 'stages') and self.stages is not None:
+                self.stages.zero_position[key] = self.stages.abs_position[key]
+                self.stages.zero_position_steps[key] = self.stages.abs_position_steps[key]
+                self.stages.update_relative_positions()
+
         try:
             self.piezo_stage.update_position()
-        except:
+        except Exception:
             pass
-        self.logger.save_zero_position(X_0,Y_0,Z_0,piezoZ_0)
+
+        self.logger.save_zero_position(X_0, Y_0, Z_0, piezoZ_0)
         self.update_indicated_positions()
         
     
@@ -1289,6 +1393,10 @@ class MainWindow(ThreadedMainWindow, Loggable):
                             lambda Data,prefix: self.logger.save_data(Data,prefix,
                                 0, 0,
                                 0,self.piezo_stage.relative_position,'FromOSA'))
+            else:
+                self.scanningProcess.S_saveData.connect(
+                            lambda Data,prefix: self.logger.save_data(Data,prefix,
+                                0, 0, 0, 0,'FromOSA'))
             self.scanningProcess.S_finished.connect(lambda: self.ui.pushButton_scan_in_space.setChecked(False))
             self.scanningProcess.S_finished.connect(
                     lambda : self.on_pushButton_scan_in_space(False))
@@ -1300,9 +1408,10 @@ class MainWindow(ThreadedMainWindow, Loggable):
                 self.scanningProcess.LunaJonesMeasurement=True
                 self.scanningProcess.S_saveData.connect(lambda data, name: self.OSA.save_binary(
                     f"{self.logger.SpectralBinaryDataFolder}"
-                    + f"Sp_{name}_X={self.stages.relative_position['X']}"
-                    + f"_Y={self.stages.relative_position['Y']}"
-                    + f"_Z={self.stages.relative_position['Z']}_"+f"piezoZ={self.piezo_stage.relative_position}_.bin"))
+                    + f"Sp_{name}_X={self.stages.relative_position['X'] if self.stages else 0}"
+                    + f"_Y={self.stages.relative_position['Y'] if self.stages else 0}"
+                    + f"_Z={self.stages.relative_position['Z'] if self.stages else 0}_"
+                    + f"piezoZ={self.piezo_stage.relative_position if self.piezo_stage else 0}_.bin"))
 
 
 
@@ -1314,6 +1423,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
                     self.scanningProcess.is_running=True
                     if self.scanningProcess.axis_to_scan=='Piezo':
                         final_position='{:.4f}'.format((self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position)
+                    elif self.scanningProcess.axis_to_scan in ['None', 'Time']:
+                        final_position='Time scan'
                     else:
                         final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
                     self.ui.label_scanning_final_position.setText(str(final_position))
@@ -1721,6 +1832,8 @@ class MainWindow(ThreadedMainWindow, Loggable):
             self.scanningProcess.set_parameters(params)
             if self.scanningProcess.axis_to_scan=='Piezo':
                 final_position='{:.4f}'.format((self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.piezo_stage.relative_position)
+            elif self.scanningProcess.axis_to_scan in ['None', 'Time']:
+                final_position='Time scan'
             else:
                 final_position=(self.scanningProcess.stop_file_index-self.scanningProcess.current_file_index)*self.scanningProcess.scanning_step+self.stages.relative_position[self.scanningProcess.axis_to_scan]
             self.ui.label_scanning_final_position.setText(str(final_position))

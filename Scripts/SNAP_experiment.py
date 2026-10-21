@@ -62,7 +62,7 @@ class SNAP():
             self.jones_matrixes_used=True
             self.type_of_signal='insertion losses'
         
-        self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4}
+        self.axes_dict={'X':0,'Y':1,'Z':2,'W':3,'p':4,'t':5}
         self.signal_scale='log'
         self.axis_key='Z'
 

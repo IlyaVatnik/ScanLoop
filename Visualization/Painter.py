@@ -1,7 +1,7 @@
 __date__='2026.03.30'
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDialog, QVBoxLayout
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QToolButton
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -171,16 +171,44 @@ class PlotWindow(QDialog):
     def __init__(self, title="Plot", parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
+        self.setWindowFlags(
+            (self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
+            | QtCore.Qt.WindowMaximizeButtonHint
+            | QtCore.Qt.WindowMinimizeButtonHint
+        )
         self.figure = Figure()
         self.ax = self.figure.add_subplot(111)
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas, self)
+
+        # Кнопка разворачивания на полный экран / возврат
+        self.btn_fullscreen = QToolButton(self)
+        self.btn_fullscreen.setText("⛶ Fullscreen")
+        self.btn_fullscreen.setToolTip("Развернуть / Полный экран (F11)")
+        self.btn_fullscreen.clicked.connect(self.toggle_fullscreen)
+        self.toolbar.addWidget(self.btn_fullscreen)
+
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
         self.setLayout(layout)
         self.resize(800, 500)
 
+    def toggle_fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+        elif self.isMaximized():
+            self.showFullScreen()
+        else:
+            self.showMaximized()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_F11:
+            self.toggle_fullscreen()
+        elif event.key() == QtCore.Qt.Key_Escape and (self.isFullScreen() or self.isMaximized()):
+            self.showNormal()
+        else:
+            super().keyPressEvent(event)
 
 if __name__=='__main__':
     import logging; logging.basicConfig(level=logging.DEBUG)

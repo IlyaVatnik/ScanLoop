@@ -9,6 +9,7 @@ import os,sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from datetime import datetime
 from scipy import interpolate
 from PyQt5.QtCore import QObject,pyqtSignal
 import pickle
@@ -129,7 +130,20 @@ class Spectral_processor(QObject, Loggable):
                 except:
                     a=0
                 return a
-
+            if axis=='t':
+                try:
+                    s_val = self.find_between(string, 't=', '_')
+                    if s_val != "":
+                        return float(s_val)
+                except:
+                    pass
+                try:
+                    full_p = os.path.join(self.source_dir_path, string)
+                    if os.path.exists(full_p):
+                        return float(os.path.getmtime(full_p))
+                except:
+                    pass
+                return 0.0
     def Create2DListOfFiles(self,InputFileList,axis='X'):  
         '''
         Find all files which acqured at the same point
@@ -154,17 +168,33 @@ class Spectral_processor(QObject, Loggable):
         ## if Files are named with X position then Using new
             while FileList:
                 Name=FileList[0]
-                s=axis+'='+self.find_between(Name,axis+'=','_')+'_'
-                # s=axis+'='+str(self.get_position_from_file_name(Name,axis=axis))+'_'
-                 #s=s[2] # take signature of the position,  etc
-                Temp=[T for T in FileList if s in T]  # take all 'signature' + 'i' instances
+                val = self.find_between(Name, axis+'=', '_')
+                if val != "":
+                    s = axis + '=' + val + '_'
+                    Temp = [T for T in FileList if s in T]
+                elif axis == 't':
+                    p_val = self.find_between(Name, 'p=', '_')
+                    if p_val != "":
+                        s = 'p=' + p_val + '_'
+                        Temp = [T for T in FileList if s in T]
+                    else:
+                        Temp = [Name]
+                else:
+                    Temp = [Name]
                 NewFileList.append(Temp)
                 Positions.append([self.get_position_from_file_name(Name,axis='X'),
                                   self.get_position_from_file_name(Name,axis='Y'),
                                   self.get_position_from_file_name(Name,axis='Z'),
                                   self.get_position_from_file_name(Name,axis='W'),
-                                  self.get_position_from_file_name(Name,axis='p')])
+                                  self.get_position_from_file_name(Name,axis='p'),
+                                  self.get_position_from_file_name(Name,axis='t')])
                 FileList=[T for T in FileList if not (T in Temp)]
+            if len(Positions) > 0:
+                t_vals = [p[5] for p in Positions]
+                if min(t_vals) > 1e6:
+                    t_min = min(t_vals)
+                    for p in Positions:
+                        p[5] = round(p[5] - t_min, 3)
             return NewFileList,Positions
 
 
@@ -390,9 +420,10 @@ class Spectral_processor(QObject, Loggable):
             self.f_name='Processed_spectra_VS_wavelength.'+self.type_of_output_data     
         elif self.axis_to_plot_along=='p':
             self.f_name='Processed_spectrogram_at_spot.'+self.type_of_output_data         
+        elif self.axis_to_plot_along=='t':
+            self.f_name='Processed_spectrogram_VS_time.'+self.type_of_output_data         
         else:
             self.f_name='Processed_spectrogram.'+self.type_of_output_data         
-        from datetime import datetime
        
         if self.type_of_output_data in ['cSNAP','SNAP']:
             if self.type_of_output_data=='cSNAP':
@@ -425,7 +456,6 @@ class Spectral_processor(QObject, Loggable):
             D['R_0']=self.R_0
             D['type_of_signal']='insertion losses'
             D['refractive_index']=self.refractive_index
-            from datetime import datetime
             D['date']=datetime.today().strftime('%Y.%m.%d')
         
             pickle.dump(D,f)

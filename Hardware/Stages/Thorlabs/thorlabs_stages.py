@@ -8,8 +8,8 @@ __date__ = '2026.07.23'
 #  Для смены параметров измените значения ниже и пересоберите exe.
 # ===========================================================================
 DEFAULT_MAX_VELOCITY_MM_S = 2.0       # мм/с — максимальная скорость перемещения
-DEFAULT_ACCELERATION_MM_S2 = 0.5      # мм/с² — ускорение
-DEFAULT_HOMING_VELOCITY_MM_S = 5.0    # мм/с — скорость homing (поиска нуля)
+DEFAULT_ACCELERATION_MM_S2 = 1.5      # мм/с² — ускорение (заводской профиль Z8)
+DEFAULT_HOMING_VELOCITY_MM_S = 2.0    # мм/с — скорость homing (поиска нуля)
 # ===========================================================================
 
 import os
@@ -93,7 +93,11 @@ def _add_kinesis_to_path():
                 logger.warning("[Thorlabs] os.add_dll_directory не поддерживается")
 
 
-KDC_ENCODER_STEP = 0.03
+# Физический шаг сервоприводов Thorlabs серии Z8 (Z806, Z812, Z825):
+# Pitch = 1.0 мм (1000 мкм), StepsPerRev = 512, GearboxRatio = 67.49016
+# Отсчетов на 1 мм = 512 * 67.49016 = 34554.96192 шагов
+# 1 шаг энкодера = 1000.0 / 34554.96192 ≈ 0.028939403847844007 мкм/шаг
+KDC_ENCODER_STEP = 1000.0 / (512.0 * 67.49016)
 
 
 def _scan_via(driver_module, label):
@@ -161,7 +165,7 @@ def get_thorlabs_serials():
 
 
 class ThorlabsCube:
-    def __init__(self, serial_no):
+    def __init__(self, serial_no, max_velocity_mm_s=DEFAULT_MAX_VELOCITY_MM_S, acceleration_mm_s2=DEFAULT_ACCELERATION_MM_S2):
         _add_kinesis_to_path()
 
         try:
@@ -169,9 +173,18 @@ class ThorlabsCube:
         except FileNotFoundError as e:
             raise RuntimeError(f"Thorlabs DLL не найдена: {e}")
 
-        self.serial_no = c_char_p(bytes(serial_no, "utf-8"))
-        self.encoder_step = KDC_ENCODER_STEP
-        self.milliseconds = c_int(100)
+        if isinstance(serial_no, (int, str)):
+            self._serial_str = str(serial_no)
+            self.serial_no = c_char_p(bytes(str(serial_no), "utf-8"))
+        elif hasattr(serial_no, 'value'):
+            self._serial_str = serial_no.value.decode("utf-8") if isinstance(serial_no.value, bytes) else str(serial_no.value)
+            self.serial_no = serial_no
+        else:
+            self._serial_str = str(serial_no)
+            self.serial_no = c_char_p(bytes(str(serial_no), "utf-8"))
+
+        self.encoder_step = KDC_ENCODER_STEP  # физический шаг энкодера (мкм/шаг)
+        self.milliseconds = c_int(50)
         self.is_connected = False
         self.kdc = kdc
 
@@ -179,47 +192,150 @@ class ThorlabsCube:
         err = self.kdc.CC_Open(self.serial_no)
         time.sleep(0.1)
         if err == 0:
-            logger.info(f"[Thorlabs.KDC] Подключено: {serial_no}")
-            kdc_min_vel = 5
-            kdc_accel = int(10 / KDC_ENCODER_STEP)
-            kdc_max_vel = int(2.0 / KDC_ENCODER_STEP)
-            self.kdc.CC_SetVelParams(self.serial_no, c_int(kdc_min_vel), c_int(kdc_accel), c_int(kdc_max_vel))
-            logger.info(f"[Thorlabs.KDC] Velocity set: minVel={kdc_min_vel}, accel={kdc_accel}, maxVel={kdc_max_vel}")
-            self.is_connected = True
-        else:
-            raise RuntimeError(f"Не удалось подключиться к KDC {serial_no}")
+            logger.info(f"[Thorlabs.KDC] Подключено: {self._serial_str}")
+            self.kdc.CC_StartPolling(self.serial_no, self.milliseconds)
+            time.sleep(0.1)
+            self.kdc.CC_EnableChannel(self.serial_no)
+            time.sleep(0.1)
+            self.kdc.CC_ClearMessageQueue(self.serial_no)
+            
+            # Калибровка физической модели привода Z8 в Kinesis DLL
+            try:
+                self.kdc.CC_SetMotorParamsExt(
+                    self.serial_no,
+                    c_double(512.0),
+                    c_double(67.49016),
+                    c_double(1.0)
+                )
+            except Exception as e:
+                logger.warning(f"[Thorlabs.KDC] Ошибка CC_SetMotorParamsExt: {e}")
 
-    def get_position(self):
+            # Применение настроек скорости и разгона
+            try:
+                self.set_velocity(max_velocity_mm_s, acceleration_mm_s2)
+            except Exception as e:
+                logger.warning(f"[Thorlabs.KDC] Не удалось применить скорость: {e}")
+
+            self.is_connected = True
+            try:
+                init_pos_steps = self.get_position_steps()
+                init_pos_um = self.get_position()
+                logger.info(f"[Thorlabs.KDC] {self._serial_str} инициализирован: {init_pos_steps} шагов ({init_pos_um:.4f} мкм)")
+            except Exception:
+                pass
+        else:
+            raise RuntimeError(f"Не удалось подключиться к KDC {self._serial_str}")
+
+    def get_position_steps(self) -> int:
+        """Возвращает текущую позицию в отсчетах энкодера (целое число long int без потери точности)."""
         raw = self.kdc.CC_GetPosition(self.serial_no)
-        pos = raw.value if hasattr(raw, 'value') else int(raw)
-        return round(pos, 1)
+        if hasattr(raw, 'value') and isinstance(raw.value, int):
+            return int(raw.value)
+        try:
+            return int(raw)
+        except Exception:
+            return 0
+
+    def get_position(self) -> float:
+        """Возвращает текущую позицию в микронах (мкм) с максимальной точностью."""
+        return float(self.get_position_steps() * self.encoder_step)
+
+    def get_min_step(self) -> float:
+        """Возвращает минимальный шаг привода в микронах (1 отсчет энкодера)."""
+        return self.encoder_step
+
+    def set_velocity(self, max_velocity_mm_s: float, acceleration_mm_s2: float):
+        """Устанавливает максимальную скорость (мм/с) и ускорение (мм/с²)."""
+        try:
+            dev_vel = c_int()
+            dev_acc = c_int()
+            # Преобразование мм/с (тип 1) и мм/с² (тип 2) в device units
+            self.kdc.CC_GetDeviceUnitFromRealValue(self.serial_no, c_double(float(max_velocity_mm_s)), byref(dev_vel), c_int(1))
+            self.kdc.CC_GetDeviceUnitFromRealValue(self.serial_no, c_double(float(acceleration_mm_s2)), byref(dev_acc), c_int(2))
+            res = self.kdc.CC_SetVelParams(self.serial_no, dev_acc, dev_vel)
+            logger.info(f"[Thorlabs.KDC] {self._serial_str} Установлена скорость: {max_velocity_mm_s} мм/с ({dev_vel.value}), разгон: {acceleration_mm_s2} мм/с² ({dev_acc.value}), res={res}")
+        except Exception as e:
+            logger.error(f"[Thorlabs.KDC] Ошибка при установке скорости: {e}")
+
+    def get_velocity(self) -> dict:
+        """Считывает текущие настройки максимальной скорости (мм/с) и ускорения (мм/с²)."""
+        try:
+            acc_raw = c_int()
+            vel_raw = c_int()
+            self.kdc.CC_GetVelParams(self.serial_no, byref(acc_raw), byref(vel_raw))
+            acc_real = c_double()
+            vel_real = c_double()
+            self.kdc.CC_GetRealValueFromDeviceUnit(self.serial_no, acc_raw.value, byref(acc_real), c_int(2))
+            self.kdc.CC_GetRealValueFromDeviceUnit(self.serial_no, vel_raw.value, byref(vel_real), c_int(1))
+            return {
+                'max_velocity': round(vel_real.value, 3),
+                'acceleration': round(acc_real.value, 3)
+            }
+        except Exception as e:
+            logger.warning(f"[Thorlabs.KDC] Ошибка get_velocity: {e}")
+            return {'max_velocity': DEFAULT_MAX_VELOCITY_MM_S, 'acceleration': DEFAULT_ACCELERATION_MM_S2}
 
     def move_relative(self, distance_mkm):
-        distance_mm = distance_mkm / 1000.0
-        distance_in_steps = int(distance_mm / self.encoder_step)
-        logger.info(f"[Thorlabs.KDC] move_relative: {distance_mkm} мкм = {distance_in_steps} шагов")
-        self.kdc.CC_StartPolling(self.serial_no, self.milliseconds)
+        """Относительное перемещение на distance_mkm микрон (расчет в целых шагах long int)."""
+        distance_in_steps = int(round(distance_mkm / self.encoder_step))
+        actual_distance_mkm = distance_in_steps * self.encoder_step
+        logger.info(f"[Thorlabs.KDC] {self._serial_str} move_relative: запрос={distance_mkm} мкм -> {distance_in_steps} шагов (факт={actual_distance_mkm:.5f} мкм)")
         self.kdc.CC_ClearMessageQueue(self.serial_no)
-        time.sleep(0.1)
-        self.kdc.CC_SetMoveRelativeDistance(self.serial_no, c_int(distance_in_steps))
-        self.kdc.CC_MoveRelativeDistance(self.serial_no)
-        time.sleep(0.5)
-        self.kdc.CC_StopPolling(self.serial_no)
+        if hasattr(self.kdc, 'CC_MoveRelative') and self.kdc.CC_MoveRelative:
+            self.kdc.CC_MoveRelative(self.serial_no, c_int(distance_in_steps))
+        else:
+            self.kdc.CC_SetMoveRelativeDistance(self.serial_no, c_int(distance_in_steps))
+            self.kdc.CC_MoveRelativeDistance(self.serial_no)
 
-    def move_home(self):
-        logger.info("[Thorlabs.KDC] move_home")
-        self.kdc.CC_StartPolling(self.serial_no, self.milliseconds)
+    def move_home(self, timeout=60.0):
+        """Поиск домашней позиции (home) с аппаратной калибровкой нуля."""
+        logger.info(f"[Thorlabs.KDC] {self._serial_str} move_home")
         self.kdc.CC_ClearMessageQueue(self.serial_no)
         self.kdc.CC_Home(self.serial_no)
-        time.sleep(2)
-        self.kdc.CC_StopPolling(self.serial_no)
+        time.sleep(0.5)
+        start_t = time.time()
+        while time.time() - start_t < timeout:
+            try:
+                st = self.kdc.CC_GetStatusBits(self.serial_no)
+                st_val = st.value if hasattr(st, 'value') else int(st)
+            except Exception:
+                st_val = 0
+            # Ожидаем: флаг Homed (0x400) установлен И нет движения (0x20000030 == 0) И не в процессе homing (0x200 == 0)
+            if (st_val & 0x00000400) and ((st_val & 0x20000230) == 0):
+                break
+            time.sleep(0.1)
+        time.sleep(0.1)
 
-    def wait_for_stop(self):
-        pass
+    def wait_for_stop(self, timeout=15.0):
+        """Ожидание завершения движения или homing подвижки."""
+        time.sleep(0.15)  # Пауза, чтобы контроллер успел выставить флаг движения/homing
+        start_t = time.time()
+        while time.time() - start_t < timeout:
+            try:
+                st = self.kdc.CC_GetStatusBits(self.serial_no)
+                if hasattr(st, 'value') and isinstance(st.value, int):
+                    st_val = st.value
+                elif isinstance(st, int):
+                    st_val = st
+                else:
+                    st_val = 0
+            except Exception:
+                st_val = 0
+            # Бит 29 (0x20000000) - In Motion, биты 4-5 (0x30) - CW/CCW moving, бит 9 (0x200) - Homing
+            if (st_val & 0x20000230) == 0:
+                break
+            time.sleep(0.05)
 
     def close(self):
-        self.kdc.CC_Close(self.serial_no)
-        logger.info(f"[Thorlabs.KDC] Закрыто: {self.serial_no.value.decode()}")
+        if self.is_connected:
+            self.is_connected = False
+            try:
+                self.kdc.CC_StopPolling(self.serial_no)
+                time.sleep(0.05)
+                self.kdc.CC_Close(self.serial_no)
+                logger.info(f"[Thorlabs.KDC] Закрыто: {self._serial_str}")
+            except Exception as e:
+                logger.warning(f"[Thorlabs.KDC] Ошибка при закрытии {self._serial_str}: {e}")
 
     def __del__(self):
         try:

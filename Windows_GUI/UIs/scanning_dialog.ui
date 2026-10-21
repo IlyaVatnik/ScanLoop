@@ -535,6 +535,16 @@
       <string>Piezo</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>None</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Time</string>
+     </property>
+    </item>
    </widget>
    <widget class="QComboBox" name="comboBox_axis_to_get_contact">
     <property name="geometry">

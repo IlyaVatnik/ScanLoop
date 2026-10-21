@@ -2114,3 +2114,28 @@ Smoke-тест (mock OSA+PM, без лазера, 1550.0 nm, шаг 0.1 pm, max_
      * `Thorlabs.MotionControl.FTD2xx_Net.dll`
    - Создан архив дистрибутива: `dist/v5_ScanLoop_Dodik_VIRMAYLINPC.zip` (178.53 MB).
 
+
+================================================================================
+  СЕССИЯ 2026-10-21: ВРЕМЕННЫЕ ИЗМЕРЕНИЯ (SPECTROGRAM VS TIME) + FULLSCREEN UI
+================================================================================
+
+1. РАЗВОРАЧИВАНИЕ ОКНА ГРАФИКОВ НА ПОЛНЫЙ ЭКРАН (PlotWindow):
+   - В Visualization/Painter.py обновлен класс PlotWindow (QDialog).
+   - Включены нативные флаги WindowMaximizeButtonHint и WindowMinimizeButtonHint,
+     удален WindowContextHelpButtonHint (активирована кнопка [ ] в заголовке окна).
+   - В NavigationToolbar добавлена кнопка "⛶ Fullscreen" ("Развернуть / Полный экран").
+   - Добавлены горячие клавиши F11 (полный экран) и Escape (возврат).
+
+2. ИЗМЕРЕНИЯ СПЕКТРОВ В ОДНОЙ ТОЧКЕ ОТ ВРЕМЕНИ:
+   - В Scripts/ScanningProcessOSA.py реализована фиксация времени t_elapsed от старта сканирования.
+   - Время автоматически вшивается в имя файла спектра (_t={:.2f}_).
+   - В диалоге сканирования добавлены оси 'Time' и 'None' (сканирование без механических подвижек).
+   - В Logger/Logger.py добавлен логгер timestamps.txt в папку данных.
+
+3. ПОСТРОЕНИЕ 2D-СПЕКТРОГРАММЫ ПО ОСИ ВРЕМЕНИ:
+   - В Scripts/SNAP_experiment.py в axes_dict добавлена ось 't': 5.
+   - В Scripts/Spectral_processor.py и processing_dialog добавлена ось 't' для построения
+     спектрограммы по времени (выгрузка Processed_spectrogram_VS_time.SNAP / .pkl3d).
+   - Реализован фоллбэк по mtime файлов для обработки ранее записанных серий без тега t=.
+   - В Scripts/Analyzer.py добавлено отображение шкалы времени "Time, s" / "Время, с",
+     скрыты шаги в микронах при временных замерах.
